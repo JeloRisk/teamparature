@@ -47,10 +47,14 @@ export async function POST(req: Request) {
 
         // Generate verification token and save it to the VerificationToken collection
         const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+
         await VerificationToken.create({
             userId: user._id,
             token,
+            expiresAt,
         });
+
 
         // Send the verification email
         await sendVerificationEmail({ name: firstName, email, token });
