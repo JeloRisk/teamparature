@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Activity, UserCheck, Lightbulb } from "lucide-react";
 import gsap from "gsap";
 import Image from 'next/image';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 
 const MenuIcon = () => (
@@ -22,6 +22,8 @@ const CloseIcon = () => (
 
 
 export default function LandingPage() {
+  const router = useRouter();
+
   const emojiRefs = useRef<HTMLSpanElement[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
