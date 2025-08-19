@@ -50,31 +50,45 @@ export async function sendVerificationEmail({
     const verifyLink = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
     const htmlContent = `
-    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-        <div style="background-color: #00593f; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0; font-size: 24px;">Verify Your Account</h1>
-        </div>
-        <div style="padding: 30px;">
-          <h2 style="font-size: 20px; color: #00593f;">Welcome, ${name}!</h2>
-          <p>Thank you for registering. Please click the button below to verify your email address and complete your setup.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyLink}" style="background-color: #00593f; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-size: 16px;">Verify Email</a>
-          </div>
-          <p>This verification link is valid for 1 hour.</p>
-          <p>If you did not create an account, no further action is required.</p>
-        </div>
-        <div style="background-color: #f7f7f7; color: #777; padding: 20px; text-align: center; font-size: 12px;">
-          <p>If you're having trouble with the button, copy and paste this URL into your browser:</p>
-          <p style="word-break: break-all;">${verifyLink}</p>
-          <p>&copy; ${new Date().getFullYear()} Hire/Archy. All rights reserved.</p>
-        </div>
-      </div>
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+  <div style="max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+    
+    <!-- Header with logo -->
+    <div style="background-color: #3B82F6; color: white; padding: 20px; text-align: center;">
+      <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="Teamparature" style="height: 50px; margin-bottom: 10px;" />
+      <h1 style="margin: 0; font-size: 24px;">Verify Your Teamparature Account</h1>
     </div>
-  `;
+
+    <!-- Body -->
+    <div style="padding: 30px;">
+      <h2 style="font-size: 20px; color: #3B82F6;">Hello, ${name}!</h2>
+      <p>Thank you for joining Teamparature. Click the button below to verify your email and complete your setup.</p>
+
+      <!-- Verification Button -->
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verifyLink}" 
+           style="background-color: #F97316; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-size: 16px; font-weight: bold;">
+          Verify Email
+        </a>
+      </div>
+
+      <p>This verification link is valid for 1 hour.</p>
+      <p>If you did not create an account, no action is needed.</p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background-color: #f7f7f7; color: #777; padding: 20px; text-align: center; font-size: 12px;">
+      <p>If you're having trouble with the button, copy and paste this URL into your browser:</p>
+      <p style="word-break: break-all;">${verifyLink}</p>
+      <p>&copy; ${new Date().getFullYear()} Teamparature. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+`;
+
 
     await transporter.sendMail({
-        from: `"Hire/Archy Support" <${getEnvVar('GMAIL_USER')}>`,
+        from: `"Teamparature Support" <${getEnvVar('GMAIL_USER')}>`,
         to: email,
         subject: 'Verify your email address',
         html: htmlContent,
