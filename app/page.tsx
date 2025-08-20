@@ -106,7 +106,7 @@ export default function LandingPage() {
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             <button onClick={() => router.push('/login')} className="px-5 py-2.5 text-gray-700 rounded-full font-medium hover:bg-gray-100 transition-all">Login</button>
-            <Button className="bg-blue-500 text-white hover:bg-blue-600 px-6 py-2 rounded-lg font-bold">
+            <Button onClick={() => router.push('/register')} className="bg-blue-500 text-white hover:bg-blue-600 px-6 py-2 rounded-lg font-bold">
               Register
             </Button>
           </div>
