@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { Activity, UserCheck, Lightbulb } from "lucide-react";
 import gsap from "gsap";
 import Image from 'next/image';
