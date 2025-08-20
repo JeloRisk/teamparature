@@ -8,7 +8,6 @@ import TopProgressBarClientWrapper from "./components/TopProgressBarClientWrappe
 import { ReactNode } from "react";
 import { Provider } from "./provider";
 import AuthSync from "./components/AuthSync";
-// Load Google fonts with CSS variable support
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,9 +26,12 @@ const titanOne = Titan_One({
 
 // Site metadata
 export const metadata: Metadata = {
-  title: "Hirearchy – Smarter Job Tracking",
-  description:
-    "Hirearchy helps you organize your job search with smart tools, effortless tracking, and a clean dashboard — all in one place.",
+  title: "Teamparature – Team Mood Tracking",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
