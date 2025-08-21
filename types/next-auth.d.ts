@@ -12,14 +12,20 @@ declare module 'next-auth' {
             lastName?: string
             avatar?: string
             birthday?: string
+            onboarded: boolean;
+
         }
     }
 
     interface User {
         id: string
+        onboarded: boolean;
+
     }
 
     interface JWT {
         id?: string
+        onboarded: boolean;
+
     }
 }
