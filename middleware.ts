@@ -1,4 +1,3 @@
-// middleware.ts
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -8,41 +7,56 @@ export async function middleware(req: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET,
         secureCookie: process.env.NODE_ENV === 'production',
     });
-    console.log('Token in middleware:', token);
-    const { pathname } = req.nextUrl;
 
+    const { pathname } = req.nextUrl;
     const isAuthenticated = !!token;
     const userRole = token?.role as string | undefined;
+    const onboarded = token?.onboarded as boolean | undefined;
 
     const guestRoutes = ['/login', '/register'];
     const protectedRoutes = ['/dashboard'];
     const adminRoutes = ['/admin'];
+    const onboardingRoute = '/onboarding';
+    console.log(token)
 
-    // If logged in user tries to access guest pages, redirect to dashboard
+    // 1️⃣ Redirect authenticated users away from guest routes
     if (isAuthenticated && guestRoutes.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // If unauthenticated user tries to access protected or admin routes, redirect to login
-    if (!isAuthenticated && (protectedRoutes.some(route => pathname.startsWith(route)) || adminRoutes.some(route => pathname.startsWith(route)))) {
+    // 2️⃣ Redirect unauthenticated users away from protected/admin/onboarding routes
+    if (!isAuthenticated && (
+        protectedRoutes.some(route => pathname.startsWith(route)) ||
+        adminRoutes.some(route => pathname.startsWith('/admin')) ||
+        pathname.startsWith(onboardingRoute)
+    )) {
         return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    // If authenticated non-admin tries to access admin routes, redirect to dashboard
-    if (isAuthenticated && adminRoutes.some(route => pathname.startsWith(route)) && userRole !== 'admin') {
+    // 3️⃣ Redirect non-admin users away from admin pages
+    if (isAuthenticated && adminRoutes.some(route => pathname.startsWith('/admin')) && userRole !== 'admin') {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+
+    // 4️⃣ Redirect users to onboarding if not onboarded
+    if (isAuthenticated && !onboarded && pathname !== onboardingRoute) {
+        return NextResponse.redirect(new URL(onboardingRoute, req.url));
+    }
+
+    // 5️⃣ Redirect onboarded users away from onboarding page
+    if (isAuthenticated && onboarded && pathname === onboardingRoute) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
     return NextResponse.next();
 }
 
-
-// This config applies the middleware to all the routes you want to manage.
 export const config = {
     matcher: [
         '/login',
         '/register',
         '/dashboard/:path*',
         '/admin/:path*',
+        '/onboarding/:path*', // include onboarding so we can control access
     ],
 };

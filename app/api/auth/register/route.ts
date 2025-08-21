@@ -43,6 +43,7 @@ export async function POST(req: Request) {
             email,
             password: hashedPassword,
             birthday,
+            onboarded: false,
         });
 
         // Generate verification token and save it to the VerificationToken collection

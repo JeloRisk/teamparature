@@ -1,0 +1,58 @@
+"use client";
+
+import { ReactNode } from "react";
+import {
+    SidebarProvider,
+    SidebarInset,
+    useSidebar,
+} from "@/app/components/ui/sidebar";
+import {
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbPage,
+} from "@/app/components/ui/breadcrumb";
+import { AppSidebar } from "@/app/components/AppSidebar";
+import { Menu } from "lucide-react";
+
+function DashboardContent({ children }: { children: ReactNode }) {
+    const { toggleSidebar } = useSidebar();
+
+    return (
+        <>
+            <AppSidebar variant="sidebar" />
+
+            <SidebarInset>
+                {/* Header */}
+                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
+                    <button onClick={toggleSidebar} className="p-2 hover:bg-gray-100 rounded">
+                        <Menu className="h-5 w-5" />
+                    </button>
+
+                    <div className="h-4 w-px bg-black" />
+
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbPage className="line-clamp-1">
+                                    Dashboard
+                                </BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </header>
+
+                {/* Main Content */}
+                <main className="flex-1 p-4">{children}</main>
+            </SidebarInset>
+        </>
+    );
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+    return (
+        <SidebarProvider>
+            <DashboardContent>{children}</DashboardContent>
+        </SidebarProvider>
+    );
+}
