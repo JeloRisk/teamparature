@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
-const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -19,12 +19,14 @@ const session = await getServerSession(authOptions);
     const org = await Organization.create({
         name: body.name,
         inviteCode,
-        createdBy: session.user.id, 
+        createdBy: session.user.id,
     });
 
     await User.findByIdAndUpdate(session.user.id, {
         $push: { orgs: { orgId: org._id, role: "owner" } },
     });
+    await User.findByIdAndUpdate(session.user.id, { onboarded: true });
+
 
     return NextResponse.json(org);
 }
