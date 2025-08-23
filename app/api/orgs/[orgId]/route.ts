@@ -38,7 +38,6 @@ export async function GET(
             )
         }
 
-        // Fetch organization details
         const organization = await Organization.findById(params.orgId).lean()
         if (!organization) {
             return NextResponse.json({ error: "Organization not found" }, { status: 404 })

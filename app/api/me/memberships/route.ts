@@ -1,61 +1,44 @@
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth/next";
-import { Membership } from "@/models/Membership";
+import { Membership } from "@/models/Membership"
+import { Organization } from "@/models/Organization"
+import { Team } from "@/models/Team"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
-export async function GET(req: Request) {
+export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
-
+        const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 })
         }
 
-        // fetch memberships, populate both org + team
-        const memberships = await Membership.find({ user: session.user.id })
-            .populate({
-                path: "organization",
-                select: "_id name createdBy",
-            })
-            .populate({
-                path: "team",
-                select: "_id name description createdBy organization",
-            })
-            .lean();
+        // raw memberships
+        const memberships = await Membership.find({ user: session.user.id }).lean()
 
-        const formatted = memberships.map((m: any) => ({
+        // fetch org + team manually
+        const orgIds = memberships.map((m) => m.organization).filter(Boolean)
+        const teamIds = memberships.map((m) => m.team).filter(Boolean)
+
+        const [orgs, teams] = await Promise.all([
+            Organization.find({ _id: { $in: orgIds } }).lean(),
+            Team.find({ _id: { $in: teamIds } }).lean(),
+        ])
+
+        const orgMap = new Map(orgs.map((o) => [String(o._id), o]))
+        const teamMap = new Map(teams.map((t) => [String(t._id), t]))
+
+        const formatted = memberships.map((m) => ({
             _id: m._id,
             role: m.role,
             isActive: m.isActive,
-            organization: m.organization
-                ? {
-                    _id: m.organization._id,
-                    name: m.organization.name,
-                    createdBy: m.organization.createdBy,
-                    isCreator:
-                        String(m.organization.createdBy) ===
-                        String(session.user.id),
-                }
-                : null,
-            team: m.team
-                ? {
-                    _id: m.team._id,
-                    name: m.team.name,
-                    description: m.team.description,
-                    createdBy: m.team.createdBy,
-                    isCreator:
-                        String(m.team.createdBy) === String(session.user.id),
-                }
-                : null,
-        }));
+            organization: orgMap.get(String(m.organization)) || null,
+            team: teamMap.get(String(m.team)) || null,
+        }))
 
-        return new Response(JSON.stringify({ memberships: formatted }), {
-            status: 200,
-        });
+        return new Response(JSON.stringify({ memberships: formatted }), { status: 200 })
     } catch (err) {
-        console.error("Memberships API error:", err);
-        return new Response(
-            JSON.stringify({ error: "Failed to fetch memberships" }),
-            { status: 500 }
-        );
+        console.error("Memberships API error:", err)
+        return new Response(JSON.stringify({ error: "Failed to fetch memberships" }), {
+            status: 500,
+        })
     }
 }

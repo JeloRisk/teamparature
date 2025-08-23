@@ -1,40 +1,40 @@
 "use client"
 
-import { use, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
+
 export default function DashboardPage() {
     const router = useRouter()
     const { memberships, fetchMemberships, loading } = useMembershipStore()
 
+    // Fetch memberships once on mount
     useEffect(() => {
-        const load = async () => {
-            await fetchMemberships()
+        fetchMemberships()
+    }, [fetchMemberships])
 
-            if (!loading && memberships.length > 0) {
-                // Separate owners and members
-                const owners = memberships.filter((m) => m.role === "owner")
-                const others = memberships.filter((m) => m.role !== "owner")
+    // Redirect when memberships are loaded
+    useEffect(() => {
+        if (loading) return
+        if (memberships.length === 0) return
 
-                // Sort alphabetically by organization name
-                const sortByName = (a: any, b: any) =>
-                    a.organization.name.localeCompare(b.organization.name)
+        const owners = memberships.filter((m) => m.role === "owner")
+        const others = memberships.filter((m) => m.role !== "owner")
 
-                let chosen
-                if (owners.length > 0) {
-                    chosen = owners.sort(sortByName)[0]
-                } else {
-                    chosen = others.sort(sortByName)[0]
-                }
+        const sortByName = (a: any, b: any) =>
+            a.organization.name.localeCompare(b.organization.name)
 
-                if (chosen) {
-                    router.replace(`/${chosen.organization._id}/dashboard`)
-                }
-            }
+        let chosen
+        if (owners.length > 0) {
+            chosen = owners.sort(sortByName)[0]
+        } else {
+            chosen = others.sort(sortByName)[0]
         }
 
-        load()
-    }, [fetchMemberships, memberships, loading, router])
+        if (chosen) {
+            router.replace(`/${chosen.organization._id}/dashboard`)
+        }
+    }, [memberships, loading, router])
 
     return (
         <div className="flex items-center justify-center h-screen">

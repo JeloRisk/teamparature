@@ -56,29 +56,34 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-10">
             {/* Org Header */}
-            <Card className="overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
-                <CardHeader className="flex flex-row items-center gap-4">
+            <Card className="overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="flex items-center gap-4">
                     {organization.logoUrl ? (
                         <Image
                             src={organization.logoUrl}
                             alt={organization.name}
                             width={64}
                             height={64}
-                            className="rounded-xl border bg-white p-1"
+                            className="rounded-xl border bg-white p-2 shadow-sm"
                         />
                     ) : (
-                        <div className="h-16 w-16 rounded-xl bg-indigo-600 flex items-center justify-center text-lg font-bold text-white">
+                        <div className="h-16 w-16 rounded-xl bg-indigo-600 flex items-center justify-center text-xl font-bold text-white shadow-sm">
                             {organization.name.charAt(0).toUpperCase()}
                         </div>
                     )}
-                    <div>
-                        <CardTitle className="text-2xl font-bold">{organization.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground capitalize">
-                            Plan: <span className="font-medium text-indigo-600">{organization.plan}</span>
+
+                    <div className="flex flex-col">
+                        <CardTitle className="text-2xl font-bold text-gray-900">
+                            {organization.name}
+                        </CardTitle>
+
+                        <p className="text-xs mt-1 text-gray-500">
+                            Slug: <span className="font-mono text-indigo-700">{organization.slug}</span>
                         </p>
                     </div>
                 </CardHeader>
             </Card>
+
 
             {/* Stats Section */}
             <div className="grid gap-6 md:grid-cols-3">

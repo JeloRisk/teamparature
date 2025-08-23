@@ -25,7 +25,7 @@ interface MembershipState {
     error: string | null
     fetchMemberships: () => Promise<void>
     setActiveMembership: (membership: Membership) => void
-    fetchOrganizationDetails: (orgId: string) => Promise<void>
+    fetchOrganizationDetails: (orgId: string) => Promise<Organization | null>
 }
 
 export const useMembershipStore = create<MembershipState>((set) => ({
@@ -65,11 +65,11 @@ export const useMembershipStore = create<MembershipState>((set) => ({
             if (!res.ok) throw new Error("Failed to fetch organization details")
             const data = await res.json()
             set({ organization: data.organization, loading: false })
-            return data.organization // <-- return the org here
+            return data.organization
         } catch (err: any) {
             console.error("Organization fetch error:", err)
             set({ loading: false, error: err.message })
-            return null // <-- return null on error
+            return null
         }
     },
 
