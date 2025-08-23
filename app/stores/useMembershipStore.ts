@@ -7,6 +7,7 @@ interface Organization {
     name: string
     plan: string
     logoUrl?: string
+    slug: string
     memberships?: { role: string }[]
 }
 
@@ -15,7 +16,7 @@ interface Membership {
     organization: Organization
     role: string
     isCreator?: boolean
-}
+}   
 
 interface MembershipState {
     memberships: Membership[]
