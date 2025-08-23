@@ -16,9 +16,11 @@ interface OrgLayoutProps {
 }
 
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
+    const { orgId } = await params
+
     await connectDB()
 
-    if (!Types.ObjectId.isValid(params.orgId)) return notFound()
+    if (!Types.ObjectId.isValid(orgId)) return notFound()
 
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) return notFound()
@@ -28,11 +30,11 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
 
     const membership = await Membership.findOne({
         user: user._id,
-        organization: params.orgId,
+        organization: orgId,
     })
     if (!membership) return notFound()
 
-    const organizationDoc = await Organization.findById(params.orgId).lean()
+    const organizationDoc = await Organization.findById(orgId).lean()
     if (!organizationDoc) return notFound()
 
     // 🔥 Convert Mongoose doc → plain object

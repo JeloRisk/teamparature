@@ -9,7 +9,7 @@ import User from "@/models/User"
 
 export async function GET(
     req: Request,
-    { params }: { params: { orgId: string } }
+    context: { params: Promise<{ orgId: string }> } // 👈 params is async now
 ) {
     try {
         await connectDB()
@@ -18,6 +18,9 @@ export async function GET(
         if (!session || !session.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
+
+        // Get orgId from awaited params
+        const { orgId } = await context.params
 
         // Get logged-in user
         const user = await User.findOne({ email: session.user.email })
@@ -28,7 +31,7 @@ export async function GET(
         // Check membership
         const membership = await Membership.findOne({
             user: user._id,
-            organization: params.orgId,
+            organization: orgId,
         })
 
         if (!membership) {
@@ -38,7 +41,7 @@ export async function GET(
             )
         }
 
-        const organization = await Organization.findById(params.orgId).lean()
+        const organization = await Organization.findById(orgId).lean()
         if (!organization) {
             return NextResponse.json({ error: "Organization not found" }, { status: 404 })
         }
