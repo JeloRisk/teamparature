@@ -257,7 +257,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
             <UserCheck className="w-12 h-12 text-orange-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Track Trends</h3>
-            <p className="text-gray-700">Visual dashboards show mood & energy trends for each team and project.</p>
+            <p className="text-gray-700">Visual nenwboards show mood & energy trends for each team and project.</p>
           </div>
           <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
             <Lightbulb className="w-12 h-12 text-blue-500 mb-4" />

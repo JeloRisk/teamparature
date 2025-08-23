@@ -27,6 +27,8 @@ import {
   BarChart3
 } from "lucide-react";
 import { useUserStore } from '../stores/useUserStore';
+import { MembershipSwitcher } from './TeamSwitcher';
+import { useMembershipStore } from '../stores/useMembershipStore';
 
 interface MenuItem {
   title: string;
@@ -34,17 +36,21 @@ interface MenuItem {
   icon: React.ElementType;
 }
 
-const menuItems: MenuItem[] = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Teams', url: '/resumes', icon: Group },
-  { title: 'Members', url: '/interview-practices', icon: Users },
-  { title: 'Moods', url: '/moods', icon: Smile },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
-];
-
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const activeMembership = useMembershipStore((s) => s.activeMembership)
+  const orgId = activeMembership?.organization._id
+
+  const menuItems = [
+    { title: "Dashboard", url: `/${orgId}/dashboard`, icon: LayoutDashboard },
+    { title: "Teams", url: `/${orgId}/teams`, icon: Group },
+    { title: "Members", url: `/${orgId}/members`, icon: Users },
+    { title: "Moods", url: `/${orgId}/moods`, icon: Smile },
+    { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
+  ]
+
+
   const pathname = usePathname();
   const user = useUserStore((state) => state.user)
 
@@ -56,27 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Link href="#">
-                <div className="flex items-center gap-3 w-full">
-                  <div className=" text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                    <Image
-                      src="/logo.svg"
-                      alt="Logo"
-                      width={24}
-                      height={24}
-                      className="h-12 w-12"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <span className=" text-[20px] font-bold text-orange-600">teamparature</span>
-                  </div>
-                </div>
-              </Link>
-            </SidebarMenuButton>
+            <MembershipSwitcher />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
