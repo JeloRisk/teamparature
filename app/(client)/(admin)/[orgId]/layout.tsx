@@ -1,4 +1,3 @@
-// app/(admin)/[orgId]/layout.tsx
 import { ReactNode } from "react"
 import { notFound } from "next/navigation"
 import { Types } from "mongoose"
