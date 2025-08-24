@@ -8,34 +8,29 @@ import { sendOrgInvitationEmail } from "@/lib/orgInvitationMailer";
 import User from "@/models/User";
 import { Organization } from "@/models/Organization";
 import { Membership } from "@/models/Membership";
+import { requirePermission } from "@/lib/rbac";
 
 export async function POST(req: Request, context: { params: { orgId: string } }) {
     await connectDB();
     const { orgId } = context.params;
-    const body = await req.json();
-    const { email, role } = body;
+    const { email, role } = await req.json();
 
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const inviter = await User.findOne({ email: session.user.email });
-    if (!inviter) {
-        return NextResponse.json({ error: "Inviter not found" }, { status: 404 });
-    }
+    const inviter = await User.findById(session.user.id);
+    if (!inviter) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    // fetch organization
     const org = await Organization.findById(orgId);
-    if (!org) {
-        return NextResponse.json({ error: "Organization not found" }, { status: 404 });
-    }
+    if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+
+    // ✅ DRY RBAC check
+    const membershipCheck = await requirePermission(session.user.id, orgId, "invite_member");
+    if (membershipCheck instanceof NextResponse) return membershipCheck;
 
     // check if user already exists
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
-        // check if already member of org
         const existingMembership = await Membership.findOne({
             user: existingUser._id,
             organization: orgId,
@@ -50,12 +45,12 @@ export async function POST(req: Request, context: { params: { orgId: string } })
         }
     }
 
-    // check if there's already a pending invitation for this email
+    // check for existing pending invitation
     const existingInvitation = await Invitation.findOne({
         organization: orgId,
         email,
         status: "pending",
-        expiresAt: { $gt: new Date() }, // still valid
+        expiresAt: { $gt: new Date() },
     });
 
     if (existingInvitation) {
@@ -65,10 +60,9 @@ export async function POST(req: Request, context: { params: { orgId: string } })
         );
     }
 
-    // create unique token
+    // create token & save invitation
     const token = crypto.randomBytes(32).toString("hex");
 
-    // save invitation in DB (expires in 1 day)
     const invitation = await Invitation.create({
         organization: orgId,
         email,
