@@ -17,7 +17,7 @@ interface Organization {
     _id: string
     name: string
     description?: string
-    // add other org fields
+    slug: string
 }
 
 interface Membership {
