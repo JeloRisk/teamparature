@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IMembership extends Document {
     user: mongoose.Types.ObjectId;
     organization: mongoose.Types.ObjectId;
-    team?: mongoose.Types.ObjectId; 
+    team?: mongoose.Types.ObjectId;
     role: "owner" | "member";
     isActive: boolean;
 }
@@ -37,6 +37,8 @@ const MembershipSchema = new Schema<IMembership>(
     },
     { timestamps: true }
 );
+
+MembershipSchema.index({ user: 1, organization: 1 }, { unique: true });
 
 export const Membership =
     mongoose.models.Membership ||
