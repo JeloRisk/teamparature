@@ -42,6 +42,7 @@ export default function MembersPage() {
     const [roleFilter, setRoleFilter] = useState("all")
     const [inviteEmail, setInviteEmail] = useState("")
     const [inviteRole, setInviteRole] = useState("member")
+    const [sending, setSending] = useState(false)
 
     useEffect(() => {
         if (orgId) fetchOrganizationDetails(orgId)
@@ -72,30 +73,33 @@ export default function MembersPage() {
     })
 
     const handleInvite = async () => {
-        if (!inviteEmail) return alert("Enter a valid email");
+        if (!inviteEmail) return alert("Enter a valid email")
+        if (sending) return // ✅ ignore if already sending
 
+        setSending(true) // lock button
         try {
             const res = await fetch(`/api/orgs/${orgId}/invite`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
-            });
+            })
 
-            const data = await res.json();
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || "Failed to send invite")
 
-            if (!res.ok) throw new Error(data.error || "Failed to send invite");
-
-            alert(`Invitation sent to ${inviteEmail}!`);
-            setInviteEmail("");
-            setInviteRole("member");
+            alert(`Invitation sent to ${inviteEmail}!`)
+            setInviteEmail("")
+            setInviteRole("member")
         } catch (err: any) {
-            alert(err.message || "Something went wrong");
+            alert(err.message || "Something went wrong")
+        } finally {
+            setSending(false) // unlock button
         }
-    };
+    }
 
     return (
         <div className="space-y-6">
-
+            {/* header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-blue-800">
@@ -106,6 +110,7 @@ export default function MembersPage() {
                     </p>
                 </div>
 
+                {/* invite dialog */}
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button className="bg-orange-500 hover:bg-orange-600 text-white">
@@ -116,7 +121,8 @@ export default function MembersPage() {
                         <DialogHeader>
                             <DialogTitle>Invite a new member</DialogTitle>
                             <DialogDescription>
-                                Send an invitation to join <span className="font-semibold">{organization.name}</span>.
+                                Send an invitation to join{" "}
+                                <span className="font-semibold">{organization.name}</span>.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -148,14 +154,16 @@ export default function MembersPage() {
                             <Button
                                 onClick={handleInvite}
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
+                                disabled={sending} // ✅ disabled while sending
                             >
-                                Send Invite
+                                {sending ? "Sending..." : "Send Invite"} {/* ✅ feedback */}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
 
+            {/* filters */}
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                 <Input
                     placeholder="Search members..."
@@ -175,6 +183,7 @@ export default function MembersPage() {
                 </Select>
             </div>
 
+            {/* members table */}
             <div className="rounded-lg border border-blue-100 shadow-sm overflow-hidden">
                 <Table>
                     <TableCaption className="text-sm text-muted-foreground">
