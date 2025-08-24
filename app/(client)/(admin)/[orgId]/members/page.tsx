@@ -71,12 +71,27 @@ export default function MembersPage() {
         return matchesSearch && matchesRole
     })
 
-    const handleInvite = () => {
-        console.log("Inviting:", inviteEmail, "as", inviteRole)
-        // todo: call API /api/orgs/{orgId}/invite
-        setInviteEmail("")
-        setInviteRole("member")
-    }
+    const handleInvite = async () => {
+        if (!inviteEmail) return alert("Enter a valid email");
+
+        try {
+            const res = await fetch(`/api/orgs/${orgId}/invite`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "Failed to send invite");
+
+            alert(`Invitation sent to ${inviteEmail}!`);
+            setInviteEmail("");
+            setInviteRole("member");
+        } catch (err: any) {
+            alert(err.message || "Something went wrong");
+        }
+    };
 
     return (
         <div className="space-y-6">
