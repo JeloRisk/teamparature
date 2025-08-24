@@ -3,99 +3,79 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
+import { useSession } from "next-auth/react"
 
 import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow,
 } from "@/app/components/ui/table"
 import { Input } from "@/app/components/ui/input"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/app/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
 import { Badge } from "@/app/components/ui/badge"
 import { Button } from "@/app/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/app/components/ui/dialog"
 import { Label } from "@/app/components/ui/label"
 
 export default function MembersPage() {
     const { orgId } = useParams<{ orgId: string }>()
-    const { organization, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
+    const { organization, membership, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
+    const { data: session } = useSession()
 
     const [search, setSearch] = useState("")
     const [roleFilter, setRoleFilter] = useState("all")
     const [inviteEmail, setInviteEmail] = useState("")
-    const [inviteRole, setInviteRole] = useState("member")
+    const [inviteRole, setInviteRole] = useState<"owner" | "member">("member")
     const [sending, setSending] = useState(false)
+
+    const role = membership?.role
 
     useEffect(() => {
         if (orgId) fetchOrganizationDetails(orgId)
     }, [orgId, fetchOrganizationDetails])
 
-    if (loading) return <p>Loading...</p>
-    if (error) return <p className="text-red-500">{error}</p>
-    if (!organization) return <p>No organization found</p>
-
-    // helper: get initials
     const getInitials = (first?: string, last?: string) => {
         if (!first && !last) return "NA"
         if (first && last) return `${first[0]}${last[0]}`.toUpperCase()
         return (first || last || "NA").slice(0, 2).toUpperCase()
     }
 
-    // filter members
     const filteredMembers = memberships.filter((m) => {
         const userName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim()
         const userEmail = m.user?.email || ""
-
         const matchesSearch =
             userName.toLowerCase().includes(search.toLowerCase()) ||
             userEmail.toLowerCase().includes(search.toLowerCase())
-
         const matchesRole = roleFilter === "all" || m.role === roleFilter
         return matchesSearch && matchesRole
     })
 
     const handleInvite = async () => {
         if (!inviteEmail) return alert("Enter a valid email")
-        if (sending) return // ✅ ignore if already sending
+        if (sending) return
 
-        setSending(true) // lock button
+        setSending(true)
         try {
             const res = await fetch(`/api/orgs/${orgId}/invite`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
             })
-
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || "Failed to send invite")
-
             alert(`Invitation sent to ${inviteEmail}!`)
             setInviteEmail("")
             setInviteRole("member")
         } catch (err: any) {
             alert(err.message || "Something went wrong")
         } finally {
-            setSending(false) // unlock button
+            setSending(false)
         }
     }
+
+    if (loading) return <p>Loading...</p>
+    if (error) return <p className="text-red-500">{error}</p>
+    if (!organization) return <p>No organization found</p>
 
     return (
         <div className="space-y-6">
@@ -110,57 +90,59 @@ export default function MembersPage() {
                     </p>
                 </div>
 
-                {/* invite dialog */}
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-                            Invite Member
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Invite a new member</DialogTitle>
-                            <DialogDescription>
-                                Send an invitation to join{" "}
-                                <span className="font-semibold">{organization.name}</span>.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-4 py-2">
-                            <div className="grid gap-2">
-                                <Label>Email</Label>
-                                <Input
-                                    type="email"
-                                    placeholder="jane@example.com"
-                                    value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>Role</Label>
-                                <Select value={inviteRole} onValueChange={setInviteRole}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="owner">Owner</SelectItem>
-                                        <SelectItem value="member">Member</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        <DialogFooter>
-                            <Button
-                                onClick={handleInvite}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                disabled={sending} // ✅ disabled while sending
-                            >
-                                {sending ? "Sending..." : "Send Invite"} {/* ✅ feedback */}
+                {/* invite dialog only for owners */}
+                {role === "owner" && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                                Invite Member
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Invite a new member</DialogTitle>
+                                <DialogDescription>
+                                    Send an invitation to join{" "}
+                                    <span className="font-semibold">{organization.name}</span>.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-4 py-2">
+                                <div className="grid gap-2">
+                                    <Label>Email</Label>
+                                    <Input
+                                        type="email"
+                                        placeholder="jane@example.com"
+                                        value={inviteEmail}
+                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Role</Label>
+                                    <Select value={inviteRole} onValueChange={setInviteRole}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="owner">Owner</SelectItem>
+                                            <SelectItem value="member">Member</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    onClick={handleInvite}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    disabled={sending}
+                                >
+                                    {sending ? "Sending..." : "Send Invite"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
 
             {/* filters */}
@@ -201,10 +183,7 @@ export default function MembersPage() {
                     <TableBody>
                         {filteredMembers.length > 0 ? (
                             filteredMembers.map((m) => (
-                                <TableRow
-                                    key={m._id}
-                                    className="hover:bg-blue-50/50 transition"
-                                >
+                                <TableRow key={m._id} className="hover:bg-blue-50/50 transition">
                                     <TableCell>
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white font-semibold shadow-sm">
                                             {getInitials(m.user.firstName, m.user.lastName)}
@@ -213,9 +192,7 @@ export default function MembersPage() {
                                     <TableCell className="font-medium">
                                         {m.user.firstName} {m.user.lastName}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {m.user.email}
-                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">{m.user.email}</TableCell>
                                     <TableCell>
                                         <Badge
                                             variant="outline"
@@ -231,10 +208,7 @@ export default function MembersPage() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell
-                                    colSpan={4}
-                                    className="text-center text-muted-foreground italic py-6"
-                                >
+                                <TableCell colSpan={4} className="text-center text-muted-foreground italic py-6">
                                     No members found.
                                 </TableCell>
                             </TableRow>
