@@ -46,12 +46,18 @@ export async function GET(
             return NextResponse.json({ error: "Organization not found" }, { status: 404 })
         }
 
+        // ✅ Fetch all members of the org
+        const memberships = await Membership.find({ organization: orgId })
+            .populate("user", "firstName lastName name email image") // include more fields
+            .lean()
+
         return NextResponse.json({
             organization,
             membership: {
                 role: membership.role,
                 isCreator: membership.isCreator || false,
             },
+            memberships, // 👈 return all members here
         })
     } catch (error) {
         console.error("GET /api/orgs/[orgId] error:", error)

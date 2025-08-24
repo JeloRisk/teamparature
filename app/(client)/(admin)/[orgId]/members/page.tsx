@@ -1,136 +1,223 @@
-// app/(admin)/[orgId]/members/page.tsx
 "use client"
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import Image from "next/image"
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "@/app/components/ui/card"
+import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
+
 import {
     Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
     TableHeader,
     TableRow,
-    TableHead,
-    TableBody,
-    TableCell,
 } from "@/app/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
+import { Input } from "@/app/components/ui/input"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/app/components/ui/select"
 import { Badge } from "@/app/components/ui/badge"
-import { Loader2 } from "lucide-react"
-import { useMembershipStore } from "@/app/stores/useMembershipStore"
+import { Button } from "@/app/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/app/components/ui/dialog"
+import { Label } from "@/app/components/ui/label"
 
 export default function MembersPage() {
     const { orgId } = useParams<{ orgId: string }>()
-    const { organization, loading, error, fetchOrganizationDetails } = useMembershipStore()
-    const [orgNotFound, setOrgNotFound] = useState(false)
+    const { organization, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
+
+    const [search, setSearch] = useState("")
+    const [roleFilter, setRoleFilter] = useState("all")
+    const [inviteEmail, setInviteEmail] = useState("")
+    const [inviteRole, setInviteRole] = useState("member")
 
     useEffect(() => {
-        if (!orgId) return
-        fetchOrganizationDetails(orgId).then((org) => {
-            if (!org) setOrgNotFound(true)
-        })
+        if (orgId) fetchOrganizationDetails(orgId)
     }, [orgId, fetchOrganizationDetails])
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                Loading members...
-            </div>
-        )
+    if (loading) return <p>Loading...</p>
+    if (error) return <p className="text-red-500">{error}</p>
+    if (!organization) return <p>No organization found</p>
+
+    // helper: get initials
+    const getInitials = (first?: string, last?: string) => {
+        if (!first && !last) return "NA"
+        if (first && last) return `${first[0]}${last[0]}`.toUpperCase()
+        return (first || last || "NA").slice(0, 2).toUpperCase()
     }
 
-    if (error) return <p className="text-red-500">{error}</p>
-    if (orgNotFound) return <p className="text-muted-foreground">Organization not found.</p>
-    if (!organization) return null
+    // filter members
+    const filteredMembers = memberships.filter((m) => {
+        const userName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim()
+        const userEmail = m.user?.email || ""
 
-    const members = organization.memberships || []
+        const matchesSearch =
+            userName.toLowerCase().includes(search.toLowerCase()) ||
+            userEmail.toLowerCase().includes(search.toLowerCase())
+
+        const matchesRole = roleFilter === "all" || m.role === roleFilter
+        return matchesSearch && matchesRole
+    })
+
+    const handleInvite = () => {
+        console.log("Inviting:", inviteEmail, "as", inviteRole)
+        // todo: call API /api/orgs/{orgId}/invite
+        setInviteEmail("")
+        setInviteRole("member")
+    }
 
     return (
         <div className="space-y-6">
-            {/* Organization Header */}
-            <Card className="border border-gray-200 shadow-sm">
-                <CardHeader className="flex items-center gap-4">
-                    {organization.logoUrl ? (
-                        <Image
-                            src={organization.logoUrl}
-                            alt={organization.name}
-                            width={56}
-                            height={56}
-                            className="rounded-md border bg-white p-1"
-                        />
-                    ) : (
-                        <div className="h-14 w-14 rounded-md bg-gray-800 flex items-center justify-center text-lg font-semibold text-white">
-                            {organization.name.charAt(0).toUpperCase()}
+
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-blue-800">
+                        {organization.name} Members
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        {memberships.length} total member{memberships.length !== 1 && "s"}
+                    </p>
+                </div>
+
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                            Invite Member
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Invite a new member</DialogTitle>
+                            <DialogDescription>
+                                Send an invitation to join <span className="font-semibold">{organization.name}</span>.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-2">
+                            <div className="grid gap-2">
+                                <Label>Email</Label>
+                                <Input
+                                    type="email"
+                                    placeholder="jane@example.com"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Role</Label>
+                                <Select value={inviteRole} onValueChange={setInviteRole}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="owner">Owner</SelectItem>
+                                        <SelectItem value="member">Member</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                    )}
 
-                    <div>
-                        <CardTitle className="text-xl font-semibold text-gray-900">
-                            {organization.name} – Members
-                        </CardTitle>
-                        <p className="text-sm text-gray-500 mt-1">
-                            {members.length} total member{members.length !== 1 && "s"}
-                        </p>
-                    </div>
-                </CardHeader>
-            </Card>
+                        <DialogFooter>
+                            <Button
+                                onClick={handleInvite}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                                Send Invite
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
-            {/* Members Table */}
-            <Card className="border border-gray-200 shadow-sm">
-                <CardHeader>
-                    <CardTitle className="text-lg font-medium">Members Directory</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {members.length === 0 ? (
-                        <p className="text-muted-foreground">No members found.</p>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[40%]">Member</TableHead>
-                                    <TableHead className="w-[40%]">Email</TableHead>
-                                    <TableHead className="w-[20%]">Role</TableHead>
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <Input
+                    placeholder="Search members..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="sm:w-64 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                />
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-40 border-blue-200 focus:ring-blue-500">
+                        <SelectValue placeholder="Filter by role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="owner">Owner</SelectItem>
+                        <SelectItem value="member">Member</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="rounded-lg border border-blue-100 shadow-sm overflow-hidden">
+                <Table>
+                    <TableCaption className="text-sm text-muted-foreground">
+                        A list of all members in{" "}
+                        <span className="font-semibold text-blue-700">{organization.name}</span>
+                    </TableCaption>
+                    <TableHeader>
+                        <TableRow className="bg-blue-50">
+                            <TableHead className="w-24 text-blue-700">Initials</TableHead>
+                            <TableHead className="text-blue-700">Name</TableHead>
+                            <TableHead className="text-blue-700">Email</TableHead>
+                            <TableHead className="text-blue-700">Role</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredMembers.length > 0 ? (
+                            filteredMembers.map((m) => (
+                                <TableRow
+                                    key={m._id}
+                                    className="hover:bg-blue-50/50 transition"
+                                >
+                                    <TableCell>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white font-semibold shadow-sm">
+                                            {getInitials(m.user.firstName, m.user.lastName)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                        {m.user.firstName} {m.user.lastName}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {m.user.email}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className={`capitalize border ${m.role === "owner"
+                                                ? "border-orange-500 text-orange-600"
+                                                : "border-blue-500 text-blue-600"
+                                                }`}
+                                        >
+                                            {m.role}
+                                        </Badge>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {members.map((m: any) => (
-                                    <TableRow key={m.user._id}>
-                                        <TableCell className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={m.user.image || ""} alt={m.user.name} />
-                                                <AvatarFallback>
-                                                    {m.user.name?.charAt(0).toUpperCase()}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-gray-900">
-                                                {m.user.name}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-gray-600">{m.user.email}</TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant="outline"
-                                                className={
-                                                    m.role === "creator"
-                                                        ? "border-gray-800 text-gray-800"
-                                                        : "border-gray-400 text-gray-600"
-                                                }
-                                            >
-                                                {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={4}
+                                    className="text-center text-muted-foreground italic py-6"
+                                >
+                                    No members found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     )
 }
