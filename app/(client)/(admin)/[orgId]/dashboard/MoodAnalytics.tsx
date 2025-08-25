@@ -39,13 +39,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     });
 
     return (
-        <Card className="shadow-sm border hover:shadow-md transition">
-            <CardHeader>
-                <CardTitle className="text-lg font-semibold">Weekly Mood Trends</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <MoodTrendsChart data={moodData} />
-            </CardContent>
-        </Card>
+        <MoodTrendsChart data={moodData} />
+
     );
 }

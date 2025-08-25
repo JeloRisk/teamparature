@@ -53,8 +53,8 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
     }
 
     return (
-        <Card className={`border hover:border-orange-300 transition`}>
-            <CardHeader className="pb-2">
+        <Card className={`border  hover:border-orange-300 transition gap-2`}>
+            <CardHeader className="">
                 <CardTitle className="text-lg font-semibold">Today's Mood</CardTitle>
             </CardHeader>
             <CardContent>
@@ -70,9 +70,11 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
                     </div>
                 ) : (
                     <div className="flex flex-col gap-3 text-red-600">
-                        <div className="flex items-center gap-3">
-                            <Frown className="w-5 h-5" />
-                            <p>No mood tracked today yet ❌</p>
+                        <div className="flex flex-row items-center gap-2 text-blue-400 animate-pulse">
+                            <div className="text-md">❄️</div>
+                            <p className="text-center text-lg font-medium">
+                                No mood tracked today yet
+                            </p>
                         </div>
                         <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger asChild>
@@ -115,7 +117,7 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
                                         <p className="text-sm text-gray-500">Selected: {rank}</p>
                                     </div>
 
-                                    <Textarea
+                                    =                                    <Textarea
                                         placeholder="Add a note (optional)..."
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
