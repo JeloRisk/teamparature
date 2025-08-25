@@ -20,6 +20,7 @@ import { Label } from "@/app/components/ui/label"
 export default function MembersPage() {
     const { orgId } = useParams<{ orgId: string }>()
     const { organization, membership, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
+    // console.log(memberships)
     const { data: session } = useSession()
 
     const [search, setSearch] = useState("")
@@ -119,7 +120,7 @@ export default function MembersPage() {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Role</Label>
-                                    <Select value={inviteRole} onValueChange={setInviteRole}>
+                                    <Select value={inviteRole} onValueChange={(val) => setInviteRole(val as "owner" | "member")}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
@@ -128,6 +129,7 @@ export default function MembersPage() {
                                             <SelectItem value="member">Member</SelectItem>
                                         </SelectContent>
                                     </Select>
+
                                 </div>
                             </div>
 
