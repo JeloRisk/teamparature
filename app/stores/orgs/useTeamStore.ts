@@ -28,7 +28,7 @@ interface Membership {
 interface OrgState {
     organization: Organization | null
     membership: Membership | null
-    memberships: Member[] // 👈 all members
+    memberships: Member[]
     loading: boolean
     error: string | null
 

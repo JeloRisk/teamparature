@@ -7,7 +7,7 @@ import { Skeleton } from "@/app/components/ui/skeleton"
 
 export default function AdminDashboardPage() {
     const { orgId } = useParams<{ orgId: string }>()
-    const { organization, membership, loading, fetchOrganizationDetails } = useOrgStore()
+    const { organization, membership, memberships, loading, fetchOrganizationDetails } = useOrgStore()
 
     // Fetch once on mount
     useEffect(() => {
@@ -30,7 +30,6 @@ export default function AdminDashboardPage() {
                 <Skeleton className="h-28 rounded-xl" />
             </div>
 
-            {/* Table/Content block */}
             <div className="space-y-2">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-48 rounded-xl" />
@@ -46,5 +45,5 @@ export default function AdminDashboardPage() {
     // Derive role directly
     const userRole = membership.role as "owner" | "member"
 
-    return <Dashboard userRole={userRole} organization={organization} />
+    return <Dashboard userRole={userRole} organization={organization} memberships={memberships} />
 }

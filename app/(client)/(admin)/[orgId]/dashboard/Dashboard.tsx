@@ -3,6 +3,7 @@ import { Users, Crown, TrendingUp } from "lucide-react"
 import OrganizationHeader from "./OrganizationHeader"
 import StatsCard from "./StatsCard"
 import MoodTrendsChart from "./MoodTrendsChart"
+import type { Member } from "@/types/membership"
 
 const moodData = [
     { day: "Mon", happy: 12, neutral: 4, sad: 2 },
@@ -20,12 +21,14 @@ interface DashboardProps {
         slug: string
         memberships?: { role: "owner" | "member" }[]
     }
+    memberships: Member[]
 }
 
-export default function Dashboard({ userRole, organization }: DashboardProps) {
+export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
     if (!organization) return null
+    console.log(userRole)
 
-    const totalMembers = organization.memberships?.length || 0
+    const totalMembers = memberships?.length || 0
     const creators = organization.memberships?.filter((m) => m.role === "owner").length || 0
     const membersOnly = totalMembers - creators
 
