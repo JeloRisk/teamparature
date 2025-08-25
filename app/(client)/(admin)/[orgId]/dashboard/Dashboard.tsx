@@ -4,6 +4,8 @@ import OrganizationHeader from "./OrganizationHeader"
 import StatsCard from "./StatsCard"
 import MoodTrendsChart from "./MoodTrendsChart"
 import type { Member } from "@/types/membership"
+import MoodCheck from "./MoodCheck"
+
 
 const moodData = [
     { day: "Mon", happy: 12, neutral: 4, sad: 2 },
@@ -18,15 +20,14 @@ interface DashboardProps {
     organization: {
         name: string
         logoUrl?: string
+
         slug: string
         memberships?: { role: "owner" | "member" }[]
     }
     memberships: Member[]
 }
-
 export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
     if (!organization) return null
-    console.log(userRole)
 
     const totalMembers = memberships?.length || 0
     const creators = organization.memberships?.filter((m) => m.role === "owner").length || 0
@@ -68,6 +69,8 @@ export default function Dashboard({ userRole, organization, memberships }: Dashb
                     />
                 </div>
             )}
+
+            <MoodCheck orgId={organization.slug} userId="currentUserIdHere" />
 
             <MoodTrendsChart data={moodData} />
         </div>
