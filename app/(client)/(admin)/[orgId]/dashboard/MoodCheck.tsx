@@ -39,7 +39,8 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
         fetchMoods(orgId)
     }, [orgId, fetchMoods])
 
-    const alreadyTracked = hasTrackedToday(userId)
+    const alreadyTracked = hasTrackedToday()
+    console.log("okaya", alreadyTracked)
     const count = moodCountToday(userId)
 
     const handleSubmit = async () => {
@@ -52,9 +53,9 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
     }
 
     return (
-        <Card className="rounded-2xl shadow-sm border hover:shadow-md transition-all duration-300">
+        <Card className={`border hover:border-orange-300 transition`}>
             <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">Mood Tracker</CardTitle>
+                <CardTitle className="text-lg font-semibold">Today's Mood</CardTitle>
             </CardHeader>
             <CardContent>
                 {alreadyTracked ? (
@@ -62,8 +63,9 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
                         <Smile className="w-5 h-5" />
                         <p>
                             You already tracked{" "}
-                            <span className="font-bold">{count}</span>{" "}
-                            mood{count > 1 ? "s" : ""} today ✅
+                            {/* <span className="font-bold">{count}</span>{" "}
+                            mood{count > 1 ? "s" : ""} */}
+                            today
                         </p>
                     </div>
                 ) : (
@@ -113,7 +115,6 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
                                         <p className="text-sm text-gray-500">Selected: {rank}</p>
                                     </div>
 
-                                    {/* Optional note */}
                                     <Textarea
                                         placeholder="Add a note (optional)..."
                                         value={note}

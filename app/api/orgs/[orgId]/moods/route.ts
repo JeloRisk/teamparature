@@ -4,14 +4,14 @@ import { getServerSession } from "next-auth"
 import connectDB from "@/lib/mongodb"
 import { Mood } from "@/models/Mood"
 
-export async function POST(req: Request, { params }: { params: { orgId: string } }) {
+export async function POST(req: Request, context: { params: Promise<{ orgId: string }> }) {
     await connectDB()
     const session = await getServerSession()
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { mood, rank, note } = await req.json()
     const userId = session.user.id
-    const orgId = params.orgId
+    const { orgId } = await context.params
 
     // check if mood already exists today
     const today = new Date()
@@ -42,9 +42,9 @@ export async function POST(req: Request, { params }: { params: { orgId: string }
     return NextResponse.json(newMood)
 }
 
-export async function GET(req: Request, { params }: { params: { orgId: string } }) {
+export async function GET(req: Request, context: { params: Promise<{ orgId: string }> }) {
     await connectDB()
-    const orgId = params.orgId
+    const { orgId } = await context.params
 
     const moods = await Mood.find({ organization: orgId }).lean()
     return NextResponse.json(moods)

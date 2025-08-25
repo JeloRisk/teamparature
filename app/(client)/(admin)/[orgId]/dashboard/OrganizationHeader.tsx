@@ -10,7 +10,7 @@ interface OrganizationHeaderProps {
 
 export default function OrganizationHeader({ name, logoUrl, slug }: OrganizationHeaderProps) {
     return (
-        <Card className="overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="overflow-hidden border border-indigo-200 hover:border-indigo-300 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 transition-shadow">
             <CardHeader className="flex items-center gap-4">
                 {logoUrl ? (
                     <Image

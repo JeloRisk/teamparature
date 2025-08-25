@@ -15,7 +15,7 @@ export default function StatsCard({ title, value, description, icon: Icon, iconB
     return (
         <Card className={`border ${borderHoverColor} transition`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <CardTitle className="text-lg font-semibold">{title}</CardTitle>
                 <div className={`p-2 rounded-full ${iconBg}`}>
                     <Icon className="h-5 w-5" />
                 </div>

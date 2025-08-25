@@ -5,6 +5,7 @@ import StatsCard from "./StatsCard"
 import MoodTrendsChart from "./MoodTrendsChart"
 import type { Member } from "@/types/membership"
 import MoodCheck from "./MoodCheck"
+import MoodAnalytics from "./MoodAnalytics"
 
 
 const moodData = [
@@ -18,6 +19,7 @@ const moodData = [
 interface DashboardProps {
     userRole: "owner" | "member"
     organization: {
+        _id: string
         name: string
         logoUrl?: string
 
@@ -34,15 +36,17 @@ export default function Dashboard({ userRole, organization, memberships }: Dashb
     const membersOnly = totalMembers - creators
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-4">
             <OrganizationHeader
                 name={organization.name}
                 logoUrl={organization.logoUrl}
-                slug={organization.slug}
+                slug={organization._id}
             />
 
             {userRole === "owner" && (
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-3">
+                    <MoodCheck orgId={organization._id} userId="currentUserIdHere" />
+
                     <StatsCard
                         title="Total Members"
                         value={totalMembers}
@@ -51,14 +55,7 @@ export default function Dashboard({ userRole, organization, memberships }: Dashb
                         iconBg="bg-indigo-100"
                         borderHoverColor="hover:border-indigo-300"
                     />
-                    <StatsCard
-                        title="Creators"
-                        value={creators}
-                        description="With creator role"
-                        icon={Crown}
-                        iconBg="bg-amber-100"
-                        borderHoverColor="hover:border-amber-300"
-                    />
+
                     <StatsCard
                         title="Trend"
                         value="+5%"
@@ -70,9 +67,8 @@ export default function Dashboard({ userRole, organization, memberships }: Dashb
                 </div>
             )}
 
-            <MoodCheck orgId={organization.slug} userId="currentUserIdHere" />
 
-            <MoodTrendsChart data={moodData} />
+            <MoodAnalytics orgId={organization._id} />
         </div>
     )
 }
