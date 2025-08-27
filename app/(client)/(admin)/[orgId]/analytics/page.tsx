@@ -1,15 +1,15 @@
 "use client"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Dashboard from "./AnalyticPage"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
 import { useEffect } from "react"
 import { Skeleton } from "@/app/components/ui/skeleton"
 
 export default function AdminDashboardPage() {
+    const router = useRouter()
     const { orgId } = useParams<{ orgId: string }>()
     const { organization, membership, memberships, loading, fetchOrganizationDetails } = useOrgStore()
 
-    // Fetch once on mount
     useEffect(() => {
         if (!orgId) return
         fetchOrganizationDetails(orgId)
@@ -18,11 +18,10 @@ export default function AdminDashboardPage() {
     const renderSkeleton = () => (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <Skeleton className="h-8 w-48" /> {/* Title placeholder */}
-                <Skeleton className="h-9 w-24 rounded-lg" /> {/* Button placeholder */}
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-9 w-24 rounded-lg" />
             </div>
 
-            {/* Stats cards */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Skeleton className="h-28 rounded-xl" />
                 <Skeleton className="h-28 rounded-xl" />
@@ -40,9 +39,17 @@ export default function AdminDashboardPage() {
         return renderSkeleton()
     }
 
+    // Only owners can see this page
+    if (membership.role !== "owner") {
+        router.push(`/not-found`) // or to a 403 page
+        return null
+    }
 
-    // Derive role directly
-    const userRole = membership.role as "owner" | "member"
-
-    return <Dashboard userRole={userRole} organization={organization} memberships={memberships} />
+    return (
+        <Dashboard
+            userRole={membership.role as "owner" | "member"}
+            organization={organization}
+            memberships={memberships}
+        />
+    )
 }

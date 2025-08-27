@@ -7,14 +7,14 @@ interface ChartCardProps {
     children: React.ReactNode
 }
 
-export default function ChartCard({ title, children }: ChartCardProps) {
+export default function ChartCard2({ title, children }: ChartCardProps) {
     return (
-        <Card className="rounded-2xl bg-white border border-slate-200 shadow-sm w-full relative">
+        <Card className="rounded-2xl bg-white border border-slate-200 shadow-sm relative">
             <CardHeader>
                 <CardTitle className="text-lg font-semibold">{title}</CardTitle>
 
             </CardHeader>
-            <CardContent className="h-72">
+            <CardContent>
                 {children}
             </CardContent>
         </Card>
