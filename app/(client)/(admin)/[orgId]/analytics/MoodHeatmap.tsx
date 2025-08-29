@@ -1,18 +1,13 @@
-import { Mood } from "@/app/stores/useMoodStore";
-import { useMemo } from "react";
-import CalendarHeatmap, {
-    ReactCalendarHeatmapValue,
-} from "react-calendar-heatmap";
-import { Tooltip } from "react-tooltip";
-import "react-calendar-heatmap/dist/styles.css";
-import "react-tooltip/dist/react-tooltip.css";
-import { format } from "date-fns";
-import ChartCard from "./components/analytics/ChartCard";
+"use client";
+
+import React from "react";
+import ReactApexChart from "react-apexcharts";
+import { format, startOfWeek, addDays } from "date-fns";
 import ChartCard2 from "./components/analytics/ChartCard2";
 
-type AllowedMood = 'happy' | 'excited' | 'neutral' | 'sad' | 'stressed';
+type AllowedMood = "happy" | "excited" | "neutral" | "sad" | "stressed";
 
-interface HeatmapValue {
+interface MoodEntry {
     date: string; // yyyy-MM-dd
     mood: AllowedMood;
 }
@@ -25,116 +20,117 @@ const moodColors: Record<AllowedMood, string> = {
     stressed: "#3b82f6",
 };
 
-export default function MoodHeatmap({ moods }: { moods: Mood[] }) {
-    const heatmapData = useMemo<HeatmapValue[]>(() => {
-        return moods.map((log) => ({
-            date: format(new Date(log.date), "yyyy-MM-dd"),
-            mood: log.mood as AllowedMood,
-        }));
-    }, [moods]);
+const moodToNumber: Record<AllowedMood, number> = {
+    happy: 1,
+    excited: 2,
+    neutral: 3,
+    sad: 4,
+    stressed: 5,
+};
 
-    const getClassForValue = (
-        value?: ReactCalendarHeatmapValue<string> | null
-    ) => {
-        if (!value) return "color-empty";
-        return `mood-${value.mood}`;
-    };
+const numberToMood: Record<number, AllowedMood> = {
+    1: "happy",
+    2: "excited",
+    3: "neutral",
+    4: "sad",
+    5: "stressed",
+};
 
-    const tooltipDataAttrs = (
-        value?: ReactCalendarHeatmapValue<string>
-    ): Record<string, string> | undefined => {
-        const dateStr = value?.date
-            ? new Date(value.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            })
-            : "";
+function groupByMonthAndWeek(moods: MoodEntry[]) {
+    const months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
 
-        if (!value || !value.mood) {
-            return {
-                "data-tooltip-id": "heatmap-tooltip",
-                "data-tooltip-content": `No mood recorded${dateStr ? ` on ${dateStr}` : ""}`,
-            };
-        }
+    const series: {
+        name: string;
+        data: { x: string; y: number; mood?: AllowedMood; range?: string }[];
+    }[] = [];
 
-        const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    for (let week = 1; week <= 5; week++) {
+        const row = {
+            name: `Week ${week}`,
+            data: months.map((month, idx) => {
+                const monthEntries = moods.filter(
+                    (m) => new Date(m.date).getMonth() === idx
+                );
 
-        return {
-            "data-tooltip-id": "heatmap-tooltip",
-            "data-tooltip-content": `${capitalize(value.mood)} on ${dateStr}`,
+                const weekEntries = monthEntries.filter((m) => {
+                    const d = new Date(m.date).getDate();
+                    return d > (week - 1) * 7 && d <= week * 7;
+                });
+
+                if (weekEntries.length > 0) {
+                    const mood = weekEntries[0].mood;
+                    const startDate = startOfWeek(
+                        new Date(2025, idx, (week - 1) * 7 + 1),
+                        { weekStartsOn: 1 }
+                    );
+                    const endDate = addDays(startDate, 6);
+
+                    return {
+                        x: month,
+                        y: moodToNumber[mood], // numeric encoding
+                        mood,
+                        range: `${format(startDate, "MMM d")} - ${format(endDate, "d")}`,
+                    };
+                }
+
+                return { x: month, y: 0 };
+            }),
         };
+        series.push(row);
+    }
+
+    return series;
+}
+
+export default function MoodHeatmapApex({ moods }: { moods: MoodEntry[] }) {
+    const series = groupByMonthAndWeek(moods);
+
+    const options: ApexCharts.ApexOptions = {
+        chart: { type: "heatmap", toolbar: { show: false } },
+        dataLabels: { enabled: false },
+        colors: ["#e5e7eb"], // fallback
+        plotOptions: {
+            heatmap: {
+                colorScale: {
+                    ranges: Object.entries(moodColors).map(([mood, color]) => {
+                        const val = moodToNumber[mood as AllowedMood];
+                        return {
+                            from: val,
+                            to: val,
+                            color,
+                            name: mood,
+                        };
+                    }),
+                },
+            },
+        },
+        tooltip: {
+            custom: function ({ seriesIndex, dataPointIndex, w }) {
+                const point =
+                    w.config.series[seriesIndex].data[dataPointIndex] as any;
+                if (!point.mood) {
+                    return `<div>No mood recorded</div>`;
+                }
+                return `<div>
+          <strong>${point.range}</strong><br/>
+          Mood: ${point.mood.charAt(0).toUpperCase() + point.mood.slice(1)}
+        </div>`;
+            },
+        },
+        xaxis: { categories: series[0].data.map((d) => d.x) },
     };
-
-    function capitalize(s: string) {
-        if (!s) return s;
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-
-    function MoodLegend() {
-        return (
-            <div className="flex gap-4 mt-4">
-                {Object.entries(moodColors).map(([mood, color]) => (
-                    <div key={mood} className="flex items-center space-x-2">
-                        <div
-                            style={{ backgroundColor: color }}
-                            className="w-5 h-5 rounded"
-                        />
-                        <span className="capitalize">{mood}</span>
-                    </div>
-                ))}
-            </div>
-        );
-    }
 
     return (
-
         <ChartCard2 title="Team Emotional Heatmap">
-            <div className="w-full overflow-x-auto">
-                <div className="min-w-[500px]">
-                    <CalendarHeatmap
-                        startDate={new Date("2025-01-01")}
-                        endDate={new Date("2025-12-31")}
-                        values={heatmapData}
-                        classForValue={getClassForValue}
-                        tooltipDataAttrs={tooltipDataAttrs as any}
-                    />
-                </div>
-            </div>
-            <MoodLegend />
-
-            <Tooltip id="heatmap-tooltip" />
-
-            <style jsx global>{`
-    .color-empty {
-      fill: #e5e7eb !important;
-    }
-    .mood-happy {
-      fill: #fb923c !important;
-    }
-    .mood-excited {
-      fill: #f97316 !important;
-    }
-    .mood-neutral {
-      fill: #a3a3a3 !important;
-    }
-    .mood-sad {
-      fill: #60a5fa !important;
-    }
-    .mood-stressed {
-      fill: #3b82f6 !important;
-    }
-
-    /* Make sure heatmap SVG fits inside container */
-    .react-calendar-heatmap {
-      max-width: 100% !important;
-      height: 100px
-      display: block;
-      box-sizing: border-box;
-    }
-  `}</style>
+            <ReactApexChart
+                options={options}
+                series={series}
+                type="heatmap"
+                height={350}
+            />
         </ChartCard2>
-
-
     );
 }
