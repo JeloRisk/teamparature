@@ -28,8 +28,11 @@ export async function POST(req: Request, { params }: { params: { orgId: string }
         if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
 
         // "already tracked today"
-        const today = new Date();
-        today.setUTCHours(0, 0, 0, 0);
+        // const today = new Date();
+        // today.setUTCHours(0, 0, 0, 0);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
 
         const exists = await Mood.exists({
             user: user._id,

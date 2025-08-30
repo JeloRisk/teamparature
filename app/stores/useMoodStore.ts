@@ -95,14 +95,25 @@ export const useMoodStore = create<MoodState>((set, get) => ({
 
     // ✅ Has owner tracked today?
     hasTrackedToday: () => {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date();
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDate = today.getDate();
+
         return get().ownerMoods.some((m) => {
             if (!m.date) return false;
+
             const parsed = new Date(m.date);
             if (isNaN(parsed.getTime())) return false;
-            return parsed.toISOString().slice(0, 10) === today;
+
+            return (
+                parsed.getFullYear() === todayYear &&
+                parsed.getMonth() === todayMonth &&
+                parsed.getDate() === todayDate
+            );
         });
     },
+
 
     // ✅ Count member moods today
     moodCountToday: (userId) => {
