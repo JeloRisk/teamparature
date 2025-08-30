@@ -5,13 +5,13 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/ca
 import MoodTrendsChart from "./MoodTrendsChart";
 
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { moods, fetchMoods } = useMoodStore();
+    const { moods } = useMoodStore();
 
     console.log(moods)
 
-    useEffect(() => {
-        fetchMoods(orgId);
-    }, [orgId, fetchMoods]);
+    // useEffect(() => {
+    //     fetchMoods(orgId);
+    // }, [orgId, fetchMoods]);
 
     // Aggregate mood counts per day
     const moodData = Array.from({ length: 7 }).map((_, i) => {

@@ -29,15 +29,17 @@ const moodOptions = [
 ]
 
 export default function MoodCheck({ orgId, userId }: { orgId: string; userId: string }) {
-    const { fetchMoods, hasTrackedToday, moodCountToday, addMood } = useMoodStore()
+    const { hasTrackedToday, moodCountToday, addMood } = useMoodStore()
+    type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
+
     const [open, setOpen] = useState(false)
-    const [mood, setMood] = useState("")
+    const [mood, setMood] = useState<AllowedMood | "">("")
     const [rank, setRank] = useState(3)
     const [note, setNote] = useState("")
 
-    useEffect(() => {
-        fetchMoods(orgId)
-    }, [orgId, fetchMoods])
+    // useEffect(() => {
+    //     fetchMoods(orgId)
+    // }, [orgId, fetchMoods])
 
     const alreadyTracked = hasTrackedToday()
     console.log("okaya", alreadyTracked)
@@ -96,7 +98,7 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
                                                 type="button"
                                                 variant={mood === opt.value ? "default" : "outline"}
                                                 className={`flex-1 ${mood === opt.value ? "bg-blue-600 text-white" : ""}`}
-                                                onClick={() => setMood(opt.value)}
+                                                onClick={() => setMood(opt.value as AllowedMood)}
                                             >
                                                 <span className="mr-1">{opt.icon}</span> {opt.label}
                                             </Button>

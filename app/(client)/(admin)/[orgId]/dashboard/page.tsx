@@ -4,16 +4,19 @@ import Dashboard from "./Dashboard"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
 import { useEffect } from "react"
 import { Skeleton } from "@/app/components/ui/skeleton"
+import { useMoodStore } from "@/app/stores/useMoodStore"
 
 export default function AdminDashboardPage() {
     const { orgId } = useParams<{ orgId: string }>()
-    const { organization, membership, memberships, loading, fetchOrganizationDetails } = useOrgStore()
+    const { organization, membership, memberships, loading: loadingOrg, fetchOrganizationDetails } = useOrgStore()
+    const { moods, ownerMoods, loadingMood, fetchAllMoods } = useMoodStore()
 
-    // Fetch once on mount
+    // Fetch org + moods
     useEffect(() => {
         if (!orgId) return
         fetchOrganizationDetails(orgId)
-    }, [orgId, fetchOrganizationDetails])
+        fetchAllMoods(orgId)
+    }, [orgId, fetchOrganizationDetails, fetchAllMoods])
 
     const renderSkeleton = () => (
         <div className="space-y-6">
@@ -37,13 +40,21 @@ export default function AdminDashboardPage() {
         </div>
     )
 
-    if (loading || !membership || !organization) {
+    // Wait for BOTH org + moods
+    if (loadingOrg || loadingMood || !membership || !organization) {
         return renderSkeleton()
     }
-
 
     // Derive role directly
     const userRole = membership.role as "owner" | "member"
 
-    return <Dashboard userRole={userRole} organization={organization} memberships={memberships} />
+    return (
+        <Dashboard
+            userRole={userRole}
+            organization={organization}
+            memberships={memberships}
+            moods={moods}
+            ownerMoods={ownerMoods}
+        />
+    )
 }

@@ -11,84 +11,100 @@ export interface Mood {
 }
 
 interface MoodState {
-    moods: Mood[];          // member moods
-    ownerMoods: Mood[];     // owner moods
-    loading: boolean;
-    fetchMoods: (orgId: string) => Promise<void>;
-    fetchOwnerMoods: (orgId: string) => Promise<void>;
+    moods: Mood[];
+    ownerMoods: Mood[];
+    loadingMood: boolean;
+    fetchAllMoods: (orgId: string) => Promise<void>;
     addMood: (data: {
         orgId: string;
         userId: string;
         mood: Mood["mood"];
         rank: number;
         note?: string;
-        userName: string;
-        userEmail: string;
     }) => Promise<void>;
-    hasTrackedToday: () => boolean; // owner
-    moodCountToday: (userId: string) => number; // member
+    hasTrackedToday: () => boolean;
+    moodCountToday: (userId: string) => number;
 }
 
 export const useMoodStore = create<MoodState>((set, get) => ({
     moods: [],
     ownerMoods: [],
-    loading: false,
+    loadingMood: false,
 
-    // fetch member moods
-    fetchMoods: async (orgId) => {
-        set({ loading: true });
+    // ✅ Fetch both in one go
+    fetchAllMoods: async (orgId) => {
+        set({ loadingMood: true });
         try {
-            const res = await fetch(`/api/orgs/${orgId}/moods`);
-            const data = await res.json();
-            set({ moods: data });
+            const [moodsRes, ownerRes] = await Promise.all([
+                fetch(`/api/orgs/${orgId}/moods`),
+                fetch(`/api/orgs/${orgId}/moods/owner`),
+            ]);
+
+            const [moods, ownerMoods] = await Promise.all([
+                moodsRes.json(),
+                ownerRes.json(),
+            ]);
+
+            set({ moods, ownerMoods });
         } catch (err) {
-            console.error(err);
+            console.error("Failed to fetch moods:", err);
         } finally {
-            set({ loading: false });
+            set({ loadingMood: false });
         }
     },
 
-    // fetch owner moods
-    fetchOwnerMoods: async (orgId) => {
-        set({ loading: true });
-        try {
-            const res = await fetch(`/api/orgs/${orgId}/moods/owner`);
-            const data = await res.json();
-            set({ ownerMoods: data });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            set({ loading: false });
-        }
-    },
-
-    // add a new mood (member)
+    // Add mood
     addMood: async (data) => {
+        const tempMood: Mood = {
+            _id: crypto.randomUUID(),
+            ...data,
+            date: new Date().toISOString(),
+            organization: data.orgId,
+            user: data.userId,
+        };
+
+        set((state) => ({
+            moods: [...state.moods, tempMood],
+            ownerMoods: [...state.ownerMoods, tempMood],
+        }));
+
         try {
-            const res = await fetch("/api/moods", {
+            const res = await fetch(`/api/orgs/${data.orgId}/moods/owner`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
             });
-            const newMood = await res.json();
-            set((state) => ({ moods: [...state.moods, newMood] }));
+            const savedMood: Mood = await res.json();
+
+            // Replace temp with saved
+            set((state) => ({
+                moods: state.moods.map((m) => (m._id === tempMood._id ? savedMood : m)),
+                ownerMoods: state.ownerMoods.map((m) => (m._id === tempMood._id ? savedMood : m)),
+            }));
         } catch (err) {
-            console.error(err);
+            console.error("Failed to save mood:", err);
+
+            // Rollback temp if failed
+            set((state) => ({
+                moods: state.moods.filter((m) => m._id !== tempMood._id),
+                ownerMoods: state.ownerMoods.filter((m) => m._id !== tempMood._id),
+            }));
         }
     },
 
-    // check if owner has tracked today
+
+    // ✅ Has owner tracked today?
     hasTrackedToday: () => {
         const today = new Date().toISOString().slice(0, 10);
-        return get().moods.some((m) => {
-            const moodDate = new Date(m.date).toISOString().slice(0, 10);
-            console.log("Checking:", today, moodDate);
-            return moodDate === today;
+        return get().ownerMoods.some((m) => {
+            if (!m.date) return false;
+            const parsed = new Date(m.date);
+            if (isNaN(parsed.getTime())) return false;
+            return parsed.toISOString().slice(0, 10) === today;
         });
     },
 
-
-    // count moods for a member today
+    // ✅ Count member moods today
     moodCountToday: (userId) => {
         const today = new Date().toDateString();
         return get().moods.filter(

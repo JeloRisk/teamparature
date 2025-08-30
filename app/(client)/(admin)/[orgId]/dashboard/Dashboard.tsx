@@ -6,7 +6,7 @@ import StatsCard from "./StatsCard"
 import { Users, Crown, TrendingUp } from "lucide-react"
 import type { Member } from "@/types/membership"
 import { Role } from "@/lib/rbac"
-
+import { Mood } from "@/types/moods"
 interface DashboardProps {
     userRole: Role
     organization: {
@@ -16,10 +16,12 @@ interface DashboardProps {
         slug: string
         memberships?: { role: Role }[]
     }
+    moods: Mood[]
+    ownerMoods: Mood[]
     memberships: Member[]
 }
 
-export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
+export default function Dashboard({ userRole, organization, memberships, moods, ownerMoods }: DashboardProps) {
     if (!organization) return null
 
     const totalMembers = memberships?.length || 0
