@@ -51,12 +51,12 @@ const MOOD_COLORS: Record<MoodType, string> = {
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { moods, fetchMoods } = useMoodStore()
+    const { moods, fetchAllMoods } = useMoodStore()
 
     // Fetch data on mount/org change
     useEffect(() => {
-        fetchMoods(orgId)
-    }, [orgId, fetchMoods])
+        fetchAllMoods(orgId)
+    }, [orgId, fetchAllMoods])
 
     //
     // --- Derived Data ---

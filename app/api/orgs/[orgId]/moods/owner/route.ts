@@ -5,51 +5,44 @@ import { Mood } from "@/models/Mood";
 import { Organization } from "@/models/Organization";
 import User from "@/models/User";
 
+// reuse DB connection
+await connectDB();
+
 export async function POST(req: Request, { params }: { params: { orgId: string } }) {
     try {
-        await connectDB();
-
         const session = await getServerSession();
         if (!session?.user?.email) {
-            console.log("Unauthorized access");
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { orgId } = params;
-        const body = await req.json();
-        console.log("Request Body:", body);
+        const { mood, rank, note, userName, userEmail } = await req.json();
 
-        const { mood, rank, note, userName, userEmail } = body;
+        // fetch user + org in parallel
+        const [user, org] = await Promise.all([
+            User.findOne({ email: session.user.email }).select("_id name email"),
+            Organization.findById(orgId).select("_id"),
+        ]);
 
-        const user = await User.findOne({ email: session.user.email });
-        if (!user) {
-            console.log("User not found");
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
+        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
 
-        const org = await Organization.findById(orgId);
-        if (!org) {
-            console.log("Organization not found");
-            return NextResponse.json({ error: "Organization not found" }, { status: 404 });
-        }
+        // "already tracked today"
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
 
-        const today = new Date().toISOString().slice(0, 10);
-        const exists = await Mood.findOne({
+        const exists = await Mood.exists({
             user: user._id,
             organization: orgId,
-            date: {
-                $gte: new Date(today),
-                $lte: new Date(today + "T23:59:59.999Z"),
-            },
+            date: { $gte: today },
         });
 
         if (exists) {
-            console.log("Already tracked today");
             return NextResponse.json({ error: "Already tracked today" }, { status: 400 });
         }
 
         const newMood = await Mood.create({
-            user: user._id, // found id
+            user: user._id,
             organization: orgId,
             userSnapshot: {
                 name: userName ?? user.name ?? session.user.name,
@@ -61,8 +54,6 @@ export async function POST(req: Request, { params }: { params: { orgId: string }
             date: new Date(),
         });
 
-        console.log("Mood Created:", newMood);
-
         return NextResponse.json(newMood);
     } catch (error) {
         console.error("POST Error:", error);
@@ -70,15 +61,8 @@ export async function POST(req: Request, { params }: { params: { orgId: string }
     }
 }
 
-
-
-export async function GET(
-    req: Request,
-    { params }: { params: { orgId: string } }
-) {
+export async function GET(req: Request, { params }: { params: { orgId: string } }) {
     try {
-        await connectDB();
-
         const session = await getServerSession();
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -86,24 +70,23 @@ export async function GET(
 
         const { orgId } = params;
 
-        const org = await Organization.findById(orgId);
-        if (!org) {
-            return NextResponse.json({ error: "Organization not found" }, { status: 404 });
-        }
+        // fetch user + org in parallel
+        const [user, org] = await Promise.all([
+            User.findOne({ email: session.user.email }).select("_id"),
+            Organization.findById(orgId).select("_id"),
+        ]);
 
-        const user = await User.findOne({ email: session.user.email });
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
+        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
 
-        const moods = await Mood.find({
-            organization: orgId,
-            user: user._id,
-        }).lean();
+        // limit fields returned (faster)
+        const moods = await Mood.find({ organization: orgId, user: user._id })
+            .select("mood rank note date userSnapshot")
+            .lean();
 
         return NextResponse.json(moods);
     } catch (error) {
-        console.error("GET Mood by Session User Error:", error);
+        console.error("GET Error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
