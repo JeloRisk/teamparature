@@ -19,24 +19,23 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
         date.setDate(date.getDate() - (6 - i));
         const day = date.toLocaleDateString("en-US", { weekday: "short" });
 
-        const happy = moods.filter(
-            (m) =>
-                m.mood === "happy" &&
-                new Date(m.date).toDateString() === date.toDateString()
-        ).length;
-        const neutral = moods.filter(
-            (m) =>
-                m.mood === "neutral" &&
-                new Date(m.date).toDateString() === date.toDateString()
-        ).length;
-        const sad = moods.filter(
-            (m) =>
-                m.mood === "sad" &&
-                new Date(m.date).toDateString() === date.toDateString()
-        ).length;
+        const filterByMoodAndDate = (moodType: string) =>
+            moods.filter(
+                (m) =>
+                    m.mood === moodType &&
+                    new Date(m.date).toDateString() === date.toDateString()
+            ).length;
 
-        return { day, happy, neutral, sad };
+        return {
+            day,
+            happy: filterByMoodAndDate("happy"),
+            neutral: filterByMoodAndDate("neutral"),
+            sad: filterByMoodAndDate("sad"),
+            stressed: filterByMoodAndDate("stressed"),
+            excited: filterByMoodAndDate("excited"),
+        };
     });
+
 
     return (
         <MoodTrendsChart data={moodData} />

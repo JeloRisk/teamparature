@@ -12,7 +12,14 @@ import {
 } from "recharts"
 
 interface MoodTrendsChartProps {
-    data: { day: string; happy: number; neutral: number; sad: number }[]
+    data: {
+        day: string
+        happy: number
+        neutral: number
+        sad: number
+        stressed: number
+        excited: number
+    }[]
 }
 
 export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
@@ -27,17 +34,14 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}
-                        barCategoryGap="25%" // controls spacing between bars
+                        barCategoryGap="25%"
                         margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
                     >
-                        {/* Background grid */}
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
 
-                        {/* Axis styling */}
                         <XAxis dataKey="day" tick={{ fill: "#6b7280", fontSize: 12 }} />
                         <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
 
-                        {/* Modern tooltip */}
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: "#fff",
@@ -48,13 +52,13 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
                             }}
                         />
 
-                        {/* Legend for clarity */}
                         <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 13 }} />
 
-                        {/* Bars with auto width + rounded top */}
-                        <Bar dataKey="happy" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
-                        <Bar dataKey="neutral" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                        <Bar dataKey="sad" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                        <Bar dataKey="happy" stackId="a" fill="#22c55e" />
+                        <Bar dataKey="neutral" stackId="a" fill="#3b82f6" />
+                        <Bar dataKey="sad" stackId="a" fill="#ef4444" />
+                        <Bar dataKey="stressed" stackId="a" fill="#facc15" />
+                        <Bar dataKey="excited" stackId="a" fill="#a855f7" />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

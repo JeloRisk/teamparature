@@ -16,7 +16,7 @@ interface Membership {
     organization: Organization
     role: string
     isCreator?: boolean
-}   
+}
 
 interface MembershipState {
     memberships: Membership[]
@@ -37,7 +37,13 @@ export const useMembershipStore = create<MembershipState>((set) => ({
     error: null,
 
     fetchMemberships: async () => {
-        set({ loading: true, error: null })
+        set((state) => {
+            if (state.memberships.length > 0) {
+                return state // ✅ Already loaded, skip re-fetch
+            }
+            return { ...state, loading: true, error: null }
+        })
+
         try {
             const res = await fetch("/api/me/memberships")
             if (!res.ok) throw new Error("Failed to fetch memberships")
@@ -73,7 +79,7 @@ export const useMembershipStore = create<MembershipState>((set) => ({
             return null
         }
     },
-    
+
 
 
 }))

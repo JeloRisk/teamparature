@@ -35,9 +35,9 @@ export function MembershipSwitcher() {
     } = useMembershipStore()
 
     // Fetch memberships on mount
-    React.useEffect(() => {
-        fetchMemberships()
-    }, [fetchMemberships])
+    // React.useEffect(() => {
+    //     fetchMemberships()
+    // }, [fetchMemberships])
 
     React.useEffect(() => {
         if (!loading && memberships.length > 0 && params.orgId) {

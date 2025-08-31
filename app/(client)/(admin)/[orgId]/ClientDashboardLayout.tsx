@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import React, { ReactNode } from "react"
 import {
     SidebarProvider,
     SidebarInset,
@@ -19,9 +19,15 @@ interface Props {
     children: ReactNode
     organization: any
 }
-
+import { useEffect } from "react"
+import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { toggleSidebar } = useSidebar()
+    const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
+
+    useEffect(() => {
+        fetchMemberships()
+    }, [fetchMemberships])
 
     return (
         <>
