@@ -8,14 +8,17 @@ import User from "@/models/User";
 // reuse DB connection
 await connectDB();
 
-export async function POST(req: Request, { params }: { params: { orgId: string } }) {
+export async function POST(
+    req: Request,
+    context: { params: Promise<{ orgId: string }> }
+) {
     try {
         const session = await getServerSession();
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { orgId } = params;
+        const { orgId } = await context.params
         const { mood, rank, note, userName, userEmail } = await req.json();
 
         // fetch user + org in parallel
@@ -64,14 +67,15 @@ export async function POST(req: Request, { params }: { params: { orgId: string }
     }
 }
 
-export async function GET(req: Request, { params }: { params: { orgId: string } }) {
+export async function GET(req: Request,
+    context: { params: Promise<{ orgId: string }> }) {
     try {
         const session = await getServerSession();
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { orgId } = params;
+        const { orgId } = await context.params
 
         // fetch user + org in parallel
         const [user, org] = await Promise.all([

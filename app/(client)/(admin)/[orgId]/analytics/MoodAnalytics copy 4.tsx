@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useEffect } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
 
@@ -27,27 +27,19 @@ import MoodHeatmap from "./MoodHeatmap"
 //
 // --- Constants ---
 //
-const FIRE = {
-    red: "#ef4444",
-    ember: "#f97316",
-    glow: "#fb923c",
-}
-const ICE = {
-    blue: "#3b82f6",
-    ice: "#60a5fa",
-    frost: "#93c5fd",
-}
+const FIRE = { red: "#ef4444", ember: "#f97316", glow: "#fb923c" }
+const ICE = { blue: "#3b82f6", ice: "#60a5fa", frost: "#93c5fd" }
 const ASH = "#a3a3a3"
 
-type MoodType = "happy" | "neutral" | "sad" | "stressed" | "excited"
-
-const MOOD_COLORS: Record<MoodType, string> = {
+const MOOD_COLORS = {
     happy: FIRE.glow,
     excited: FIRE.ember,
     neutral: ASH,
     sad: ICE.ice,
     stressed: ICE.blue,
 }
+
+type MoodType = keyof typeof MOOD_COLORS
 
 //
 // --- Component ---
@@ -59,47 +51,26 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     // Fetch data on mount/org change
     useEffect(() => {
         fetchAllMoods(orgId)
-        fetchAnalytics(orgId);
-    }, [orgId, fetchAllMoods])
+        fetchAnalytics(orgId)
+    }, [orgId, fetchAllMoods, fetchAnalytics])
 
-    //
-    // --- Derived Data ---
-    //
-    const totalLogs = moods.length
-
-    const moodCounts = analytics.moodCounts || {
-        happy: 0,
-        excited: 0,
-        neutral: 0,
-        sad: 0,
-        stressed: 0,
+    if (loading) {
+        return <div className="p-6 text-slate-500">Loading analytics...</div>
     }
 
-    const avgRank = useMemo(() => {
-        if (!totalLogs) return 0
-        const sum = moods.reduce((s, m) => s + (Number(m.rank) || 0), 0)
-        return Number((sum / totalLogs).toFixed(2))
-    }, [moods, totalLogs])
-
-    // Pie Data
-    const pieData = (Object.entries(moodCounts) as [MoodType, number][])
-        .map(([mood, value]) => ({
+    // --- Prepare data from backend ---
+    const pieData = (["happy", "excited", "neutral", "sad", "stressed"] as MoodType[])
+        .map((mood) => ({
             name: mood,
-            value,
+            value: moods.filter((m) => m.mood === mood).length,
             color: MOOD_COLORS[mood],
         }))
         .filter((d) => d.value > 0)
 
-    // Gauge Data (Org Temperature)
-    const gaugeValue = useMemo(
-        () => Math.round((avgRank / 5) * 100),
-        [avgRank]
-    )
-    const gaugeData = [{ name: "Org Temperature", value: gaugeValue }]
-
-    const engagementData = analytics.detailedSeries?.map((s: any) => ({
+    const gaugeData = [{ name: "Org Temperature", value: analytics.orgTemperature }]
+    const engagementData = analytics.series?.map((s: any) => ({
         day: s.day,
-        logs: s.total,
+        logs: s.logs,
     })) || []
 
     //
@@ -123,7 +94,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 <KpiCard
                     title="Org Temperature"
                     value={`${analytics.avgRank.toFixed(2)} / 5`}
-                    sub={`${analytics.posPct}% 🔥 positive · ${analytics.negPct}% ❄️ negative`}
+                    sub={`${analytics.posPct} 🔥 positive · ${analytics.negPct} ❄️ negative`}
                     glow="from-orange-50 to-sky-50"
                     icon={<Activity className="w-5 h-5 text-orange-600" />}
                 />
@@ -158,7 +129,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     icon={<Flame className="w-5 h-5 text-orange-600" />}
                 />
             </div>
-
 
             {/* Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -195,7 +165,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                                 fontWeight={600}
                                 fill="#374151"
                             >
-                                {gaugeValue}%
+                                {analytics.orgTemperature}%
                             </text>
                             <text
                                 x="50%"
@@ -204,7 +174,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                                 fontSize={12}
                                 fill="#6b7280"
                             >
-                                Avg Mood {avgRank.toFixed(2)} / 5
+                                Avg Mood {analytics.avgRank.toFixed(2)} / 5
                             </text>
                         </RadialBarChart>
                     </ResponsiveContainer>
@@ -242,28 +212,15 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                         <Tooltip />
                         <Line
                             type="monotone"
-                            dataKey="positive"
-                            stroke={FIRE.ember}
-                            strokeWidth={3}
-                            name="🔥 Positive"
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="negative"
-                            stroke={ICE.blue}
-                            strokeWidth={3}
-                            name="❄️ Negative"
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="avg"
+                            dataKey="logs"
                             stroke="#374151"
-                            strokeDasharray="4 4"
-                            name="Avg Rank"
+                            strokeWidth={3}
+                            name="Logs"
                         />
                     </LineChart>
                 </ResponsiveContainer>
             </ChartCard>
+
             <MoodHeatmap moods={moods} />
 
             {/* Engagement */}

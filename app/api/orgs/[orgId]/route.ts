@@ -9,7 +9,7 @@ import User from "@/models/User"
 
 export async function GET(
     req: Request,
-    context: { params: Promise<{ orgId: string }> } // 👈 params is async now
+    context: { params: Promise<{ orgId: string }> } 
 ) {
     try {
         await connectDB()
