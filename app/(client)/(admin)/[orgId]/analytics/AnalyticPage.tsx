@@ -18,7 +18,7 @@ interface DashboardProps {
 
 export default function Dashboard({ organization, memberships }: DashboardProps) {
     if (!organization) return null
-    console.log(memberships)
+    // console.log(memberships)
 
     return (
         <div className="space-y-4">

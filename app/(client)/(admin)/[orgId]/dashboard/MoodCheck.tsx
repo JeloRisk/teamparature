@@ -41,7 +41,6 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
     // }, [orgId, fetchMoods])
 
     const alreadyTracked = hasTrackedToday()
-    console.log("okaya", alreadyTracked)
 
     const handleSubmit = async () => {
         if (!mood) return

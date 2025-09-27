@@ -4,14 +4,6 @@ import MoodTrendsChart from "./MoodTrendsChart";
 
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const { moods } = useMoodStore();
-
-    console.log(orgId)
-
-    // useEffect(() => {
-    //     fetchMoods(orgId);
-    // }, [orgId, fetchMoods]);
-
-    // Aggregate mood counts per day
     const moodData = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));

@@ -3,7 +3,7 @@ import OrganizationHeader from "./OrganizationHeader"
 import MoodCheck from "./MoodCheck"
 import MoodAnalytics from "./MoodAnalytics"
 import StatsCard from "./StatsCard"
-import { Users, TrendingUp } from "lucide-react"
+import { Users, Crown, TrendingUp } from "lucide-react"
 import type { Member } from "@/types/membership"
 import { Role } from "@/lib/rbac"
 import { Mood } from "@/types/moods"
@@ -21,9 +21,8 @@ interface DashboardProps {
     memberships: Member[]
 }
 
-export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
+export default function Dashboard({ userRole, organization, memberships, moods, ownerMoods }: DashboardProps) {
     if (!organization) return null
-
 
     const totalMembers = memberships?.length || 0
     const creators = organization.memberships?.filter((m) => m.role === "owner").length || 0

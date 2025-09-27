@@ -6,7 +6,6 @@ interface Member {
         _id: string
         firstName: string
         lastName: string
-
         email: string
         image?: string
     }
@@ -32,23 +31,34 @@ interface OrgState {
     loading: boolean
     error: string | null
 
-    fetchOrganizationDetails: (orgId: string) => Promise<Organization | null>
+    fetchOrganizationDetails: (orgId: string, force?: boolean) => Promise<Organization | null>
     clearOrganization: () => void
 }
 
 function getErrorMessage(err: unknown): string {
     return err instanceof Error ? err.message : String(err)
 }
-export const useOrgStore = create<OrgState>((set) => ({
+
+export const useOrgStore = create<OrgState>((set, get) => ({
     organization: null,
     membership: null,
     memberships: [],
     loading: false,
     error: null,
 
+    fetchOrganizationDetails: async (orgId: string, force = false) => {
+        const { organization, loading } = get()
 
-    fetchOrganizationDetails: async (orgId: string) => {
+        // Avoid refetch if data is already loaded and not forced
+        if (organization?._id === orgId && !force) {
+            return organization
+        }
+
+        // Avoid multiple concurrent fetches
+        if (loading) return null
+
         set({ loading: true, error: null })
+
         try {
             const res = await fetch(`/api/orgs/${orgId}`)
             if (!res.ok) throw new Error(`Failed to fetch organization`)
@@ -67,7 +77,6 @@ export const useOrgStore = create<OrgState>((set) => ({
             return null
         }
     },
-
 
     clearOrganization: () =>
         set({

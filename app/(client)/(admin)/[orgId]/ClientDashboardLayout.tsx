@@ -24,6 +24,7 @@ import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
+    console.log('Dashboard')
 
     useEffect(() => {
         fetchMemberships()

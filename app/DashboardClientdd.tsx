@@ -47,7 +47,7 @@ export default function DashboardClient({ organization }: Props) {
     const totalMembers = organization.memberships?.length || 0
     const creators = organization.memberships?.filter((m) => m.role === "creator").length || 0
     const membersOnly = totalMembers - creators
-
+    // console.log(organization)
     return (
         <div className="space-y-10">
             {/* Org Header */}
