@@ -54,13 +54,13 @@ const MOOD_COLORS: Record<MoodType, string> = {
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const { moods, fetchAllMoods } = useMoodStore()
-    const { analytics, fetchAnalytics, loading } = useMoodAnalyticsStore()
+    const { analytics, fetchAnalytics } = useMoodAnalyticsStore()
 
     // Fetch data on mount/org change
     useEffect(() => {
         fetchAllMoods(orgId)
         fetchAnalytics(orgId);
-    }, [orgId, fetchAllMoods])
+    }, [orgId, fetchAllMoods, fetchAnalytics])
 
     //
     // --- Derived Data ---
@@ -97,10 +97,13 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     )
     const gaugeData = [{ name: "Org Temperature", value: gaugeValue }]
 
-    const engagementData = analytics.detailedSeries?.map((s: any) => ({
+
+
+    const engagementData = analytics.detailedSeries?.map((s: { day: string; total: number }) => ({
         day: s.day,
         logs: s.total,
     })) || []
+
 
     //
     // --- Render ---

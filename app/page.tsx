@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/app/components/ui/button";
-import { Activity, UserCheck, Lightbulb } from "lucide-react";
 import gsap from "gsap";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -52,23 +51,7 @@ export default function LandingPage() {
     });
   }, []);
 
-  const features = [
-    {
-      icon: <Activity className="w-12 h-12 text-blue-500 mb-4" />,
-      title: "Track Trends",
-      description: "Visualize your team's mood and energy over time.",
-    },
-    {
-      icon: <UserCheck className="w-12 h-12 text-orange-500 mb-4" />,
-      title: "Anonymous Logging",
-      description: "Encourage honesty with anonymous check-ins.",
-    },
-    {
-      icon: <Lightbulb className="w-12 h-12 text-blue-500 mb-4" />,
-      title: "Smart Suggestions",
-      description: "Receive actionable tips to improve team performance.",
-    },
-  ];
+
 
   const emojis = [
     { char: "🔥", size: 40 },
@@ -177,7 +160,7 @@ export default function LandingPage() {
           Keep Your Team at the Perfect Temperature
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-gray-700 mt-6 max-w-2xl relative z-10 px-4">
-          Real-time insights into your team's mood and energy for better collaboration and happiness.
+          Real-time insights into your team&aposs mood and energy for better collaboration and happiness.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center relative z-10">
           <Button className="bg-blue-500 text-white hover:bg-blue-600 font-bold px-6 py-3 rounded-lg shadow-lg">

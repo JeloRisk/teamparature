@@ -1,5 +1,5 @@
 "use client"
-import { Card, CardHeader, CardContent } from "@/app/components/ui/card"
+import { Card, CardContent } from "@/app/components/ui/card"
 import { ReactNode } from "react";
 
 interface KpiCardProps {

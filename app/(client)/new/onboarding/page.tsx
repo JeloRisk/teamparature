@@ -33,17 +33,22 @@ export default function OnboardingPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: orgName }),
-            });
+            })
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to create org");
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || "Failed to create org")
 
-            setMessage("✅ Organization created!");
-            router.replace("/dashboard");
-        } catch (err: any) {
-            setMessage(err.message);
+            setMessage("✅ Organization created!")
+            router.replace("/dashboard")
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setMessage(err.message)
+            } else {
+                setMessage("Something went wrong")
+            }
         }
-    };
+    }
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">

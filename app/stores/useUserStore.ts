@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 
 type User = {
@@ -10,7 +9,7 @@ type User = {
     lastName?: string;
     avatar?: string;
     birthday?: string;
-    isVerified?: boolean; // added
+    isVerified?: boolean;
 };
 
 type State = {
@@ -26,6 +25,10 @@ type State = {
     resendVerification: () => Promise<void>;
 };
 
+function getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
+}
+
 export const useUserStore = create<State>((set, get) => ({
     user: null,
     hasValidToken: null,
@@ -37,21 +40,25 @@ export const useUserStore = create<State>((set, get) => ({
     clearUser: () => set({ user: null }),
 
     fetchUser: async (id: string) => {
-        const res = await fetch(`/api/users/${id}`, {
-            method: 'POST',
-        });
-
-        const data = await res.json();
-        set({ user: data });
+        set({ loading: true, error: null });
+        try {
+            const res = await fetch(`/api/users/${id}`, { method: 'POST' }); // should be GET, not POST
+            if (!res.ok) throw new Error('Failed to fetch user');
+            const data = await res.json();
+            set({ user: data, loading: false });
+        } catch (err) {
+            set({ error: getErrorMessage(err), loading: false });
+        }
     },
 
     updateUser: async (userData) => {
         const currentUser = get().user;
         if (!currentUser?._id) {
-            console.error("No user ID for update");
+            set({ error: 'No user ID for update' });
             return;
         }
 
+        set({ loading: true, error: null });
         try {
             const res = await fetch(`/api/users/${currentUser._id}`, {
                 method: 'PUT',
@@ -64,18 +71,12 @@ export const useUserStore = create<State>((set, get) => ({
                 return;
             }
 
-            if (!res.ok) {
-                const data = await res.json();
-                alert(data.message || 'Something went wrong');
-                return;
-            }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Update failed');
 
-            const updatedUser = await res.json();
-            set({ user: updatedUser });
-
+            set({ user: data, loading: false });
         } catch (err) {
-            console.error('Update failed:', err);
-            alert('An unexpected error occurred.');
+            set({ error: getErrorMessage(err), loading: false });
         }
     },
 
@@ -86,22 +87,20 @@ export const useUserStore = create<State>((set, get) => ({
             if (!res.ok) throw new Error('Failed to fetch verification status');
 
             const data = await res.json();
-            console.log('Verification status:', data);
             set({
-                user: { ...(get().user || {}), ...data }, // merge with existing user info
+                user: { ...(get().user || {}), ...data },
                 hasValidToken: data.hasValidToken ?? null,
-                loading: false
+                loading: false,
             });
-
-        } catch (err: any) {
-            set({ error: err.message || 'Failed to load verification status', loading: false });
+        } catch (err) {
+            set({ error: getErrorMessage(err), loading: false });
         }
     },
 
     resendVerification: async () => {
         const currentUser = get().user;
         if (!currentUser?._id) {
-            console.error("No user ID for resend");
+            set({ error: 'No user ID for resend' });
             return;
         }
 
@@ -110,16 +109,16 @@ export const useUserStore = create<State>((set, get) => ({
             const res = await fetch('/api/auth/resend-verification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUser._id })
+                body: JSON.stringify({ userId: currentUser._id }),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to resend verification email');
 
             alert(data.message || 'Verification email sent.');
-            await get().fetchVerificationStatus(); // refresh status
-        } catch (err: any) {
-            set({ error: err.message || 'Failed to resend verification email' });
+            await get().fetchVerificationStatus();
+        } catch (err) {
+            set({ error: getErrorMessage(err) });
         } finally {
             set({ loading: false });
         }

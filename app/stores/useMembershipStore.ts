@@ -27,7 +27,10 @@ interface MembershipState {
     fetchMemberships: () => Promise<void>
     setActiveMembership: (membership: Membership) => void
     fetchOrganizationDetails: (orgId: string) => Promise<Organization | null>
+}function getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err)
 }
+
 
 export const useMembershipStore = create<MembershipState>((set) => ({
     memberships: [],
@@ -35,6 +38,7 @@ export const useMembershipStore = create<MembershipState>((set) => ({
     organization: null,
     loading: false,
     error: null,
+
 
     fetchMemberships: async () => {
         set((state) => {
@@ -53,32 +57,35 @@ export const useMembershipStore = create<MembershipState>((set) => ({
                 activeMembership: data.memberships?.[0] || null,
                 loading: false,
             })
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Membership fetch error:", err)
-            set({ loading: false, error: err.message })
+            set({ loading: false, error: getErrorMessage(err) })
         }
     },
 
-    setActiveMembership: (membership) => set({ activeMembership: membership }),
-
-    fetchOrganizationDetails: async (orgId) => {
+    fetchOrganizationDetails: async (orgId: string) => {
         set({ loading: true, error: null })
         try {
             const res = await fetch(`/api/orgs/${orgId}`)
             if (res.status === 403 || res.status === 404) {
                 set({ organization: null, loading: false })
-                return null // <-- return null here
+                return null
             }
             if (!res.ok) throw new Error("Failed to fetch organization details")
+
             const data = await res.json()
             set({ organization: data.organization, loading: false })
             return data.organization
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Organization fetch error:", err)
-            set({ loading: false, error: err.message })
+            set({ loading: false, error: getErrorMessage(err) })
             return null
         }
     },
+
+    setActiveMembership: (membership) => set({ activeMembership: membership }),
+
+
 
 
 

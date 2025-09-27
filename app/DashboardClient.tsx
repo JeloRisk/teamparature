@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import Image from "next/image"
 import {
     Card,
@@ -44,7 +43,7 @@ const moodData = [
     { day: "Fri", happy: 18, neutral: 2, sad: 0 },
 ]
 
-export default function DashboardClient({ organization, membership }: Props) {
+export default function DashboardClient({ organization }: Props) {
     const totalMembers = organization.memberships?.length || 0
     const creators = organization.memberships?.filter((m) => m.role === "creator").length || 0
     const membersOnly = totalMembers - creators

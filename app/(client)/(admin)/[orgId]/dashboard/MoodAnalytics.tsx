@@ -1,13 +1,11 @@
 "use client";
-import { useEffect } from "react";
 import { useMoodStore } from "@/app/stores/useMoodStore";
-import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
 import MoodTrendsChart from "./MoodTrendsChart";
 
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const { moods } = useMoodStore();
 
-    console.log(moods)
+    console.log(orgId)
 
     // useEffect(() => {
     //     fetchMoods(orgId);

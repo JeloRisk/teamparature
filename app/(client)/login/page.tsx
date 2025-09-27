@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from "next/image"
 
 export default function LoginPage() {
     const router = useRouter();
@@ -54,9 +55,11 @@ export default function LoginPage() {
         <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-100 to-blue-100 px-4">
             <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md space-y-6">
                 <div className="flex justify-center">
-                    <img
+                    <Image
                         src="/logo.png"
                         alt="App Logo"
+                        width={64}   // same as h-16
+                        height={64}  // w-auto will scale accordingly
                         className="h-16 w-auto"
                     />
                 </div>

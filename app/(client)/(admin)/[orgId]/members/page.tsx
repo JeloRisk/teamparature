@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
-import { useSession } from "next-auth/react"
 
 import {
     Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow,
@@ -21,7 +20,6 @@ export default function MembersPage() {
     const { orgId } = useParams<{ orgId: string }>()
     const { organization, membership, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
     // console.log(memberships)
-    const { data: session } = useSession()
 
     const [search, setSearch] = useState("")
     const [roleFilter, setRoleFilter] = useState("all")
@@ -50,7 +48,9 @@ export default function MembersPage() {
         const matchesRole = roleFilter === "all" || m.role === roleFilter
         return matchesSearch && matchesRole
     })
-
+    function getErrorMessage(err: unknown): string {
+        return err instanceof Error ? err.message : String(err)
+    }
     const handleInvite = async () => {
         if (!inviteEmail) return alert("Enter a valid email")
         if (sending) return
@@ -67,8 +67,8 @@ export default function MembersPage() {
             alert(`Invitation sent to ${inviteEmail}!`)
             setInviteEmail("")
             setInviteRole("member")
-        } catch (err: any) {
-            alert(err.message || "Something went wrong")
+        } catch (err: unknown) {
+            alert(getErrorMessage(err))
         } finally {
             setSending(false)
         }

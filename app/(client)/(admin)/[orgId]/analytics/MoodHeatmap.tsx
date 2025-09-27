@@ -28,14 +28,13 @@ const moodToNumber: Record<AllowedMood, number> = {
     sad: 4,
     stressed: 5,
 };
+interface HeatmapDataPoint {
+    x: string;
+    y: number;
+    mood?: AllowedMood;
+    range?: string;
+}
 
-const numberToMood: Record<number, AllowedMood> = {
-    1: "happy",
-    2: "excited",
-    3: "neutral",
-    4: "sad",
-    5: "stressed",
-};
 
 function groupByMonthAndWeek(moods: MoodEntry[]) {
     const months = [
@@ -110,17 +109,17 @@ export default function MoodHeatmapApex({ moods }: { moods: MoodEntry[] }) {
         },
         tooltip: {
             custom: function ({ seriesIndex, dataPointIndex, w }) {
-                const point =
-                    w.config.series[seriesIndex].data[dataPointIndex] as any;
+                const point = w.config.series[seriesIndex].data[dataPointIndex] as HeatmapDataPoint;
                 if (!point.mood) {
                     return `<div>No mood recorded</div>`;
                 }
                 return `<div>
-          <strong>${point.range}</strong><br/>
-          Mood: ${point.mood.charAt(0).toUpperCase() + point.mood.slice(1)}
-        </div>`;
+      <strong>${point.range}</strong><br/>
+      Mood: ${point.mood.charAt(0).toUpperCase() + point.mood.slice(1)}
+    </div>`;
             },
         },
+
         xaxis: { categories: series[0].data.map((d) => d.x) },
     };
 

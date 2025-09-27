@@ -17,7 +17,7 @@ import { Menu } from "lucide-react"
 
 interface Props {
     children: ReactNode
-    organization: any
+    organization: unknown
 }
 import { useEffect } from "react"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"

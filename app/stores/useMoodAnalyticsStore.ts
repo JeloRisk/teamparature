@@ -1,5 +1,21 @@
-// stores/useMoodAnalyticsStore.ts
 import { create } from "zustand"
+
+interface DetailedSeriesItem {
+    day: string
+    total: number
+    positive?: number
+    negative?: number
+    avg?: number
+}
+
+
+interface MoodCounts {
+    happy: number
+    neutral: number
+    sad: number
+    stressed: number
+    excited: number
+}
 
 interface MoodAnalytics {
     orgTemperature: number
@@ -12,9 +28,9 @@ interface MoodAnalytics {
     negPct: number
     participants: number
     series: number[]
-    detailedSeries: number[]
+    detailedSeries: DetailedSeriesItem[]
     moodMetrics: number[]
-    moodCounts: number[]
+    moodCounts: MoodCounts
 }
 
 const defaultAnalytics: MoodAnalytics = {
@@ -30,7 +46,13 @@ const defaultAnalytics: MoodAnalytics = {
     series: [],
     detailedSeries: [],
     moodMetrics: [],
-    moodCounts: []
+    moodCounts: {
+        happy: 0,
+        neutral: 0,
+        sad: 0,
+        stressed: 0,
+        excited: 0,
+    },
 }
 
 interface MoodAnalyticsStore {
@@ -38,6 +60,10 @@ interface MoodAnalyticsStore {
     loading: boolean
     error: string | null
     fetchAnalytics: (orgId: string) => Promise<void>
+}
+
+function getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err)
 }
 
 export const useMoodAnalyticsStore = create<MoodAnalyticsStore>((set) => ({
@@ -50,10 +76,10 @@ export const useMoodAnalyticsStore = create<MoodAnalyticsStore>((set) => ({
         try {
             const res = await fetch(`/api/orgs/${orgId}/moods/analytics`)
             if (!res.ok) throw new Error("Failed to fetch analytics")
-            const data = await res.json()
+            const data: MoodAnalytics = await res.json()
             set({ analytics: data, loading: false })
-        } catch (err: any) {
-            set({ error: err.message, loading: false })
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), loading: false })
         }
     },
 }))

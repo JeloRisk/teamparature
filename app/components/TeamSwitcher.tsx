@@ -4,6 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
 import { ChevronsUpDown, Plus, Building2, Shield, User } from "lucide-react"
+import Image from "next/image"
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,7 +31,7 @@ export function MembershipSwitcher() {
     const {
         memberships,
         activeMembership,
-        fetchMemberships,
+        // fetchMemberships,
         setActiveMembership,
         loading,
     } = useMembershipStore()
@@ -84,9 +86,11 @@ export function MembershipSwitcher() {
                         >
                             <div className="bg-orange-500 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
                                 {activeMembership.organization.logoUrl ? (
-                                    <img
-                                        src={activeMembership.organization.logoUrl}
+                                    <Image
+                                        src={activeMembership.organization.logoUrl || "/logo.png"} // fallback if no logo
                                         alt={activeMembership.organization.name}
+                                        width={16}
+                                        height={16}
                                         className="size-4 rounded"
                                     />
                                 ) : (
@@ -129,11 +133,15 @@ export function MembershipSwitcher() {
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border bg-white">
                                     {m.organization.logoUrl ? (
-                                        <img
+
+                                        <Image
                                             src={m.organization.logoUrl}
                                             alt={m.organization.name}
-                                            className="size-3.5 rounded"
+                                            width={14} // 3.5 * 4 = 14px
+                                            height={14}
+                                            className="rounded"
                                         />
+
                                     ) : (
                                         <Building2 className="size-3.5 shrink-0 text-orange-500" />
                                     )}

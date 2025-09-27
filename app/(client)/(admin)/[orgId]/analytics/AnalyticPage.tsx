@@ -1,7 +1,6 @@
 "use client"
 
 import MoodAnalytics from "./MoodAnalytics"
-import { Users, Crown, TrendingUp } from "lucide-react"
 import type { Member } from "@/types/membership"
 import { Role } from "@/lib/rbac"
 
@@ -17,12 +16,9 @@ interface DashboardProps {
     memberships: Member[]
 }
 
-export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
+export default function Dashboard({ organization, memberships }: DashboardProps) {
     if (!organization) return null
-
-    const totalMembers = memberships?.length || 0
-    const creators = organization.memberships?.filter((m) => m.role === "owner").length || 0
-    const membersOnly = totalMembers - creators
+    console.log(memberships)
 
     return (
         <div className="space-y-4">

@@ -6,20 +6,26 @@ import { useMembershipStore } from "@/app/stores/useMembershipStore"
 
 export default function DashboardPage() {
     const router = useRouter()
-    const { memberships, fetchMemberships, loading, error } = useMembershipStore()
+    const { memberships, fetchMemberships, loading } = useMembershipStore()
     const [localError, setLocalError] = useState<string | null>(null)
 
     useEffect(() => {
         const load = async () => {
             try {
-                await fetchMemberships()
-            } catch (err: any) {
-                console.error("Failed to load memberships:", err)
-                setLocalError(err.message || "Failed to load memberships")
+                await fetchMemberships();
+            } catch (err: unknown) {
+                console.error("Failed to load memberships:", err);
+
+                if (err instanceof Error) {
+                    setLocalError(err.message);
+                } else {
+                    setLocalError("Failed to load memberships");
+                }
             }
-        }
-        load()
-    }, [fetchMemberships])
+        };
+        load();
+    }, [fetchMemberships]);
+
 
     useEffect(() => {
         if (loading) return
@@ -28,9 +34,10 @@ export default function DashboardPage() {
 
         const owners = memberships.filter((m) => m.role === "owner")
         const others = memberships.filter((m) => m.role !== "owner")
-
-        const sortByName = (a: any, b: any) =>
-            a.organization.name.localeCompare(b.organization.name)
+        const sortByName = (
+            a: { organization: { name: string } },
+            b: { organization: { name: string } }
+        ) => a.organization.name.localeCompare(b.organization.name)
 
         let chosen
         if (owners.length > 0) {
@@ -68,5 +75,5 @@ export default function DashboardPage() {
         )
     }
 
-    return null 
+    return null
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Mail, Lock, User, Calendar } from "lucide-react";
+import Image from "next/image";
 
 export default function RegisterPage() {
     const [form, setForm] = useState({
@@ -67,8 +68,13 @@ export default function RegisterPage() {
             <div className="flex items-center justify-center bg-white px-6 py-12">
                 <div className="w-full max-w-md space-y-6">
                     <div className="text-center">
-                        <img src="/logo.png" alt="Teamparature Logo" className="mx-auto h-12 w-auto mb-4" />
-                        <h1 className="text-4xl font-bold text-blue-700">Teamparature</h1>
+                        <Image
+                            src="/logo.png"
+                            alt="Teamparature Logo"
+                            width={48}
+                            height={48}
+                            className="mx-auto h-12 w-auto mb-4"
+                        />                        <h1 className="text-4xl font-bold text-blue-700">Teamparature</h1>
                         <p className="text-gray-500 text-sm mt-2">
                             Create your account and take control of your team’s balance and productivity.
                         </p>

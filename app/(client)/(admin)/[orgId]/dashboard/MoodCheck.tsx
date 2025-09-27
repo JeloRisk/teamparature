@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 import {
     Card,
@@ -16,9 +16,8 @@ import {
     DialogFooter,
     DialogTrigger,
 } from "@/app/components/ui/dialog"
-import { Input } from "@/app/components/ui/input"
 import { Textarea } from "@/app/components/ui/textarea"
-import { Smile, Frown } from "lucide-react"
+import { Smile } from "lucide-react"
 
 const moodOptions = [
     { label: "Happy", value: "happy", icon: "😊" },
@@ -29,7 +28,7 @@ const moodOptions = [
 ]
 
 export default function MoodCheck({ orgId, userId }: { orgId: string; userId: string }) {
-    const { hasTrackedToday, moodCountToday, addMood } = useMoodStore()
+    const { hasTrackedToday, addMood } = useMoodStore()
     type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
     const [open, setOpen] = useState(false)
@@ -43,7 +42,6 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
 
     const alreadyTracked = hasTrackedToday()
     console.log("okaya", alreadyTracked)
-    const count = moodCountToday(userId)
 
     const handleSubmit = async () => {
         if (!mood) return
@@ -57,7 +55,7 @@ export default function MoodCheck({ orgId, userId }: { orgId: string; userId: st
     return (
         <Card className={`border  hover:border-orange-300 transition gap-2`}>
             <CardHeader className="">
-                <CardTitle className="text-lg font-semibold">Today's Mood</CardTitle>
+                <CardTitle className="text-lg font-semibold">Today&apos;s Mood</CardTitle>
             </CardHeader>
             <CardContent>
                 {alreadyTracked ? (

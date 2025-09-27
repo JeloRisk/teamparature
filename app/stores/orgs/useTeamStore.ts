@@ -36,12 +36,16 @@ interface OrgState {
     clearOrganization: () => void
 }
 
+function getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err)
+}
 export const useOrgStore = create<OrgState>((set) => ({
     organization: null,
     membership: null,
     memberships: [],
     loading: false,
     error: null,
+
 
     fetchOrganizationDetails: async (orgId: string) => {
         set({ loading: true, error: null })
@@ -58,11 +62,12 @@ export const useOrgStore = create<OrgState>((set) => ({
             })
 
             return data.organization
-        } catch (err: any) {
-            set({ error: err.message, loading: false })
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), loading: false })
             return null
         }
     },
+
 
     clearOrganization: () =>
         set({
