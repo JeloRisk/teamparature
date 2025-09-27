@@ -34,7 +34,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const menuItems = [
     { title: "Dashboard", url: `/${orgId}/dashboard`, icon: LayoutDashboard },
     { title: "Members", url: `/${orgId}/members`, icon: Users },
-    { title: "Moods", url: `/${orgId}/moods`, icon: Smile },
     { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
   ]
 
