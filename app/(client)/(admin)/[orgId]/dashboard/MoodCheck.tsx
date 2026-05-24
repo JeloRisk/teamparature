@@ -69,129 +69,220 @@ export default function MoodCheck({
     }
 
     return (
-        <Card className="relative overflow-hidden border-0 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-md h-full">
-            <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-5 text-white shadow-md">
 
-            {/* HEADER (single clear identity) */}
-            <CardHeader className="relative pb-2">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <p className="text-xs uppercase tracking-wider text-blue-100">
-                            Wellbeing Check
-                        </p>
+            {/* glow effects */}
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />
 
-                        <CardTitle className="mt-1 text-3xl font-bold">
-                            How are you feeling?
-                        </CardTitle>
-                    </div>
+            {/* HEADER */}
+            <div className="relative flex items-start justify-between">
 
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur text-lg">
-                        😊
-                    </div>
+                <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-blue-100">
+                        Wellbeing Check
+                    </p>
+
+                    <h2 className="mt-1 text-3xl font-bold leading-tight">
+                        How are you feeling?
+                    </h2>
                 </div>
-            </CardHeader>
 
-            <CardContent className="relative flex flex-col gap-5 pt-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-lg backdrop-blur">
+                    😊
+                </div>
+            </div>
+
+            {/* CONTENT */}
+            <div className=" mt-4">
 
                 {alreadyTracked ? (
-                    <div className="rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur">
+                    <div className="rounded-2xl border border-white/10 bg-white/10 h-11 backdrop-blur-sm">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/20">
-                                <Smile className="h-4 w-4 text-emerald-100" />
+
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/20">
+                                <Smile className="h-5 w-5 text-emerald-100" />
                             </div>
 
-                            <div>
-                                <p className="font-medium">
+                            <div className="">
+                                <p className="font-semibold">
                                     Already logged today
                                 </p>
-                                <p className="text-xs text-blue-100">
+
+                                {/* <p className="text-sm text-blue-100">
                                     You’ve completed your check-in.
-                                </p>
+                                </p> */}
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <>
-                        {/* <p className="text-sm text-blue-100">
-                            Take a moment to reflect and log your current mood.
-                        </p> */}
+<Dialog open={open} onOpenChange={setOpen}>
+    <DialogTrigger asChild>
+        <button className="h-11 w-full rounded-2xl bg-white font-semibold text-blue-700 transition hover:bg-blue-50">
+            Log Mood
+        </button>
+    </DialogTrigger>
 
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="h-10 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-semibold">
-                                    Log Mood
-                                </Button>
-                            </DialogTrigger>
+    <DialogContent className="overflow-hidden rounded-[28px] border-0 p-0 shadow-2xl sm:max-w-md">
 
-                            <DialogContent className="sm:max-w-md rounded-2xl">
-                                <DialogHeader>
-                                    <DialogTitle>Quick Mood Check</DialogTitle>
-                                </DialogHeader>
+        {/* top glow */}
+        <div className="relative bg-gradient-to-br from-white to-blue-50 px-6 py-5">
 
-                                <div className="flex flex-col gap-4 py-2">
+            {/* floating glow */}
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-200/30 blur-3xl" />
 
-                                    {/* moods */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {moodOptions.map((opt) => (
-                                            <Button
-                                                key={opt.value}
-                                                type="button"
-                                                variant={mood === opt.value ? "default" : "outline"}
-                                                className={`h-11 rounded-xl ${
-                                                    mood === opt.value
-                                                        ? "bg-blue-600 text-white"
-                                                        : ""
-                                                }`}
-                                                onClick={() =>
-                                                    setMood(opt.value as AllowedMood)
-                                                }
-                                            >
-                                                <span className="mr-2">{opt.icon}</span>
-                                                {opt.label}
-                                            </Button>
-                                        ))}
-                                    </div>
+            {/* header */}
+            <div className="relative flex items-start justify-between">
+                <div>
+                    <DialogTitle className="text-3xl font-bold text-slate-800">
+                        Track Your Mood
+                    </DialogTitle>
 
-                                    {/* intensity */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                            Intensity ({rank}/5)
-                                        </label>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Quick emotional check-in
+                    </p>
+                </div>
 
-                                        <input
-                                            type="range"
-                                            min="1"
-                                            max="5"
-                                            value={rank}
-                                            onChange={(e) =>
-                                                setRank(Number(e.target.value))
-                                            }
-                                            className="w-full accent-blue-600"
-                                        />
-                                    </div>
+                <div className="text-3xl">🔥</div>
+            </div>
 
-                                    {/* note */}
-                                    <Textarea
-                                        placeholder="Add a short note (optional)..."
-                                        value={note}
-                                        onChange={(e) => setNote(e.target.value)}
-                                        className="rounded-xl"
-                                    />
+            <div className="mt-8 space-y-6">
+
+                {/* MOODS */}
+                <div>
+                    <h3 className="mb-3 text-lg font-semibold text-slate-800">
+                        How are you feeling?
+                    </h3>
+
+                    {/* positive -> negative */}
+                    <div className="grid grid-cols-5 gap-3">
+
+                        {[
+                            {
+                                value: "happy",
+                                label: "Happy",
+                                icon: "😀",
+                            },
+                            {
+                                value: "excited",
+                                label: "Excited",
+                                icon: "🤩",
+                            },
+                            {
+                                value: "neutral",
+                                label: "Neutral",
+                                icon: "😐",
+                            },
+                            {
+                                value: "sad",
+                                label: "Sad",
+                                icon: "😞",
+                            },
+
+                            {
+                                value: "stressed",
+                                label: "Stressed",
+                                icon: "😰",
+                            },
+                        ].map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() =>
+                                    setMood(opt.value as AllowedMood)
+                                }
+                                className={`group rounded-2xl border p-4 transition-all
+
+                                ${
+                                    mood === opt.value
+                                        ? "border-emerald-400 bg-blue-100 shadow-sm"
+                                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                                }`}
+                            >
+                                <div className="flex flex-col items-center justify-center">
+
+                                    <span className="text-4xl transition-transform group-hover:scale-110">
+                                        {opt.icon}
+                                    </span>
+
+                                    <span className="mt-2 text-sm font-semibold text-slate-700">
+                                        {opt.label}
+                                    </span>
                                 </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                                <DialogFooter>
-                                    <Button
-                                        onClick={handleSubmit}
-                                        className="w-full rounded-xl bg-blue-600 hover:bg-blue-700"
-                                    >
-                                        Save Entry
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                    </>
+                {/* INTENSITY */}
+                <div>
+                    <div className="mb-3">
+                        <h3 className="text-lg font-semibold text-slate-800">
+                            Mood Intensity
+                        </h3>
+
+                        <p className="text-sm text-slate-500">
+                            How intense is your mood?
+                        </p>
+                    </div>
+
+                    {/* one row instead of slider */}
+                    <div className="grid grid-cols-5 gap-2">
+                        {[1, 2, 3, 4, 5].map((num) => (
+                            <button
+                                key={num}
+                                type="button"
+                                onClick={() => setRank(num)}
+                                className={`h-12 rounded-xl border text-lg font-semibold transition
+
+                                ${
+                                    rank === num
+                                        ? "border-blue-600 bg-blue-600 text-white shadow-md"
+                                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-300"
+                                }`}
+                            >
+                                {num}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* NOTE */}
+                <div>
+                    <div className="mb-3">
+                        <h3 className="text-lg font-semibold text-slate-800">
+                            Add a note (optional)
+                        </h3>
+                    </div>
+
+                    <div className="relative">
+                        <textarea
+                            placeholder="Write something..."
+                            value={note}
+                            maxLength={200}
+                            onChange={(e) => setNote(e.target.value)}
+                            className="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                        />
+
+                        <span className="absolute bottom-4 right-4 text-sm text-slate-400">
+                            {note.length}/200
+                        </span>
+                    </div>
+                </div>
+
+                {/* submit */}
+                <button
+                    onClick={handleSubmit}
+                    className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-lg font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-blue-600"
+                >
+                    Submit
+                </button>
+            </div>
+        </div>
+    </DialogContent>
+</Dialog>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     )
 }

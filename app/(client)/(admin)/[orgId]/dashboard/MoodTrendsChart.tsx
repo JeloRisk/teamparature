@@ -1,4 +1,5 @@
 "use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import {
     BarChart,
@@ -10,6 +11,7 @@ import {
     CartesianGrid,
     Legend,
 } from "recharts"
+import { ThermometerSun } from "lucide-react"
 
 interface MoodTrendsChartProps {
     data: {
@@ -24,41 +26,129 @@ interface MoodTrendsChartProps {
 
 export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
     return (
-        <Card className="border shadow-sm hover:shadow-md transition">
-            <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800">
-                    Mood Trends This Week
-                </CardTitle>
+        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-sky-100 via-cyan-50 to-orange-50 shadow-md transition hover:shadow-xl">
+            
+            {/* soft glowing background */}
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-orange-200/40 blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-cyan-200/40 blur-3xl" />
+
+            <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                    <CardTitle className="text-lg font-bold text-gray-900">
+                        Mood Temperature Trends
+                    </CardTitle>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                        Emotional climate throughout the week
+                    </p>
+                </div>
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 shadow-sm backdrop-blur">
+                    <ThermometerSun className="h-5 w-5 text-orange-500" />
+                </div>
             </CardHeader>
-            <CardContent className="h-80">
+
+            <CardContent className="relative z-10 h-80">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}
                         barCategoryGap="25%"
-                        margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+                        margin={{ top: 20, right: 10, left: -10, bottom: 10 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <CartesianGrid
+                            strokeDasharray="4 4"
+                            stroke="#d1d5db"
+                            vertical={false}
+                        />
 
-                        <XAxis dataKey="day" tick={{ fill: "#6b7280", fontSize: 12 }} />
-                        <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
+                        <XAxis
+                            dataKey="day"
+                            tick={{
+                                fill: "#1f2937",
+                                fontSize: 12,
+                                fontWeight: 600,
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+
+                        <YAxis
+                            tick={{
+                                fill: "#1f2937",
+                                fontSize: 12,
+                                fontWeight: 500,
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                        />
 
                         <Tooltip
+                            cursor={{ fill: "rgba(255,255,255,0.3)" }}
                             contentStyle={{
-                                backgroundColor: "#fff",
-                                borderRadius: "8px",
+                                backgroundColor: "rgba(255,255,255,0.95)",
+                                borderRadius: "14px",
                                 border: "1px solid #e5e7eb",
-                                boxShadow: "0px 2px 6px rgba(0,0,0,0.1)",
+                                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                color: "#111827",
                                 fontSize: "13px",
+                            }}
+                            labelStyle={{
+                                color: "#111827",
+                                fontWeight: 700,
                             }}
                         />
 
-                        <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 13 }} />
+                    <Legend
+                        verticalAlign="top"
+                        height={36}
+                        formatter={(value) => (
+                            <span
+                                style={{
+                                    color: "#111827",
+                                    fontWeight: 600,
+                                    textTransform: "capitalize",
+                                }}
+                            >
+                                {value}
+                            </span>
+                        )}
+                    />
 
-                        <Bar dataKey="happy" stackId="a" fill="#22c55e" />
-                        <Bar dataKey="neutral" stackId="a" fill="#3b82f6" />
-                        <Bar dataKey="sad" stackId="a" fill="#ef4444" />
-                        <Bar dataKey="stressed" stackId="a" fill="#facc15" />
-                        <Bar dataKey="excited" stackId="a" fill="#a855f7" />
+                        {/* temperature inspired colors */}
+                        <Bar
+                            dataKey="happy"
+                            stackId="a"
+                            fill="#fb923c"
+                            radius={[0, 0, 6, 6]}
+                        />
+
+                        <Bar
+                            dataKey="neutral"
+                            stackId="a"
+                            fill="#38bdf8"
+                            radius={[0, 0, 6, 6]}
+                        />
+
+                        <Bar
+                            dataKey="sad"
+                            stackId="a"
+                            fill="#6366f1"
+                            radius={[0, 0, 6, 6]}
+                        />
+
+                        <Bar
+                            dataKey="stressed"
+                            stackId="a"
+                            fill="#facc15"
+                            radius={[0, 0, 6, 6]}
+                        />
+
+                        <Bar
+                            dataKey="excited"
+                            stackId="a"
+                            fill="#f43f5e"
+                            radius={[6, 6, 0, 0]}
+                        />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>
