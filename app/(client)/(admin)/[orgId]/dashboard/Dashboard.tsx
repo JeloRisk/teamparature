@@ -29,7 +29,7 @@ export default function Dashboard({ userRole, organization, memberships, moods, 
     const membersOnly = totalMembers - creators
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6 flex-1 p-4 bg-[#e8e8e8]">
             <OrganizationHeader
                 name={organization.name}
                 logoUrl={organization.logoUrl}

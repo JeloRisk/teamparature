@@ -26,16 +26,16 @@ interface MoodTrendsChartProps {
 
 export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
     return (
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-sky-100 via-cyan-50 to-orange-50 shadow-md transition hover:shadow-xl">
-            
+<Card className="relative overflow-hidden border-0 rounded-3xl bg-gradient-to-br from-sky-100 via-cyan-50 to-orange-50 shadow-md transition hover:shadow-xl">
+             
             {/* soft glowing background */}
             <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-orange-200/40 blur-3xl" />
             <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-cyan-200/40 blur-3xl" />
 
             <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                    <CardTitle className="text-lg font-bold text-gray-900">
-                        Mood Temperature Trends
+                    <CardTitle className=" font-semibold font-[22px] font-[family-name:var(--font-plus-jakarta)] text-gray-900">
+                        Mood Temperature Trendsssss
                     </CardTitle>
 
                     <p className="mt-1 text-sm text-gray-700">
@@ -115,40 +115,40 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
                     />
 
                         {/* temperature inspired colors */}
-                        <Bar
-                            dataKey="happy"
-                            stackId="a"
-                            fill="#fb923c"
-                            radius={[0, 0, 6, 6]}
-                        />
+<Bar
+    dataKey="happy"
+    stackId="a"
+    fill="#00d26a" // vivid health green
+    radius={[8, 8, 8, 8]}
+/>
 
-                        <Bar
-                            dataKey="neutral"
-                            stackId="a"
-                            fill="#38bdf8"
-                            radius={[0, 0, 6, 6]}
-                        />
+<Bar
+    dataKey="neutral"
+    stackId="a"
+    fill="#00c2ff" // neon sky blue
+    radius={[8, 8, 8, 8]}
+/>
 
-                        <Bar
-                            dataKey="sad"
-                            stackId="a"
-                            fill="#6366f1"
-                            radius={[0, 0, 6, 6]}
-                        />
+<Bar
+    dataKey="sad"
+    stackId="a"
+    fill="#7a5cff" // vibrant purple
+    radius={[8, 8, 8, 8]}
+/>
 
-                        <Bar
-                            dataKey="stressed"
-                            stackId="a"
-                            fill="#facc15"
-                            radius={[0, 0, 6, 6]}
-                        />
+<Bar
+    dataKey="stressed"
+    stackId="a"
+    fill="#ffb800" // smartwatch amber
+    radius={[8, 8, 8, 8]}
+/>
 
-                        <Bar
-                            dataKey="excited"
-                            stackId="a"
-                            fill="#f43f5e"
-                            radius={[6, 6, 0, 0]}
-                        />
+<Bar
+    dataKey="excited"
+    stackId="a"
+    fill="#ff2d8d" // energetic pink
+    radius={[8, 8, 8, 8]}
+/>
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

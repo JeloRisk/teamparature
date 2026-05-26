@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Geist, Geist_Mono, Titan_One } from "next/font/google";
 import "./globals.css";
 
@@ -23,6 +24,11 @@ const titanOne = Titan_One({
   subsets: ["latin"],
   weight: "400", // required for Titan_One
 });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'], // Choose the weights you need
+  variable: '--font-plus-jakarta',       // Define a custom CSS variable name
+});
 
 // Site metadata
 export const metadata: Metadata = {
@@ -38,7 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${titanOne.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${titanOne.variable} ${plusJakartaSans.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning={true}>

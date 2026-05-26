@@ -53,7 +53,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     </Breadcrumb>
                 </header>
 
-                <main className="flex-1 p-4">{children}</main>
+                <main className="flex-1 p-0">{children}</main>
             </SidebarInset>
         </>
     )
