@@ -16,49 +16,71 @@ export default function StatsCard({
     value,
     description,
     icon: Icon,
-    iconBg = "bg-orange-100",
-    borderHoverColor = "hover:border-orange-300",
+    iconBg = "bg-neutral-100",
+    borderHoverColor = "hover:border-neutral-300",
 }: StatsCardProps) {
     return (
         <div
             className={`
-                relative overflow-hidden
-                rounded-3xl border border-gray-200/80
+                group relative overflow-hidden
+                rounded-[32px]
+                border border-neutral-200/80
                 bg-white
-                p-5
+                p-6
                 transition-all duration-300
+                hover:-translate-y-1
+                hover:bg-neutral-50/80
                 ${borderHoverColor}
+                font-[family-name:var(--font-plus-jakarta)]
             `}
         >
-            {/* subtle background accent */}
-            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gray-100/70 blur-2xl" />
+            {/* subtle gradient glow */}
+            <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-neutral-100 blur-3xl" />
+            </div>
 
-            <div className="relative z-10 flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium tracking-tight text-gray-500">
-                        {title}
-                    </p>
+            <div className="relative z-10 flex h-full flex-col justify-between">
+                {/* top */}
+                <div className="flex items-start justify-between">
+                    <div className="space-y-3">
+                        <p className="text-sm font-semibold tracking-tight text-neutral-500">
+                            {title}
+                        </p>
 
-                    <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                        {value}
-                    </h2>
+                        <h2 className="text-5xl font-bold tracking-[-0.06em] text-neutral-900">
+                            {value}
+                        </h2>
+                    </div>
 
-                    {description && (
-                        <p className="mt-2 text-xs font-medium text-gray-400">
+                    {/* icon */}
+                    <div
+                        className={`
+                            flex h-14 w-14 items-center justify-center
+                            rounded-2xl
+                            border border-neutral-200
+                            bg-white
+                            transition-all duration-300
+                            group-hover:scale-105
+                            ${iconBg}
+                        `}
+                    >
+                        <Icon
+                            className="h-6 w-6 text-neutral-900"
+                            strokeWidth={2.3}
+                        />
+                    </div>
+                </div>
+
+                {/* bottom */}
+                {description && (
+                    <div className="mt-8 flex items-center justify-between">
+                        <p className="max-w-[220px] text-sm font-medium leading-relaxed text-neutral-400">
                             {description}
                         </p>
-                    )}
-                </div>
 
-                <div
-                    className={`
-                        flex h-12 w-12 items-center justify-center
-                        rounded-2xl
-                        ${iconBg}
-                    `}
-                >
-                    <Icon className="h-5 w-5 text-gray-900" />
-                </div>
+                        <div className="h-2 w-2 rounded-full bg-neutral-300 transition-all duration-300 group-hover:bg-neutral-900" />
+                    </div>
+                )}
             </div>
         </div>
     )
