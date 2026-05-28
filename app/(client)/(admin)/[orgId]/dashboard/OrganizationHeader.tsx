@@ -15,7 +15,7 @@ export default function OrganizationHeader({
     slug,
 }: OrganizationHeaderProps) {
     return (
-        <Card className="relative overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 hover:border-indigo-300 transition-shadow">
+        <Card className="relative overflow-hidden border rounded-[32px] my-4 border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 hover:border-indigo-300 transition-shadow">
 
             {/* background illustration */}
             <div className="absolute inset-y-0 right-0 hidden md:block w-[320px] opacity-90">

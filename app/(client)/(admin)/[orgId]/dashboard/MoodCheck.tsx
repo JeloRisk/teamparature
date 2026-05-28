@@ -69,7 +69,7 @@ export default function MoodCheck({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-[#ff4c00] p-5 text-white shadow-md">
+        <div className="relative overflow-hidden rounded-[32px] bg-[#ff4c00] p-5 text-white shadow-md">
 
             {/* glow effects */}
             <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
