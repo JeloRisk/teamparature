@@ -1,5 +1,6 @@
 "use client"
 import OrganizationHeader from "./OrganizationHeader"
+import MyMoodDashboard from "./MyMoodDashboard"
 import MoodCheck from "./MoodCheck"
 import MoodAnalytics from "./MoodAnalytics"
 import StatsCard from "./StatsCard"
@@ -30,6 +31,7 @@ export default function Dashboard({ userRole, organization, memberships, moods, 
 
     return (
         <div className="space-y-6 flex-1 p-4 bg-[#e8e8e8]">
+            <MyMoodDashboard moods={moods} ownerMoods={ownerMoods} />
             <OrganizationHeader
                 name={organization.name}
                 logoUrl={organization.logoUrl}
