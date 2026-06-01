@@ -20,7 +20,7 @@ import { NavUser } from "@/app/components/nav-user"
 import {
   LayoutDashboard,
   Users,
-  Smile,
+  // Smile,
   BarChart3
 } from "lucide-react";
 import { useUserStore } from '../stores/useUserStore';

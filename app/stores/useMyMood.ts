@@ -77,7 +77,8 @@ export const useMyMood = create<State>((set) => ({
         })
     },
 
-    fetchMyMoodAnalytics: async () => {
+   fetchMyMoodAnalytics: async () => {
+    console.log("Initiating fetchMyMoodAnalytics...")
         set({
             loading: true,
             error: null,
@@ -85,15 +86,20 @@ export const useMyMood = create<State>((set) => ({
 
         try {
             const res = await fetch("/api/me/mood")
+            console.log("RAW RESPONSE FROM /api/me/mood:", res)
 
             if (!res.ok) {
                 throw new Error("Failed to fetch mood analytics")
             }
 
-            const data = await res.json()
+            const jsonResponse = await res.json()
+
+            // FIX: Check if your backend wraps the payload inside an object key like 'data' or 'analytics'
+            // If it returns the raw object directly, it falls back cleanly to jsonResponse.
+            const cleanData = jsonResponse.data || jsonResponse.analytics || jsonResponse
 
             set({
-                analytics: data,
+                analytics: cleanData,
                 loading: false,
             })
         } catch (err) {

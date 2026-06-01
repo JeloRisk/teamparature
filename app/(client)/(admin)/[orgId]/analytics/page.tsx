@@ -4,7 +4,7 @@ import Dashboard from "./AnalyticPage"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
 import { useEffect } from "react"
 import { Skeleton } from "@/app/components/ui/skeleton"
-import MyMoodDashboard from "../dashboard/MyMoodDashboard"
+// import MyMoodDashboard from "../dashboard/MyMoodDashboard"
 
 export default function AdminDashboardPage() {
     const router = useRouter()
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
                 organization={organization}
                 memberships={memberships}
             />
-            <MyMoodDashboard/>
+            {/* <MyMoodDashboard/> */}
         </div>
     )
 }

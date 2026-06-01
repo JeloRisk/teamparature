@@ -4,6 +4,7 @@ import MoodTrendsChart from "./MoodTrendsChart";
 
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const { moods } = useMoodStore();
+    console.log(orgId)
     const moodData = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));

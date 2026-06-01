@@ -1,13 +1,13 @@
 "use client"
+
 import OrganizationHeader from "./OrganizationHeader"
-import MyMoodDashboard from "./MyMoodDashboard"
 import MoodCheck from "./MoodCheck"
 import MoodAnalytics from "./MoodAnalytics"
 import StatsCard from "./StatsCard"
-import { Users, Crown, TrendingUp } from "lucide-react"
+import { Users, TrendingUp } from "lucide-react"
 import type { Member } from "@/types/membership"
 import { Role } from "@/lib/rbac"
-import { Mood } from "@/types/moods"
+
 interface DashboardProps {
     userRole: Role
     organization: {
@@ -17,12 +17,10 @@ interface DashboardProps {
         slug: string
         memberships?: { role: Role }[]
     }
-    moods: Mood[]
-    ownerMoods: Mood[]
     memberships: Member[]
 }
 
-export default function Dashboard({ userRole, organization, memberships, moods, ownerMoods }: DashboardProps) {
+export default function Dashboard({ userRole, organization, memberships }: DashboardProps) {
     if (!organization) return null
 
     const totalMembers = memberships?.length || 0
@@ -31,7 +29,6 @@ export default function Dashboard({ userRole, organization, memberships, moods, 
 
     return (
         <div className="space-y-6 flex-1 p-4 bg-[#e8e8e8]">
-            <MyMoodDashboard moods={moods} ownerMoods={ownerMoods} />
             <OrganizationHeader
                 name={organization.name}
                 logoUrl={organization.logoUrl}
@@ -61,10 +58,9 @@ export default function Dashboard({ userRole, organization, memberships, moods, 
                             iconBg="bg-green-100"
                             borderHoverColor="hover:border-green-300"
                         />
-
-
                     </>
                 )}
+                
                 <div className="md:col-span-3">
                     <MoodAnalytics orgId={organization._id} />
                 </div>

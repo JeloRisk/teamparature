@@ -3,35 +3,34 @@
 import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/app/components/ui/card"
+// import {
+//     Card,
+//     CardContent,
+//     CardHeader,
+//     CardTitle,
+// } from "@/app/components/ui/card"
 
-import { Button } from "@/app/components/ui/button"
+// import { Button } from "@/app/components/ui/button"
 
 import {
     Dialog,
     DialogContent,
-    DialogFooter,
-    DialogHeader,
+
     DialogTitle,
     DialogTrigger,
 } from "@/app/components/ui/dialog"
 
-import { Textarea } from "@/app/components/ui/textarea"
+// import { Textarea } from "@/app/components/ui/textarea"
 
 import { Smile } from "lucide-react"
 
-const moodOptions = [
-    { label: "Happy", value: "happy", icon: "😊" },
-    { label: "Neutral", value: "neutral", icon: "😐" },
-    { label: "Sad", value: "sad", icon: "😢" },
-    { label: "Stressed", value: "stressed", icon: "😰" },
-    { label: "Excited", value: "excited", icon: "🤩" },
-]
+// const moodOptions = [
+//     { label: "Happy", value: "happy", icon: "😊" },
+//     { label: "Neutral", value: "neutral", icon: "😐" },
+//     { label: "Sad", value: "sad", icon: "😢" },
+//     { label: "Stressed", value: "stressed", icon: "😰" },
+//     { label: "Excited", value: "excited", icon: "🤩" },
+// ]
 
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 

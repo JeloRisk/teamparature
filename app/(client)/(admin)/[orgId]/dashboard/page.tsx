@@ -2,10 +2,12 @@
 
 import { useParams } from "next/navigation"
 import Dashboard from "./Dashboard"
+import MyMoodDashboard from "./MyMoodDashboard"
 import { useEffect } from "react"
 import { Skeleton } from "@/app/components/ui/skeleton"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
 import { useMoodStore } from "@/app/stores/useMoodStore"
+import { useMyMood } from "@/app/stores/useMyMood"
 
 export default function AdminDashboardPage() {
     const { orgId } = useParams<{ orgId: string }>()
@@ -16,24 +18,26 @@ export default function AdminDashboardPage() {
     const loadingOrg = useOrgStore(state => state.loading)
     const fetchOrganizationDetails = useOrgStore(state => state.fetchOrganizationDetails)
 
-    const moods = useMoodStore(state => state.moods)
-    const ownerMoods = useMoodStore(state => state.ownerMoods)
     const loadingMood = useMoodStore(state => state.loadingMood)
     const fetchAllMoods = useMoodStore(state => state.fetchAllMoods)
 
-    // Fetch org + moods once when orgId changes
+    const analytics = useMyMood(state => state.analytics)
+    const loadingAnalytics = useMyMood(state => state.loading)
+    const fetchMyMoodAnalytics = useMyMood(state => state.fetchMyMoodAnalytics)
+
+    // Fetch org + moods + analytics when orgId changes
     useEffect(() => {
         if (!orgId) return
+        
         fetchOrganizationDetails(orgId)
         fetchAllMoods(orgId)
-        console.log("Hello")
+        fetchMyMoodAnalytics() 
+    }, [orgId, fetchOrganizationDetails, fetchAllMoods, fetchMyMoodAnalytics])
 
-    }, [orgId, fetchOrganizationDetails, fetchAllMoods])
-
-    // Render skeleton while loading
-    if (loadingOrg || loadingMood || !membership || !organization) {
+    // Render skeleton while loading any component dependencies
+    if (loadingOrg || loadingMood || loadingAnalytics || !membership || !organization) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 p-4 max-w-5xl mx-auto">
                 <div className="flex items-center justify-between">
                     <Skeleton className="h-8 w-48" />
                     <Skeleton className="h-9 w-24 rounded-lg" />
@@ -57,12 +61,16 @@ export default function AdminDashboardPage() {
     const userRole = membership.role as "owner" | "member"
 
     return (
-        <Dashboard
-            userRole={userRole}
-            organization={organization}
-            memberships={memberships}
-            moods={moods}
-            ownerMoods={ownerMoods}
-        />
+        <div className="space-y-6 flex-1 bg-[#e8e8e8] min-h-screen pb-12">
+            {/* Render the analytics analytics block side-by-side above team details */}
+            <MyMoodDashboard prepopulatedAnalytics={analytics} />
+
+            {/* Standard workspace summary display — Cleaned of unused mood variables */}
+            <Dashboard
+                userRole={userRole}
+                organization={organization}
+                memberships={memberships}
+            />
+        </div>
     )
 }
