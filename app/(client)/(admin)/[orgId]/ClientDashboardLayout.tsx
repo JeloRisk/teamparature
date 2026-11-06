@@ -33,6 +33,7 @@ export function useWorkspace() {
 import { useEffect } from "react"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
+    const { organization, role } = useWorkspace()
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
 
@@ -42,7 +43,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
 
     return (
         <>
-            <AppSidebar variant="sidebar" />
+            <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
             <SidebarInset>
                 <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
                     <button

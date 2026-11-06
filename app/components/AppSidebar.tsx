@@ -20,22 +20,23 @@ import { NavUser } from "@/app/components/nav-user"
 import {
   LayoutDashboard,
   Users,
-  Smile,
   BarChart3
 } from "lucide-react";
 import { useUserStore } from '../stores/useUserStore';
 import { MembershipSwitcher } from './TeamSwitcher';
-import { useMembershipStore } from '../stores/useMembershipStore';
+import type { Role } from '@/lib/rbac';
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const activeMembership = useMembershipStore((s) => s.activeMembership)
-  const orgId = activeMembership?.organization._id
-
-  const menuItems = [
-    { title: "Dashboard", url: `/${orgId}/dashboard`, icon: LayoutDashboard },
-    { title: "Members", url: `/${orgId}/members`, icon: Users },
-    { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
-  ]
+export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeof Sidebar> & {
+  orgId?: string
+  role?: Role
+}) {
+  const menuItems = orgId ? [
+    { title: "Dashboard", url: `/${orgId}`, icon: LayoutDashboard },
+    ...(role === "owner" ? [
+      { title: "Members", url: `/${orgId}/members`, icon: Users },
+      { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
+    ] : []),
+  ] : []
 
   const pathname = usePathname();
   const user = useUserStore((state) => state.user)

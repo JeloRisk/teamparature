@@ -9,6 +9,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const fetchSummary = useMoodStore(state => state.fetchSummary)
 
     if (error) return <button onClick={() => fetchSummary(orgId)}>{error}. Retry</button>
-    if (!summary) return <p>Loading mood trends…</p>
+    if (!summary?.trend) return <p>Loading mood trends…</p>
     return <MoodTrendsChart data={summary.trend} />
 }

@@ -1,33 +1,21 @@
 import { ReactNode } from "react"
 import { notFound } from "next/navigation"
 import { Types } from "mongoose"
-import connectDB from "@/lib/mongodb"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 
+import { getWorkspaceMembership } from "./workspace-access"
 import ClientDashboardLayout from "./ClientDashboardLayout"
 
 interface OrgLayoutProps {
     children: ReactNode
-    params: { orgId: string }
+    params: Promise<{ orgId: string }>
 }
 
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     const { orgId } = await params
 
-    if (!Types.ObjectId.isValid(orgId)) return notFound()
-
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return notFound()
-    await connectDB()
-
-    const membership = await Membership.findOne({
-        user: session.user.id,
-        organization: orgId,
-        isActive: true,
-    })
+    const membership = await getWorkspaceMembership(orgId)
     if (!membership) return notFound()
 
     const organizationDoc = await Organization.findById(orgId).select("name slug").lean<{ name: string; slug: string }>()

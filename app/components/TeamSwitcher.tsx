@@ -72,7 +72,7 @@ export function MembershipSwitcher() {
 
     const handleSwitch = (membership: typeof activeMembership) => {
         setActiveMembership(membership)
-        router.push(`/${membership.organization._id}/dashboard`)
+        router.push(`/${membership.organization._id}`)
     }
 
     return (

@@ -20,7 +20,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
     await connectDB()
     const organization = new Types.ObjectId(orgId)
     const user = session.user.id
-    if (!(await Membership.exists({ organization, user, isActive: true }))) {
+    const membership = await Membership.findOne({ organization, user, isActive: true }).select("role")
+    if (!membership) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -32,8 +33,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         return date
     })
 
+    const checkIn = Mood.exists({ organization, user, date: { $gte: today, $lt: days[7] } })
+    if (membership.role !== "owner") {
+        return NextResponse.json({ checkedInToday: Boolean(await checkIn) })
+    }
+
     const [checkedIn, counts] = await Promise.all([
-        Mood.exists({ organization, user, date: { $gte: today, $lt: days[7] } }),
+        checkIn,
         Mood.aggregate([
             { $match: { organization, date: { $gte: days[0], $lt: days[7] } } },
             { $bucket: {

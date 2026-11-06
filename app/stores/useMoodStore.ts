@@ -5,7 +5,7 @@ type Trend = Record<Mood, number> & { day: string }
 
 interface Summary {
     checkedInToday: boolean
-    trend: Trend[]
+    trend?: Trend[]
 }
 
 interface MoodState {

@@ -47,7 +47,7 @@ export default function DashboardPage() {
         }
 
         if (chosen) {
-            router.replace(`/${chosen.organization._id}/dashboard`)
+            router.replace(`/${chosen.organization._id}`)
         }
     }, [memberships, loading, localError, router])
 
