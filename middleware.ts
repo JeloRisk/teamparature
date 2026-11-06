@@ -17,10 +17,9 @@ export async function middleware(req: NextRequest) {
     const protectedRoutes = ['/dashboard'];
     const adminRoutes = ['/admin'];
     const onboardingRoute = '/onboarding';
-    console.log(token)
 
     // 1️⃣ Redirect authenticated users away from guest routes
-    if (isAuthenticated && guestRoutes.some(route => pathname.startsWith(route))) {
+    if (isAuthenticated && (pathname === "/" || guestRoutes.some(route => pathname.startsWith(route)))) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
@@ -53,6 +52,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
     matcher: [
+        "/",
         '/login',
         '/register',
         '/dashboard/:path*',
