@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
-import { useMoodStore } from "@/app/stores/useMoodStore"
+
+import MoodHeatmap from "./MoodHeatmap"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
 
 import {
@@ -22,7 +22,6 @@ import {
 import { Flame, Snowflake, Activity, Users } from "lucide-react"
 import KpiCard from "./components/analytics/KpiCard"
 import ChartCard from "./components/analytics/ChartCard"
-import MoodHeatmap from "./MoodHeatmap"
 
 //
 // --- Constants ---
@@ -53,18 +52,11 @@ const MOOD_COLORS: Record<MoodType, string> = {
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { moods } = useMoodStore()
-    const { analytics, fetchAnalytics } = useMoodAnalyticsStore()
+    const { analytics, loading, error, orgId: loadedOrgId } = useMoodAnalyticsStore()
+    if (loadedOrgId !== orgId || loading) return <p>Loading analytics…</p>
+    if (error) return <p role="alert">{error}</p>
 
-    // Fetch data on mount/org change
-    useEffect(() => {
-        fetchAnalytics(orgId);
-    }, [orgId, fetchAnalytics])
-
-    //
-    // --- Derived Data ---
-    //
-    const totalLogs = moods.length
+    const { totalLogs, avgRank } = analytics
 
     const moodCounts = analytics.moodCounts || {
         happy: 0,
@@ -73,12 +65,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
         sad: 0,
         stressed: 0,
     }
-
-    const avgRank = useMemo(() => {
-        if (!totalLogs) return 0
-        const sum = moods.reduce((s, m) => s + (Number(m.rank) || 0), 0)
-        return Number((sum / totalLogs).toFixed(2))
-    }, [moods, totalLogs])
 
     // Pie Data
     const pieData = (Object.entries(moodCounts) as [MoodType, number][])
@@ -90,10 +76,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
         .filter((d) => d.value > 0)
 
     // Gauge Data (Org Temperature)
-    const gaugeValue = useMemo(
-        () => Math.round((avgRank / 5) * 100),
-        [avgRank]
-    )
+    const gaugeValue = analytics.orgTemperature
     const gaugeData = [{ name: "Org Temperature", value: gaugeValue }]
 
 
@@ -266,7 +249,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     </LineChart>
                 </ResponsiveContainer>
             </ChartCard>
-            <MoodHeatmap moods={moods} />
+
 
             {/* Engagement */}
             <ChartCard title="Engagement (Daily Check-ins)">
@@ -285,6 +268,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     </BarChart>
                 </ResponsiveContainer>
             </ChartCard>
+            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} />
         </div>
     )
 }

@@ -32,7 +32,7 @@ interface MembershipState {
 }
 
 
-export const useMembershipStore = create<MembershipState>((set) => ({
+export const useMembershipStore = create<MembershipState>((set, get) => ({
     memberships: [],
     activeMembership: null,
     organization: null,
@@ -41,12 +41,8 @@ export const useMembershipStore = create<MembershipState>((set) => ({
 
 
     fetchMemberships: async () => {
-        set((state) => {
-            if (state.memberships.length > 0) {
-                return state // ✅ Already loaded, skip re-fetch
-            }
-            return { ...state, loading: true, error: null }
-        })
+        if (get().memberships.length > 0 || get().loading) return
+        set({ loading: true, error: null })
 
         try {
             const res = await fetch("/api/me/memberships")

@@ -5,7 +5,6 @@ import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import User from "@/models/User"
 
 export async function GET(
     req: Request,
@@ -15,22 +14,17 @@ export async function GET(
         await connectDB()
 
         const session = await getServerSession(authOptions)
-        if (!session || !session.user?.email) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
         // Get orgId from awaited params
         const { orgId } = await context.params
 
-        // Get logged-in user
-        const user = await User.findOne({ email: session.user.email })
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 })
-        }
-
         // Check membership
         const membership = await Membership.findOne({
-            user: user._id,
+            user: session.user.id,
+            isActive: true,
             organization: orgId,
         })
 

@@ -9,7 +9,7 @@ export const dashboardFeatures = [
         key: "mood-check",
         permission: "check_mood",
         render: (orgId: string, userId: string) => (
-            <MoodCheck orgId={orgId} userId={userId} />
+            <MoodCheck orgId={orgId} />
         ),
     },
     {

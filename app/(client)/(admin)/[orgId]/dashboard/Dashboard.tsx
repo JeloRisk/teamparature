@@ -4,9 +4,7 @@ import MoodCheck from "./MoodCheck"
 import MoodAnalytics from "./MoodAnalytics"
 import StatsCard from "./StatsCard"
 import { Users, Crown, TrendingUp } from "lucide-react"
-import type { Member } from "@/types/membership"
 import { Role } from "@/lib/rbac"
-import { Mood } from "@/types/moods"
 interface DashboardProps {
     userRole: Role
     organization: {
@@ -16,17 +14,12 @@ interface DashboardProps {
         slug: string
         memberships?: { role: Role }[]
     }
-    moods: Mood[]
-    ownerMoods: Mood[]
-    memberships: Member[]
+    ownerCount: number
+    memberCount: number
 }
 
-export default function Dashboard({ userRole, organization, memberships, moods, ownerMoods }: DashboardProps) {
+export default function Dashboard({ userRole, organization, ownerCount, memberCount }: DashboardProps) {
     if (!organization) return null
-
-    const totalMembers = memberships?.length || 0
-    const creators = organization.memberships?.filter((m) => m.role === "owner").length || 0
-    const membersOnly = totalMembers - creators
 
     return (
         <div className="space-y-4">
@@ -38,14 +31,14 @@ export default function Dashboard({ userRole, organization, memberships, moods, 
 
             <div className="grid gap-4 md:grid-cols-3">
                 {/* Mood check visible to everyone */}
-                <MoodCheck orgId={organization._id} userId="currentUserIdHere" />
+                <MoodCheck orgId={organization._id} />
 
                 {userRole === "owner" && (
                     <>
                         <StatsCard
                             title="Total Members"
-                            value={totalMembers}
-                            description={`${creators} creator(s), ${membersOnly} member(s)`}
+                            value={ownerCount + memberCount}
+                            description={`${ownerCount} creator(s), ${memberCount} member(s)`}
                             icon={Users}
                             iconBg="bg-indigo-100"
                             borderHoverColor="hover:border-indigo-300"

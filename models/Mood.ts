@@ -46,5 +46,8 @@ const MoodSchema = new Schema<IMood>(
     { timestamps: true }
 );
 
+MoodSchema.index({ organization: 1, date: 1 });
+MoodSchema.index({ organization: 1, user: 1, date: 1 });
+
 export const Mood =
     mongoose.models.Mood || mongoose.model<IMood>("Mood", MoodSchema);

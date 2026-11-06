@@ -18,6 +18,8 @@ interface MoodCounts {
 }
 
 interface MoodAnalytics {
+    heatmap: { month: number; day: number; mood: keyof MoodCounts }[]
+    year: number
     orgTemperature: number
     avgRank: number
     totalLogs: number
@@ -34,6 +36,8 @@ interface MoodAnalytics {
 }
 
 const defaultAnalytics: MoodAnalytics = {
+    heatmap: [],
+    year: new Date().getFullYear(),
     orgTemperature: 0,
     avgRank: 0,
     totalLogs: 0,
@@ -56,6 +60,7 @@ const defaultAnalytics: MoodAnalytics = {
 }
 
 interface MoodAnalyticsStore {
+    orgId: string | null
     analytics: MoodAnalytics
     loading: boolean
     error: string | null
@@ -66,20 +71,21 @@ function getErrorMessage(err: unknown): string {
     return err instanceof Error ? err.message : String(err)
 }
 
-export const useMoodAnalyticsStore = create<MoodAnalyticsStore>((set) => ({
+export const useMoodAnalyticsStore = create<MoodAnalyticsStore>((set, get) => ({
+    orgId: null,
     analytics: defaultAnalytics,
     loading: false,
     error: null,
 
     fetchAnalytics: async (orgId) => {
-        set({ loading: true, error: null })
+        set({ orgId, loading: true, error: null })
         try {
             const res = await fetch(`/api/orgs/${orgId}/moods/analytics`)
             if (!res.ok) throw new Error("Failed to fetch analytics")
             const data: MoodAnalytics = await res.json()
-            set({ analytics: data, loading: false })
+            if (get().orgId === orgId) set({ analytics: data, loading: false })
         } catch (err: unknown) {
-            set({ error: getErrorMessage(err), loading: false })
+            if (get().orgId === orgId) set({ error: getErrorMessage(err), loading: false })
         }
     },
 }))

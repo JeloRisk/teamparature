@@ -4,68 +4,43 @@ import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/app/components/ui/card"
-
-import { Button } from "@/app/components/ui/button"
-
-import {
     Dialog,
     DialogContent,
-    DialogFooter,
-    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/app/components/ui/dialog"
 
-import { Textarea } from "@/app/components/ui/textarea"
-
 import { Smile } from "lucide-react"
-
-const moodOptions = [
-    { label: "Happy", value: "happy", icon: "😊" },
-    { label: "Neutral", value: "neutral", icon: "😐" },
-    { label: "Sad", value: "sad", icon: "😢" },
-    { label: "Stressed", value: "stressed", icon: "😰" },
-    { label: "Excited", value: "excited", icon: "🤩" },
-]
 
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
-export default function MoodCheck({
-    orgId,
-    userId,
-}: {
-    orgId: string
-    userId: string
-}) {
-    const { hasTrackedToday, addMood } = useMoodStore()
+export default function MoodCheck({ orgId }: { orgId: string }) {
+    const summary = useMoodStore(state => state.orgId === orgId ? state.summary : null)
+    const addMood = useMoodStore(state => state.addMood)
+    const [submitting, setSubmitting] = useState(false)
+    const [error, setError] = useState("")
 
     const [open, setOpen] = useState(false)
     const [mood, setMood] = useState<AllowedMood | "">("")
     const [rank, setRank] = useState(3)
     const [note, setNote] = useState("")
 
-    const alreadyTracked = hasTrackedToday()
-
     const handleSubmit = async () => {
-        if (!mood) return
+        if (!mood || submitting) return
 
-        await addMood({
-            orgId,
-            userId,
-            mood,
-            rank,
-            note,
-        })
-
-        setMood("")
-        setRank(3)
-        setNote("")
-        setOpen(false)
+        setSubmitting(true)
+        setError("")
+        try {
+            await addMood({ orgId, mood, rank, note })
+            setMood("")
+            setRank(3)
+            setNote("")
+            setOpen(false)
+        } catch {
+            setError("Could not save your check-in. Please try again.")
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     return (
@@ -96,7 +71,7 @@ export default function MoodCheck({
             {/* CONTENT */}
             <div className=" mt-4">
 
-                {alreadyTracked ? (
+                {summary?.checkedInToday ? (
                     <div className="rounded-2xl border border-white/10 bg-white/10 h-11 backdrop-blur-sm">
                         <div className="flex items-center gap-3">
 
@@ -270,12 +245,13 @@ export default function MoodCheck({
                     </div>
                 </div>
 
-                {/* submit */}
+                {error && <p role="alert" className="text-red-700">{error}</p>}
                 <button
                     onClick={handleSubmit}
+                    disabled={!mood || submitting}
                     className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-lg font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-blue-600"
                 >
-                    Submit
+                    {submitting ? "Saving…" : "Submit"}
                 </button>
             </div>
         </div>

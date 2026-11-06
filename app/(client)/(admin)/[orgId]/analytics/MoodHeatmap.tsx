@@ -9,7 +9,8 @@ import ChartCard2 from "./components/analytics/ChartCard2";
 type AllowedMood = "happy" | "excited" | "neutral" | "sad" | "stressed";
 
 interface MoodEntry {
-    date: string; // yyyy-MM-dd
+    month: number;
+    day: number;
     mood: AllowedMood;
 }
 
@@ -36,7 +37,7 @@ interface HeatmapDataPoint {
 }
 
 
-function groupByMonthAndWeek(moods: MoodEntry[]) {
+function groupByMonthAndWeek(moods: MoodEntry[], year: number) {
     const months = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -52,18 +53,18 @@ function groupByMonthAndWeek(moods: MoodEntry[]) {
             name: `Week ${week}`,
             data: months.map((month, idx) => {
                 const monthEntries = moods.filter(
-                    (m) => new Date(m.date).getMonth() === idx
+                    (m) => m.month === idx + 1
                 );
 
                 const weekEntries = monthEntries.filter((m) => {
-                    const d = new Date(m.date).getDate();
+                    const d = m.day;
                     return d > (week - 1) * 7 && d <= week * 7;
                 });
 
                 if (weekEntries.length > 0) {
                     const mood = weekEntries[0].mood;
                     const startDate = startOfWeek(
-                        new Date(2025, idx, (week - 1) * 7 + 1),
+                        new Date(year, idx, (week - 1) * 7 + 1),
                         { weekStartsOn: 1 }
                     );
                     const endDate = addDays(startDate, 6);
@@ -85,8 +86,8 @@ function groupByMonthAndWeek(moods: MoodEntry[]) {
     return series;
 }
 
-export default function MoodHeatmapApex({ moods }: { moods: MoodEntry[] }) {
-    const series = groupByMonthAndWeek(moods);
+export default function MoodHeatmapApex({ moods, year }: { moods: MoodEntry[]; year: number }) {
+    const series = groupByMonthAndWeek(moods, year);
 
     const options: ApexCharts.ApexOptions = {
         chart: { type: "heatmap", toolbar: { show: false } },

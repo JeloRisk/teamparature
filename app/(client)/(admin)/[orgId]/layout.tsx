@@ -6,7 +6,6 @@ import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import User from "@/models/User"
 
 import ClientDashboardLayout from "./ClientDashboardLayout"
 
@@ -18,30 +17,37 @@ interface OrgLayoutProps {
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     const { orgId } = await params
 
-    await connectDB()
-
     if (!Types.ObjectId.isValid(orgId)) return notFound()
 
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) return notFound()
-
-    const user = await User.findOne({ email: session.user.email })
-    if (!user) return notFound()
+    if (!session?.user?.id) return notFound()
+    await connectDB()
 
     const membership = await Membership.findOne({
-        user: user._id,
+        user: session.user.id,
         organization: orgId,
+        isActive: true,
     })
     if (!membership) return notFound()
 
-    const organizationDoc = await Organization.findById(orgId).lean()
+    const organizationDoc = await Organization.findById(orgId).select("name slug").lean<{ name: string; slug: string }>()
     if (!organizationDoc) return notFound()
 
-    // 🔥 Convert Mongoose doc → plain object
-    const organization = JSON.parse(JSON.stringify(organizationDoc))
+    const memberCounts = membership.role === "owner"
+        ? await Membership.aggregate<{ _id: string; count: number }>([
+            { $match: { organization: new Types.ObjectId(orgId), isActive: true } },
+            { $group: { _id: "$role", count: { $sum: 1 } } },
+        ])
+        : []
+    const workspace = {
+        organization: { _id: orgId, name: organizationDoc.name, slug: organizationDoc.slug },
+        role: membership.role,
+        ownerCount: memberCounts.find(row => row._id === "owner")?.count ?? 0,
+        memberCount: memberCounts.find(row => row._id === "member")?.count ?? 0,
+    }
 
     return (
-        <ClientDashboardLayout organization={organization}>
+        <ClientDashboardLayout workspace={workspace}>
             {children}
         </ClientDashboardLayout>
     )

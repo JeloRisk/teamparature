@@ -1,56 +1,19 @@
 "use client"
-import { useParams, useRouter } from "next/navigation"
-import Dashboard from "./AnalyticPage"
-import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
-import { useEffect } from "react"
-import { Skeleton } from "@/app/components/ui/skeleton"
 
-export default function AdminDashboardPage() {
-    const router = useRouter()
-    const { orgId } = useParams<{ orgId: string }>()
-    const { organization, membership, memberships, loading, fetchOrganizationDetails } = useOrgStore()
+import { useEffect } from "react"
+import { notFound } from "next/navigation"
+import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
+import { useWorkspace } from "../ClientDashboardLayout"
+import MoodAnalytics from "./MoodAnalytics"
+
+export default function AnalyticsPage() {
+    const { organization, role } = useWorkspace()
+    const fetchAnalytics = useMoodAnalyticsStore(state => state.fetchAnalytics)
 
     useEffect(() => {
-        if (!orgId) return
-        fetchOrganizationDetails(orgId)
-    }, [orgId, fetchOrganizationDetails])
+        if (role === "owner") fetchAnalytics(organization._id)
+    }, [organization._id, role, fetchAnalytics])
 
-    const renderSkeleton = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-9 w-24 rounded-lg" />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Skeleton className="h-28 rounded-xl" />
-                <Skeleton className="h-28 rounded-xl" />
-                <Skeleton className="h-28 rounded-xl" />
-            </div>
-
-            <div className="space-y-2">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-48 rounded-xl" />
-            </div>
-        </div>
-    )
-
-    if (loading || !membership || !organization) {
-        return renderSkeleton()
-    }
-
-    // Only owners can see this page
-    if (membership.role !== "owner") {
-        router.push(`/not-found`) // or to a 403 page
-        return null
-    }
-
-
-    return (
-        <Dashboard
-            userRole={membership.role as "owner" | "member"}
-            organization={organization}
-            memberships={memberships}
-        />
-    )
+    if (role !== "owner") notFound()
+    return <MoodAnalytics orgId={organization._id} />
 }

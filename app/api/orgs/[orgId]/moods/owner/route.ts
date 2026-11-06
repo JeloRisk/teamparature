@@ -1,59 +1,48 @@
+import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
 import { Mood } from "@/models/Mood";
-import { Organization } from "@/models/Organization";
-import User from "@/models/User";
+import { Membership } from "@/models/Membership";
+import { authOptions } from "@/lib/auth";
 
-// reuse DB connection
-await connectDB();
 
 export async function POST(
     req: Request,
     context: { params: Promise<{ orgId: string }> }
 ) {
     try {
-        const session = await getServerSession();
-        if (!session?.user?.email) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { orgId } = await context.params
-        const { mood, rank, note, userName, userEmail } = await req.json();
+        const { orgId } = await context.params;
+        if (!Types.ObjectId.isValid(orgId)) return NextResponse.json({ error: "Invalid organization" }, { status: 400 });
+        const { mood, rank, note } = await req.json();
+        const user = session.user.id;
+        await connectDB();
+        if (!(await Membership.exists({ user, organization: orgId, isActive: true }))) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
 
-        // fetch user + org in parallel
-        const [user, org] = await Promise.all([
-            User.findOne({ email: session.user.email }).select("_id name email"),
-            Organization.findById(orgId).select("_id"),
-        ]);
-
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-        if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
-
-        // "already tracked today"
-        // const today = new Date();
-        // today.setUTCHours(0, 0, 0, 0);
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
 
         const exists = await Mood.exists({
-            user: user._id,
+            user,
             organization: orgId,
             date: { $gte: today },
         });
 
         if (exists) {
-            return NextResponse.json({ error: "Already tracked today" }, { status: 400 });
+            return NextResponse.json({ error: "Already tracked today" }, { status: 409 });
         }
 
         const newMood = await Mood.create({
-            user: user._id,
+            user,
             organization: orgId,
-            userSnapshot: {
-                name: userName ?? user.name ?? session.user.name,
-                email: userEmail ?? user.email ?? session.user.email,
-            },
             mood,
             rank,
             note,
@@ -70,25 +59,23 @@ export async function POST(
 export async function GET(req: Request,
     context: { params: Promise<{ orgId: string }> }) {
     try {
-        const session = await getServerSession();
-        if (!session?.user?.email) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { orgId } = await context.params
+        const { orgId } = await context.params;
+        if (!Types.ObjectId.isValid(orgId)) return NextResponse.json({ error: "Invalid organization" }, { status: 400 });
 
-        // fetch user + org in parallel
-        const [user, org] = await Promise.all([
-            User.findOne({ email: session.user.email }).select("_id"),
-            Organization.findById(orgId).select("_id"),
-        ]);
-
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-        if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+        const user = session.user.id;
+        await connectDB();
+        if (!(await Membership.exists({ user, organization: orgId, isActive: true }))) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
 
         // limit fields returned (faster)
-        const moods = await Mood.find({ organization: orgId, user: user._id })
-            .select("mood rank note date userSnapshot")
+        const moods = await Mood.find({ organization: orgId, user })
+            .select("mood rank note date")
             .lean();
 
         return NextResponse.json(moods);

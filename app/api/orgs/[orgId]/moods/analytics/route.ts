@@ -20,156 +20,127 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import connectDB from "@/lib/mongodb"
+import { Types } from "mongoose"
+import { authOptions } from "@/lib/auth"
+import { requirePermission } from "@/lib/rbac"
 import { Mood } from "@/models/Mood"
 
 export async function GET(
     req: Request,
     context: { params: Promise<{ orgId: string }> }
 ) {
-    await connectDB()
-    const session = await getServerSession()
-    if (!session?.user)
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id)
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { orgId } = await context.params
-    const moods = await Mood.find({ organization: orgId }).lean()
+    if (!Types.ObjectId.isValid(orgId))
+        return NextResponse.json({ error: "Invalid organization" }, { status: 400 })
 
-    if (!moods.length) {
-        return NextResponse.json({
-            orgTemperature: 0,
-            avgRank: 0,
-            totalLogs: 0,
-            volatility: 0,
-            positive: 0,
-            negative: 0,
-            posPct: 0,
-            negPct: 0,
-            participants: 0,
-            moodCounts: { happy: 0, excited: 0, neutral: 0, sad: 0, stressed: 0 },
-            moodMetrics: {},
-            detailedSeries: [],
-        })
-    }
+    await connectDB()
+    const access = await requirePermission(session.user.id, orgId, "view_analytics")
+    if (access !== true) return access
 
-    // --- Global metrics ---
-    const totalLogs = moods.length
-    const avgRank =
-        moods.reduce((sum, m) => sum + (Number(m.rank) || 0), 0) / totalLogs
+    const organization = new Types.ObjectId(orgId)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const boundaries = Array.from({ length: 15 }, (_, i) => {
+        const date = new Date(today)
+        date.setDate(today.getDate() + i - 13)
+        return date
+    })
+
+    const year = today.getFullYear()
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const [[allTime], daily, heatmap] = await Promise.all([
+        Mood.aggregate([
+            { $match: { organization } },
+            { $facet: {
+                moods: [
+                    { $group: {
+                        _id: "$mood",
+                        count: { $sum: 1 },
+                        rankSum: { $sum: "$rank" },
+                        users: { $addToSet: "$user" },
+                    } },
+                    { $project: { count: 1, rankSum: 1, uniqueUsers: { $size: "$users" } } },
+                ],
+                participants: [{ $group: { _id: "$user" } }, { $count: "count" }],
+            } },
+        ]),
+        Mood.aggregate([
+            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[14] } } },
+            { $bucket: {
+                groupBy: "$date",
+                boundaries,
+                output: {
+                    total: { $sum: 1 },
+                    avg: { $avg: "$rank" },
+                    happy: { $sum: { $cond: [{ $eq: ["$mood", "happy"] }, 1, 0] } },
+                    excited: { $sum: { $cond: [{ $eq: ["$mood", "excited"] }, 1, 0] } },
+                    neutral: { $sum: { $cond: [{ $eq: ["$mood", "neutral"] }, 1, 0] } },
+                    sad: { $sum: { $cond: [{ $eq: ["$mood", "sad"] }, 1, 0] } },
+                    stressed: { $sum: { $cond: [{ $eq: ["$mood", "stressed"] }, 1, 0] } },
+                },
+            } },
+        ]),
+        Mood.aggregate([
+            { $match: { organization, date: {
+                $gte: new Date(year, 0, 1),
+                $lt: new Date(year + 1, 0, 1),
+            } } },
+            { $sort: { date: 1 } },
+            { $project: {
+                mood: 1,
+                parts: { $dateToParts: { date: "$date", timezone } },
+            } },
+            { $group: {
+                _id: {
+                    month: "$parts.month",
+                    week: { $ceil: { $divide: ["$parts.day", 7] } },
+                },
+                mood: { $first: "$mood" },
+                day: { $first: "$parts.day" },
+            } },
+            { $project: { _id: 0, mood: 1, day: 1, month: "$_id.month" } },
+        ]),
+    ])
 
     const moodTypes = ["happy", "excited", "neutral", "sad", "stressed"]
-
-    // Count moods individually + gather per mood ranks/users
-    const moodCounts: Record<string, number> = {}
-    const moodRanks: Record<string, number[]> = {}
-    const moodUsers: Record<string, Set<string>> = {}
-
-    moodTypes.forEach((mt) => {
-        moodCounts[mt] = 0
-        moodRanks[mt] = []
-        moodUsers[mt] = new Set()
-    })
-
-    for (const m of moods) {
-        if (moodCounts[m.mood] !== undefined) {
-            moodCounts[m.mood]++
-            moodRanks[m.mood].push(Number(m.rank) || 0)
-            moodUsers[m.mood].add(String(m.user))
-        }
-    }
-
-    // Build per-mood measurement of tendency
-    const moodMetrics: Record<
-        string,
-        { count: number; percentage: number; avgRank: number; uniqueUsers: number }
-    > = {}
-
-    moodTypes.forEach((mt) => {
-        const count = moodCounts[mt]
-        const avg =
-            count > 0
-                ? moodRanks[mt].reduce((a, b) => a + b, 0) / moodRanks[mt].length
-                : 0
-        moodMetrics[mt] = {
-            count,
-            percentage: totalLogs ? Math.round((count / totalLogs) * 100) : 0,
-            avgRank: Number(avg.toFixed(2)),
-            uniqueUsers: moodUsers[mt].size,
-        }
-    })
-
+    const totalLogs = allTime.moods.reduce((sum: number, row: { count: number }) => sum + row.count, 0)
+    const rankSum = allTime.moods.reduce((sum: number, row: { rankSum: number }) => sum + row.rankSum, 0)
+    const avgRank = totalLogs ? rankSum / totalLogs : 0
+    const percentage = (count: number) => totalLogs ? Math.round(count * 100 / totalLogs) : 0
+    const moodMetrics = Object.fromEntries(moodTypes.map(mood => {
+        const row = allTime.moods.find((row: { _id: string }) => row._id === mood)
+        return [mood, {
+            count: row?.count ?? 0,
+            percentage: percentage(row?.count ?? 0),
+            avgRank: row ? Number((row.rankSum / row.count).toFixed(2)) : 0,
+            uniqueUsers: row?.uniqueUsers ?? 0,
+        }]
+    }))
+    const moodCounts = Object.fromEntries(moodTypes.map(mood => [mood, moodMetrics[mood].count]))
     const positive = moodCounts.happy + moodCounts.excited
     const negative = moodCounts.sad + moodCounts.stressed
-    const posPct = totalLogs ? Math.round((positive / totalLogs) * 100) : 0
-    const negPct = totalLogs ? Math.round((negative / totalLogs) * 100) : 0
-    const participants = new Set(moods.map((m) => String(m.user))).size
-
-    // --- Daily analytics (14 days) ---
-    const days = 14
-    const detailedSeries: {
-        day: string
-        avg: number
-        positive: number
-        negative: number
-        total: number
-        happy: number
-        excited: number
-        neutral: number
-        sad: number
-        stressed: number
-    }[] = []
-
-    const volatilitySeries: number[] = []
-
-    for (let i = days - 1; i >= 0; i--) {
-        const d = new Date()
-        d.setHours(0, 0, 0, 0)
-        d.setDate(d.getDate() - i)
-
-        const dayLogs = moods.filter(
-            (m) => new Date(m.date).toDateString() === d.toDateString()
-        )
-
-        const avg =
-            dayLogs.length > 0
-                ? dayLogs.reduce((s, m) => s + (Number(m.rank) || 0), 0) /
-                dayLogs.length
-                : 0
-
-        const dayCounts: Record<string, number> = {
-            happy: 0,
-            excited: 0,
-            neutral: 0,
-            sad: 0,
-            stressed: 0,
+    const participants = allTime.participants[0]?.count ?? 0
+    const detailedSeries = boundaries.slice(0, 14).map(date => {
+        const row = daily.find(row => row._id.getTime() === date.getTime())
+        const happy = row?.happy ?? 0
+        const excited = row?.excited ?? 0
+        const sad = row?.sad ?? 0
+        const stressed = row?.stressed ?? 0
+        return {
+            day: date.toLocaleDateString("en-US", { month: "short", day: "2-digit" }),
+            avg: Number((row?.avg ?? 0).toFixed(2)),
+            total: row?.total ?? 0,
+            happy, excited, sad, stressed,
+            neutral: row?.neutral ?? 0,
+            positive: happy + excited,
+            negative: sad + stressed,
         }
-
-        for (const m of dayLogs) {
-            if (dayCounts[m.mood] !== undefined) {
-                dayCounts[m.mood]++
-            }
-        }
-
-        const dayLabel = d.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-        })
-
-        detailedSeries.push({
-            day: dayLabel,
-            avg: Number(avg.toFixed(2)),
-            positive: dayCounts.happy + dayCounts.excited,
-            negative: dayCounts.sad + dayCounts.stressed,
-            total: dayLogs.length,
-            ...dayCounts,
-            happy: 0,
-            excited: 0,
-            neutral: 0,
-            sad: 0,
-            stressed: 0
-        })
-
-        if (dayLogs.length > 0) volatilitySeries.push(avg)
-    }
+    })
+    const volatilitySeries = daily.map(row => Number(row.avg ?? 0))
 
     // --- Volatility ---
     let volatility = 0
@@ -191,11 +162,13 @@ export async function GET(
         volatility: Number(volatility.toFixed(2)),
         positive,
         negative,
-        posPct,
-        negPct,
+        posPct: percentage(positive),
+        negPct: percentage(negative),
         participants,
         moodCounts,
         moodMetrics,
         detailedSeries,
+        heatmap,
+        year,
     })
 }

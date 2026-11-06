@@ -1,6 +1,6 @@
 "use client"
 
-import React, { ReactNode } from "react"
+import React, { createContext, useContext, ReactNode } from "react"
 import {
     SidebarProvider,
     SidebarInset,
@@ -15,16 +15,26 @@ import {
 import { AppSidebar } from "@/app/components/AppSidebar"
 import { Menu } from "lucide-react"
 
-interface Props {
-    children: ReactNode
-    organization: unknown
+interface Workspace {
+    organization: { _id: string; name: string; slug: string }
+    role: "owner" | "member"
+    ownerCount: number
+    memberCount: number
 }
+
+const WorkspaceContext = createContext<Workspace | null>(null)
+
+export function useWorkspace() {
+    const workspace = useContext(WorkspaceContext)
+    if (!workspace) throw new Error("Workspace layout is missing")
+    return workspace
+}
+
 import { useEffect } from "react"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
-    console.log('Dashboard')
 
     useEffect(() => {
         fetchMemberships()
@@ -59,10 +69,12 @@ function DashboardContent({ children }: { children: ReactNode }) {
     )
 }
 
-export default function ClientDashboardLayout({ children }: Props) {
+export default function ClientDashboardLayout({ children, workspace }: { children: ReactNode; workspace: Workspace }) {
     return (
-        <SidebarProvider>
-            <DashboardContent>{children}</DashboardContent>
-        </SidebarProvider>
+        <WorkspaceContext.Provider value={workspace}>
+            <SidebarProvider>
+                <DashboardContent>{children}</DashboardContent>
+            </SidebarProvider>
+        </WorkspaceContext.Provider>
     )
 }

@@ -1,125 +1,56 @@
-import { create } from "zustand";
+import { create } from "zustand"
 
-export interface Mood {
-    _id: string;
-    mood: "happy" | "neutral" | "sad" | "stressed" | "excited";
-    rank: number;
-    note?: string;
-    date: string;
-    user: string;
-    organization: string;
+type Mood = "happy" | "neutral" | "sad" | "stressed" | "excited"
+type Trend = Record<Mood, number> & { day: string }
+
+interface Summary {
+    checkedInToday: boolean
+    trend: Trend[]
 }
 
 interface MoodState {
-    moods: Mood[];
-    ownerMoods: Mood[];
-    loadingMood: boolean;
-    fetchAllMoods: (orgId: string) => Promise<void>;
-    addMood: (data: {
-        orgId: string;
-        userId: string;
-        mood: Mood["mood"];
-        rank: number;
-        note?: string;
-    }) => Promise<void>;
-    hasTrackedToday: () => boolean;
-    moodCountToday: (userId: string) => number;
+    summary: Summary | null
+    orgId: string | null
+    error: string | null
+    fetchSummary: (orgId: string) => Promise<void>
+    addMood: (data: { orgId: string; mood: Mood; rank: number; note: string }) => Promise<void>
 }
 
 export const useMoodStore = create<MoodState>((set, get) => ({
-    moods: [],
-    ownerMoods: [],
-    loadingMood: false,
+    summary: null,
+    orgId: null,
+    error: null,
 
-    // ✅ Fetch both in one go
-    fetchAllMoods: async (orgId) => {
-        set({ loadingMood: true });
-        try {
-            const [moodsRes, ownerRes] = await Promise.all([
-                fetch(`/api/orgs/${orgId}/moods`),
-                fetch(`/api/orgs/${orgId}/moods/owner`),
-            ]);
-
-            const [moods, ownerMoods] = await Promise.all([
-                moodsRes.json(),
-                ownerRes.json(),
-            ]);
-
-            set({ moods, ownerMoods });
-        } catch (err) {
-            console.error("Failed to fetch moods:", err);
-        } finally {
-            set({ loadingMood: false });
-        }
-    },
-
-    // Add mood
-    addMood: async (data) => {
-        const tempMood: Mood = {
-            _id: crypto.randomUUID(),
-            ...data,
-            date: new Date().toISOString(),
-            organization: data.orgId,
-            user: data.userId,
-        };
-
+    fetchSummary: async (orgId) => {
         set((state) => ({
-            moods: [...state.moods, tempMood],
-            ownerMoods: [...state.ownerMoods, tempMood],
-        }));
-
+            orgId,
+            error: null,
+            summary: state.orgId === orgId ? state.summary : null,
+        }))
         try {
-            const res = await fetch(`/api/orgs/${data.orgId}/moods/owner`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            const savedMood: Mood = await res.json();
-
-            // Replace temp with saved
-            set((state) => ({
-                moods: state.moods.map((m) => (m._id === tempMood._id ? savedMood : m)),
-                ownerMoods: state.ownerMoods.map((m) => (m._id === tempMood._id ? savedMood : m)),
-            }));
-        } catch (err) {
-            console.error("Failed to save mood:", err);
-
-            // Rollback temp if failed
-            set((state) => ({
-                moods: state.moods.filter((m) => m._id !== tempMood._id),
-                ownerMoods: state.ownerMoods.filter((m) => m._id !== tempMood._id),
-            }));
+            const res = await fetch(`/api/orgs/${orgId}/moods`)
+            if (!res.ok) throw new Error("Could not load mood summary")
+            const summary: Summary = await res.json()
+            if (get().orgId === orgId) set({ summary })
+        } catch {
+            if (get().orgId === orgId) set({ error: "Could not load mood summary" })
         }
     },
 
-
-    // ✅ Has owner tracked today?
-    hasTrackedToday: () => {
-        const today = new Date();
-        const todayYear = today.getFullYear();
-        const todayMonth = today.getMonth();
-        const todayDate = today.getDate();
-
-        return get().ownerMoods.some((m) => {
-            if (!m.date) return false;
-
-            const parsed = new Date(m.date);
-            if (isNaN(parsed.getTime())) return false;
-
-            return (
-                parsed.getFullYear() === todayYear &&
-                parsed.getMonth() === todayMonth &&
-                parsed.getDate() === todayDate
-            );
-        });
+    addMood: async ({ orgId, ...entry }) => {
+        const res = await fetch(`/api/orgs/${orgId}/moods/owner`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(entry),
+        })
+        if (res.status === 409) {
+            if (get().orgId === orgId) await get().fetchSummary(orgId)
+            return
+        }
+        if (!res.ok) throw new Error("Could not save your check-in. Please try again.")
+        set((state) => state.orgId === orgId && state.summary
+            ? { summary: { ...state.summary, checkedInToday: true } }
+            : state)
+        if (get().orgId === orgId) await get().fetchSummary(orgId)
     },
-
-
-    // ✅ Count member moods today
-    moodCountToday: (userId) => {
-        const today = new Date().toDateString();
-        return get().moods.filter(
-            (m) => m.user === userId && new Date(m.date).toDateString() === today
-        ).length;
-    },
-}));
+}))

@@ -40,6 +40,8 @@ const MembershipSchema = new Schema<IMembership>(
 
 MembershipSchema.index({ user: 1, organization: 1 }, { unique: true });
 
+MembershipSchema.index({ organization: 1 });
+
 export const Membership =
     mongoose.models.Membership ||
     mongoose.model<IMembership>("Membership", MembershipSchema);
