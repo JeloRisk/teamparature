@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { Types } from "mongoose";
+import { Activity } from "@/models/Activity";
+import mongoose, { Types } from "mongoose";
 import { invitationStatuses } from "@/lib/invitation-status";
 import crypto from "crypto";
 import connectDB from "@/lib/mongodb";
@@ -75,7 +76,16 @@ export async function POST(req: Request) {
         // Create token & invitation
         const token = crypto.randomBytes(32).toString("hex");
 
-        const invitation = await Invitation.create({
+        await Activity.init();
+        const transaction = await mongoose.startSession();
+        let reserved;
+        try {
+            reserved = await transaction.withTransaction(async () => {
+                const workspace = await Organization.findOneAndUpdate({ _id: orgId }, { $inc: { __v: 1 } }, { session: transaction });
+                if (!workspace) throw new Error("Workspace no longer exists");
+                const owner = await Membership.exists({ organization: orgId, user: session.user.id, role: "owner", isActive: true }).session(transaction);
+                if (!owner) throw new Error("Owner access required");
+        const [invitation] = await Invitation.create([{
             organization: orgId,
             email,
             role: role || "member",
@@ -84,7 +94,19 @@ export async function POST(req: Request) {
             status: "pending",
             createdAt: new Date(),
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        });
+        }], { session: transaction });
+
+                const [activity] = await Activity.create([{
+                    organization: orgId, actor: session.user.id, actorName: session.user.name || session.user.email || "Workspace owner",
+                    action: "invitation_sent", targetId: invitation._id, targetLabel: email, outcome: "pending",
+                }], { session: transaction });
+                return { invitation, activity };
+            });
+        } finally {
+            await transaction.endSession();
+        }
+        if (!reserved) throw new Error("Could not reserve invitation");
+        const { invitation, activity } = reserved;
 
         try {
             await sendOrgInvitationEmail({
@@ -96,12 +118,14 @@ export async function POST(req: Request) {
         } catch (error) {
             console.error("Invitation email delivery failed:", error);
             await Invitation.deleteOne({ _id: invitation._id, status: "pending" });
+            await Activity.updateOne({ _id: activity._id }, { $set: { outcome: "failed" } });
             return NextResponse.json(
                 { error: "Could not send the invitation email. Ask the workspace administrator to check the email configuration, then try again." },
                 { status: 502 }
             );
         }
 
+        await Activity.updateOne({ _id: activity._id }, { $set: { outcome: "succeeded" } });
         return NextResponse.json({ message: "Invitation sent", invitation });
     } catch (err: unknown) {
         console.error(err);

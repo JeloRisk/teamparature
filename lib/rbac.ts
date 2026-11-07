@@ -10,6 +10,7 @@ export const rolePermissions: Record<Role, string[]> = {
         "update_org",
         "view_analytics",
         "view_members",
+        "view_activity",
     ],
     member: ["check_mood"],
 };

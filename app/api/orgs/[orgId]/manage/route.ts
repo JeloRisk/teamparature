@@ -6,6 +6,7 @@ import { validTimezone } from "@/lib/workspace-time"
 import connectDB from "@/lib/mongodb"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
+import { Activity } from "@/models/Activity"
 import User from "@/models/User"
 import { Team } from "@/models/Team"
 import { Mood } from "@/models/Mood"
@@ -40,6 +41,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
         }
 
         await connectDB()
+        await Activity.init()
         const session = await mongoose.startSession()
         try {
             await session.withTransaction(async () => {
@@ -53,11 +55,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                     await Organization.updateOne({ _id: orgId }, {
                         $set: { name: body.name.trim(), description: body.description.trim(), timezone: body.timezone },
                     }, { session })
+                    await Activity.create([{
+                        organization: orgId, actor: auth.user.id, actorName: auth.user.name || auth.user.email || "Workspace owner",
+                        action: "workspace_updated", targetId: organization._id, targetLabel: body.name.trim(),
+                    }], { session })
                     return
                 }
 
                 if (body.action === "delete_workspace") {
                     if (body.name !== organization.name) throw new ManagementError("Enter the workspace name exactly to confirm", 400)
+                    await Activity.deleteMany({ organization: orgId }, { session })
                     await Mood.deleteMany({ organization: orgId }, { session })
                     await Invitation.deleteMany({ organization: orgId }, { session })
                     await Membership.deleteMany({ organization: orgId }, { session })
@@ -82,6 +89,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                     )
                     if (result.modifiedCount !== 1)
                         throw new ManagementError("This invitation has changed. Refresh and try again.", 409)
+                    await Activity.create([{
+                        organization: orgId, actor: auth.user.id, actorName: auth.user.name || auth.user.email || "Workspace owner",
+                        action: "invitation_cancelled", targetId: invitation._id, targetLabel: invitation.email,
+                    }], { session })
                     return
                 }
 
@@ -89,11 +100,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                     const target = await Membership.findOne({ _id: body.id, organization: orgId }).session(session)
                     if (!target) throw new ManagementError("Member not found", 404)
                     if (target.isActive) return
-                    if (!(await User.exists({ _id: target.user }).session(session)))
-                        throw new ManagementError("This account no longer exists", 409)
+                    const recipient = await User.findById(target.user).select("email").session(session)
+                    if (!recipient) throw new ManagementError("This account no longer exists", 409)
+                    const previousRole = target.role
                     target.isActive = true
                     target.role = "member"
                     await target.save({ session })
+                    await Activity.create([{
+                        organization: orgId, actor: auth.user.id, actorName: auth.user.name || auth.user.email || "Workspace owner",
+                        action: "member_restored", targetId: target._id, targetLabel: recipient.email,
+                        previousRole, newRole: "member",
+                    }], { session })
                     return
                 }
 
@@ -103,9 +120,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                     const owners = await Membership.countDocuments({ organization: orgId, role: "owner", isActive: true }).session(session)
                     if (owners <= 1) throw new ManagementError("Add another owner before removing or demoting the last owner", 409)
                 }
+                if (body.action === "change_role" && target.role === body.role) return
+                const previousRole = target.role
+                const recipient = await User.findById(target.user).select("email").session(session)
                 if (body.action === "remove_member") target.isActive = false
                 else target.role = body.role
                 await target.save({ session })
+                await Activity.create([{
+                    organization: orgId, actor: auth.user.id, actorName: auth.user.name || auth.user.email || "Workspace owner",
+                    action: body.action === "remove_member" ? "member_removed" : "role_changed",
+                    targetId: target._id, targetLabel: recipient?.email || "Deleted account",
+                    previousRole, newRole: target.role,
+                }], { session })
             })
         } finally {
             await session.endSession()

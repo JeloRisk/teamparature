@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/mongodb"
+import { Activity } from "@/models/Activity"
 import Invitation from "@/models/Invitation"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
@@ -22,6 +23,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ orgId:
     const token = randomBytes(32).toString("hex")
     try {
         await connectDB()
+        await Activity.init()
         const session = await mongoose.startSession()
         let reservation
         try {
@@ -42,7 +44,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ orgId:
                 await Invitation.collection.updateOne({ _id: invitation._id }, { $set: {
                     token, status: "pending", lastSentAt: now, expiresAt: new Date(now.getTime() + 86400000),
                 } }, { session })
-                return { invitation, name: workspace.name }
+                const [activity] = await Activity.create([{
+                    organization: orgId, actor: auth.user.id, actorName: auth.user.name || auth.user.email || "Workspace owner",
+                    action: "invitation_resent", targetId: invitation._id, targetLabel: invitation.email, outcome: "pending",
+                }], { session })
+                return { invitation, name: workspace.name, activityId: activity._id }
             })
         } finally {
             await session.endSession()
@@ -63,9 +69,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ orgId:
                 expiresAt: old.expiresAt ?? new Date(new Date(old.createdAt).getTime() + 86400000),
                 lastSentAt: old.lastSentAt ?? old.createdAt,
             } })
+            await Activity.updateOne({ _id: reservation.activityId }, { $set: { outcome: "failed" } })
             console.error("Invitation resend delivery failed", error)
             return NextResponse.json({ error: "Email delivery failed. Check the mail configuration and try again." }, { status: 502 })
         }
+        await Activity.updateOne({ _id: reservation.activityId }, { $set: { outcome: "succeeded" } })
         return NextResponse.json({ message: "Invitation resent. The new link expires in 24 hours." })
     } catch (error) {
         if (error instanceof ResendError) return NextResponse.json({ error: error.message }, { status: error.status })
