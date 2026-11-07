@@ -38,16 +38,17 @@ export function CheckInSkeleton() {
 export function DashboardSkeleton() {
     return <div role="status" aria-label="Loading workspace dashboard" className="max-w-7xl space-y-5 py-3">
         <Heading />
-        <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
-            <div className={`${card} space-y-4 bg-gradient-to-br from-card to-accent/50 sm:col-span-3`}>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[0.85fr_1.35fr_1fr]">
+            <div className={`${card} flex flex-col justify-between gap-6 md:col-span-2 xl:col-span-1`}><div className="space-y-3"><Skeleton className="h-3 w-28" /><Skeleton className="h-5 w-40" /><Skeleton className="h-3 w-full" /></div><Skeleton className="h-11 w-full rounded-xl" /></div>
+            <div className={`${card} space-y-4 bg-gradient-to-br from-card to-accent/50`}>
                 <div className="flex items-center gap-2"><Thermometer className="size-5 text-primary/60" aria-hidden="true" /><Skeleton className="h-4 w-36" /></div>
                 <Skeleton className="h-12 w-32" /><Skeleton className="h-3 w-3/4" />
             </div>
-            {Array.from({ length: 3 }, (_, i) => <div key={i} className={`${card} space-y-3`}><Skeleton className="size-10 rounded-2xl" /><Skeleton className="h-8 w-16" /><Skeleton className="h-3 w-24" /></div>)}
+            <div className={`${card} space-y-5`}><Skeleton className="h-4 w-32" /><Skeleton className="h-10 w-44" /><Skeleton className="h-2 w-full" /><Skeleton className="h-3 w-24" /></div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-            <div className={card}><CheckInSkeleton /></div>
+        <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
             <div className={card}><ChartSkeleton /></div>
+            <div className={`${card} space-y-5`}><Skeleton className="h-4 w-36" />{Array.from({ length: 5 }, (_, i) => <div key={i} className="flex items-center gap-3"><Skeleton className="size-9 shrink-0 rounded-full" /><Skeleton className="h-5 flex-1 rounded-full" /></div>)}</div>
         </div>
     </div>
 }

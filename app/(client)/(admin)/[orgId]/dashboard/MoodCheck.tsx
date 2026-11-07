@@ -8,6 +8,7 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    DialogDescription,
     DialogTrigger,
 } from "@/app/components/ui/dialog"
 
@@ -15,7 +16,7 @@ import { Smile } from "lucide-react"
 
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
-export default function MoodCheck({ orgId }: { orgId: string }) {
+export default function MoodCheck({ orgId, compact = false }: { orgId: string; compact?: boolean }) {
     const summary = useMoodStore(state => state.orgId === orgId ? state.summary : null)
     const addMood = useMoodStore(state => state.addMood)
     const [submitting, setSubmitting] = useState(false)
@@ -45,44 +46,43 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground">
+        <div className={compact ? "flex h-full flex-col justify-between gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
 
             {/* glow effects */}
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl" />
-            <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />
+            <div className={`${compact ? "hidden" : ""} absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl`} />
+            {!compact && <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />}
 
             {/* HEADER */}
-            <div className="relative flex items-start justify-between">
+            <div className="relative flex items-start justify-between gap-4">
 
                 <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                        Wellbeing Check
+                    <p className="text-xs font-medium text-primary">
+                        Today’s check-in
                     </p>
 
-                    <h2 className="mt-1 text-xl font-semibold leading-tight">
+                    <h2 className={compact ? "mt-1 text-sm font-medium" : "mt-1 text-xl font-semibold leading-tight"}>
                         How are you feeling?
                     </h2>
+                    {compact && <p className="mt-2 max-w-64 text-xs leading-5 text-muted-foreground">Take a moment for yourself. Every feeling is welcome.</p>}
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent dark:bg-card/15 text-lg backdrop-blur">
-                    😊
-                </div>
+                {!compact && <MoodIcon mood="happy" className="size-11" />}
             </div>
 
             {/* CONTENT */}
-            <div className=" mt-4">
+            <div className={compact ? "w-full" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div className="rounded-2xl border border-white/10 bg-white/10 dark:bg-card/10 h-11 backdrop-blur-sm">
+                    <div className="flex h-11 items-center rounded-xl bg-accent/40 px-3 text-sm">
                         <div className="flex items-center gap-3">
 
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/20">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent">
                                 <Smile className="h-5 w-5 text-primary" />
                             </div>
 
                             <div className="">
                                 <p className="font-semibold">
-                                    Already logged today
+                                    You’ve checked in today
                                 </p>
 
                                 {/* <p className="text-sm text-muted-foreground">
@@ -94,39 +94,39 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 ) : (
 <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-        <button className="h-11 w-full rounded-2xl bg-card dark:bg-card font-semibold text-primary dark:text-primary transition hover:bg-accent dark:hover:bg-accent">
+        <button className="h-11 w-full rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
             Log Mood
         </button>
     </DialogTrigger>
 
-    <DialogContent className="overflow-hidden rounded-[28px] border-0 p-0 shadow-2xl sm:max-w-md">
+    <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border border-border bg-card p-0 sm:max-w-lg">
 
         {/* top glow */}
-        <div className="relative bg-gradient-to-br dark:bg-none dark:bg-card from-white to-blue-50 px-6 py-5">
+        <div className="relative px-5 py-6 sm:px-7">
 
             {/* floating glow */}
-            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-200/30 blur-3xl" />
+
 
             {/* header */}
-            <div className="relative flex items-start justify-between">
+            <div className="relative flex items-start justify-between gap-4">
                 <div>
-                    <DialogTitle className="text-3xl font-bold text-slate-800 dark:text-foreground">
-                        Track Your Mood
+                    <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
+                        Today’s check-in
                     </DialogTitle>
 
-                    <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
-                        Quick emotional check-in
-                    </p>
+                    <DialogDescription className="mt-2 text-sm text-muted-foreground">
+                        Take a moment to notice how you feel today.
+                    </DialogDescription>
                 </div>
 
-                <div className="text-3xl">🔥</div>
+
             </div>
 
             <div className="mt-8 space-y-6">
 
                 {/* MOODS */}
                 <div>
-                    <h3 className="mb-3 text-lg font-semibold text-slate-800 dark:text-foreground">
+                    <h3 className="mb-3 text-sm font-medium text-foreground">
                         How are you feeling?
                     </h3>
 
@@ -164,22 +164,21 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                             <button
                                 key={opt.value}
                                 type="button"
-                                onClick={() =>
-                                    setMood(opt.value as AllowedMood)
-                                }
+                                aria-pressed={mood === opt.value}
+                                onClick={() => setMood(opt.value as AllowedMood)}
                                 className={`group rounded-2xl border px-2 py-3 transition-colors
 
                                 ${
                                     mood === opt.value
-                                        ? "border-emerald-400 bg-accent dark:bg-accent shadow-sm"
-                                        : "border-border dark:border-border bg-card dark:bg-card hover:border-blue-300 hover:bg-accent dark:hover:bg-accent"
+                                        ? "border-primary bg-accent ring-1 ring-primary"
+                                        : "border-border bg-card hover:border-primary/50 hover:bg-accent/40"
                                 }`}
                             >
                                 <div className="flex flex-col items-center justify-center">
 
                                     <MoodIcon mood={opt.value as AllowedMood} className="size-11 shrink-0" />
 
-                                    <span className="mt-2 text-sm font-semibold text-slate-700 dark:text-muted-foreground">
+                                    <span className="mt-2 text-xs font-medium text-foreground">
                                         {opt.label}
                                     </span>
                                 </div>
@@ -191,7 +190,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 {/* INTENSITY */}
                 <div>
                     <div className="mb-3">
-                        <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">
+                        <h3 className="text-sm font-medium text-foreground">
                             Mood Intensity
                         </h3>
 
@@ -206,13 +205,15 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                             <button
                                 key={num}
                                 type="button"
+                                aria-pressed={rank === num}
+                                aria-label={`${num} out of 5 intensity`}
                                 onClick={() => setRank(num)}
-                                className={`h-12 rounded-xl border text-lg font-semibold transition
+                                className={`h-11 rounded-xl border text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
 
                                 ${
                                     rank === num
-                                        ? "border-primary bg-primary text-primary-foreground shadow-md"
-                                        : "border-border dark:border-border bg-card dark:bg-card text-slate-700 dark:text-muted-foreground hover:border-blue-300"
+                                        ? "border-primary bg-accent text-accent-foreground ring-1 ring-primary"
+                                        : "border-border bg-card text-foreground hover:border-primary/50"
                                 }`}
                             >
                                 {num}
@@ -224,7 +225,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 {/* NOTE */}
                 <div>
                     <div className="mb-3">
-                        <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">
+                        <h3 className="text-sm font-medium text-foreground">
                             Add a note (optional)
                         </h3>
                     </div>
@@ -235,7 +236,8 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                             value={note}
                             maxLength={200}
                             onChange={(e) => setNote(e.target.value)}
-                            className="min-h-[120px] w-full rounded-2xl border border-border dark:border-border bg-card dark:bg-card p-4 text-sm text-slate-700 dark:text-muted-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-blue-100"
+                            aria-label="Optional check-in note"
+                            className="min-h-28 w-full rounded-xl border border-border bg-background/40 p-3 pb-8 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/25"
                         />
 
                         <span className="absolute bottom-4 right-4 text-sm text-slate-400">
@@ -248,9 +250,9 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 <button
                     onClick={handleSubmit}
                     disabled={!mood || submitting}
-                    className="h-14 w-full rounded-2xl bg-gradient-to-r dark:bg-none dark:bg-muted from-blue-600 to-blue-500 text-lg font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-blue-600"
+                    className="h-11 w-full rounded-xl bg-primary text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
-                    {submitting ? "Saving…" : "Submit"}
+                    {submitting ? "Saving…" : "Save check-in"}
                 </button>
             </div>
         </div>
