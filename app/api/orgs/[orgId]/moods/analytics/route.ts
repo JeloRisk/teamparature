@@ -1,3 +1,4 @@
+import type { HeatmapCell, HeatmapMood } from "@/lib/mood-heatmap"
 import { positiveShare } from "@/lib/mood-reporting"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
@@ -66,7 +67,6 @@ export async function GET(
                 $gte: fromZonedTime(`${year}-01-01T00:00:00`, timezone),
                 $lt: fromZonedTime(`${year + 1}-01-01T00:00:00`, timezone),
             } } },
-            { $sort: { date: 1 } },
             { $project: {
                 mood: 1,
                 parts: { $dateToParts: { date: "$date", timezone } },
@@ -75,11 +75,17 @@ export async function GET(
                 _id: {
                     month: "$parts.month",
                     week: { $ceil: { $divide: ["$parts.day", 7] } },
+                    mood: "$mood",
                 },
-                mood: { $first: "$mood" },
-                day: { $first: "$parts.day" },
+                count: { $sum: 1 },
             } },
-            { $project: { _id: 0, mood: 1, day: 1, month: "$_id.month" } },
+            { $group: {
+                _id: { month: "$_id.month", week: "$_id.week" },
+                total: { $sum: "$count" },
+                counts: { $push: { k: "$_id.mood", v: "$count" } },
+            } },
+            { $project: { _id: 0, month: "$_id.month", week: "$_id.week", total: 1, counts: { $arrayToObject: "$counts" } } },
+
         ]),
     ])
 
@@ -148,7 +154,7 @@ export async function GET(
         moodCounts,
         moodMetrics,
         detailedSeries,
-        heatmap,
+        heatmap: heatmap as (HeatmapCell & { counts: Partial<Record<HeatmapMood, number>> })[],
         year,
     })
 }

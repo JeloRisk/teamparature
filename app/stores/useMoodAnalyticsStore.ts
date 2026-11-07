@@ -1,3 +1,4 @@
+import type { HeatmapCell } from "@/lib/mood-heatmap"
 import { create } from "zustand"
 
 interface DetailedSeriesItem {
@@ -21,7 +22,7 @@ interface MoodAnalytics {
     timezone: string
     periodStart: string
     periodEnd: string
-    heatmap: { month: number; day: number; mood: keyof MoodCounts }[]
+    heatmap: HeatmapCell[]
     year: number
     orgTemperature: number | null
     avgRank: number | null

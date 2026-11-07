@@ -274,7 +274,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     </BarChart>
                 </ResponsiveContainer>
             </ChartCard>
-            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} />
+            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} timezone={analytics.timezone} />
         </div>
     )
 }
