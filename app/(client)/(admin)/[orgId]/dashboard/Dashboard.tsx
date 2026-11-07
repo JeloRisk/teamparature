@@ -1,5 +1,6 @@
 "use client"
 
+import { DashboardSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -56,6 +57,8 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const greeting = !now ? "Welcome" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
     const name = user?.firstName ?? user?.name?.split(" ")[0]
     const value = (number: number) => summary ? number : "—"
+
+    if (!summary && !error) return <DashboardSkeleton />
 
     return (
         <div className="-m-4 flex-1 bg-background px-4 py-6 dark:bg-background md:-mx-10 md:px-10">

@@ -91,7 +91,7 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
                           : "text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-muted "
                       ].join(" ")}
                     >
-                      <Link href={item.url}>
+                      <Link href={item.url} prefetch={true}>
                         <Icon
                           className={[
                             "h-5 w-5",

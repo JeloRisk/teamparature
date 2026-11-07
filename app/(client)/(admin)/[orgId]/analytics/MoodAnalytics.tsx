@@ -1,6 +1,7 @@
 "use client"
 
 
+import { AnalyticsSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import MoodHeatmap from "./MoodHeatmap"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
 
@@ -53,9 +54,11 @@ const MOOD_COLORS: Record<MoodType, string> = {
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { analytics, loading, error, orgId: loadedOrgId } = useMoodAnalyticsStore()
-    if (loadedOrgId !== orgId || loading) return <p>Loading analytics…</p>
-    if (error) return <p role="alert">{error}</p>
+    const { analytics, loading, error, orgId: loadedOrgId, fetchAnalytics } = useMoodAnalyticsStore()
+    if (error && !analytics.periodStart) return <div role="alert" className="rounded-xl border border-border p-4">
+        <p>{error}</p><button className="mt-2 text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button>
+    </div>
+    if (loadedOrgId !== orgId || !analytics.periodStart) return <AnalyticsSkeleton />
 
     const { avgRank } = analytics
 
@@ -92,7 +95,9 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     // --- Render ---
     //
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" aria-busy={loading}>
+            {loading && <p role="status" className="text-xs text-muted-foreground">Updating analytics…</p>}
+            {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
             {/* Section Header */}
             <div className="rounded-xl p-4 bg-gradient-to-r dark:bg-none from-sky-50 via-white to-orange-50 border border-border dark:border-border">
                 <div className="flex items-center gap-2">

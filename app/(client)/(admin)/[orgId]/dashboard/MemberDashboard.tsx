@@ -1,5 +1,6 @@
 "use client"
 
+import { CheckInSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { useState, type FormEvent } from "react"
 import MoodIcon from "@/app/components/MoodIcon"
 import { Check, CircleCheck, Thermometer } from "lucide-react"
@@ -81,7 +82,7 @@ function MemberCheckIn({ organization }: { organization: { _id: string; name: st
                         <Button variant="outline" onClick={() => fetchSummary(orgId)}>Try again</Button>
                     </div>
                 ) : !summary ? (
-                    <p role="status" className="text-sm text-muted-foreground dark:text-muted-foreground">Loading your check-in…</p>
+                    <CheckInSkeleton />
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-7">
                         <fieldset disabled={saving}>

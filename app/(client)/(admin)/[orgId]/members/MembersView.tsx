@@ -1,6 +1,7 @@
 "use client"
 
 import { invitationExpiry as expiryDate, invitationStatus as statusOf } from "@/lib/invitation-status"
+import { MembersSkeleton, TableSkeletonRows } from "@/app/components/loading/WorkspaceSkeletons"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import type { OrgInvitation } from "@/app/stores/orgs/useTeamStore"
@@ -162,7 +163,7 @@ export default function MembersPage() {
         }
     }
 
-    if (loading) return <p>Loading...</p>
+    if (loading) return <MembersSkeleton />
     if (error) return <p className="text-red-500">{error}</p>
     if (!organization) return <p>No organization found</p>
 
@@ -324,7 +325,7 @@ export default function MembersPage() {
                                         {status === "Pending" && <WorkspaceAction orgId={orgId} action="cancel_invitation" id={invite._id} label="Cancel invitation" description={`Cancel the invitation to ${invite.email}? Its link will stop working.`} />}</div></TableCell>
                                 </TableRow>
                             })}
-                            {listLoading && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground" role="status">Loading invitations…</TableCell></TableRow>}
+                            {listLoading && <TableSkeletonRows columns={6} label="Loading invitations" />}
                             {listError && <TableRow><TableCell colSpan={6} className="py-8 text-center"><p role="alert">{listError}</p><Button variant="outline" size="sm" className="mt-2" onClick={() => setRevision(value => value + 1)}>Retry</Button></TableCell></TableRow>}
                             {!listLoading && !listError && !invitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">No invitations found.</TableCell></TableRow>}
                         </TableBody>

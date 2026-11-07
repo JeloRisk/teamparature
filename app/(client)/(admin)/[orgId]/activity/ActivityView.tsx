@@ -1,5 +1,6 @@
 "use client"
 
+import { TableSkeletonRows } from "@/app/components/loading/WorkspaceSkeletons"
 import { useEffect, useState } from "react"
 import { Input } from "@/app/components/ui/input"
 import { History, RefreshCw, Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react"
@@ -135,7 +136,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                     {sortableHeader(columns[3])}
                 </TableRow></TableHeader>
                 <TableBody>
-                    {loading ? <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground" role="status">Loading activity…</TableCell></TableRow>
+                    {loading ? <TableSkeletonRows label="Loading activity history" />
                     : error ? <TableRow><TableCell colSpan={5} className="py-10 text-center"><p role="alert">{error}</p><Button variant="outline" className="mt-3" onClick={() => setRevision(value => value + 1)}>Retry</Button></TableCell></TableRow>
                     : entries.length ? entries.map(entry => <TableRow key={entry._id}>
                         <TableCell className="font-medium">{entry.actorName}</TableCell>

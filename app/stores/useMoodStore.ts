@@ -1,3 +1,4 @@
+import { useMoodAnalyticsStore } from "./useMoodAnalyticsStore"
 import { create } from "zustand"
 
 type Mood = "happy" | "neutral" | "sad" | "stressed" | "excited"
@@ -50,6 +51,7 @@ export const useMoodStore = create<MoodState>((set, get) => ({
             return
         }
         if (!res.ok) throw new Error("Could not save your check-in. Please try again.")
+        useMoodAnalyticsStore.setState({ fetchedAt: 0 })
         set((state) => state.orgId === orgId && state.summary
             ? { summary: { ...state.summary, checkedInToday: true } }
             : state)
