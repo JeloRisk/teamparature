@@ -1,7 +1,6 @@
 // app/api/orgs/[orgId]/route.ts
 import { NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb"
-import Invitation from "@/models/Invitation"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
 import { getServerSession } from "next-auth"
@@ -43,16 +42,12 @@ export async function GET(
         }
 
         // ✅ Fetch all members of the org
-        const memberships = membership.role === "owner" ? await Membership.find({ organization: orgId, isActive: true })
+        const memberships = membership.role === "owner" ? await Membership.find({ organization: orgId })
             .populate("user", "firstName lastName name email image") // include more fields
             .lean() : []
 
-        const invitations = membership.role === "owner" ? await Invitation.find({
-            organization: orgId,
-        }).select("_id email role status createdAt expiresAt").sort({ createdAt: -1 }).lean() : []
-
         return NextResponse.json({
-            invitations,
+            invitations: [],
             organization,
             membership: {
                 role: membership.role,

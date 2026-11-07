@@ -9,6 +9,7 @@ export interface InvitationDocument extends Document {
     token: string;
     createdAt: Date;
     expiresAt: Date;
+    lastSentAt?: Date;
 }
 
 const InvitationSchema = new Schema<InvitationDocument>({
@@ -19,6 +20,7 @@ const InvitationSchema = new Schema<InvitationDocument>({
     status: { type: String, enum: ["pending", "accepted", "expired", "cancelled"], default: "pending" },
     token: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
+    lastSentAt: { type: Date },
     expiresAt: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
 });
 

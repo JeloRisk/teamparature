@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { Types } from "mongoose";
+import { invitationStatuses } from "@/lib/invitation-status";
 import crypto from "crypto";
 import connectDB from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
@@ -105,5 +107,58 @@ export async function POST(req: Request) {
         console.error(err);
 
         return NextResponse.json({ error: "Could not create the invitation. Please try again." }, { status: 500 });
+    }
+}
+
+
+export async function GET(req: Request, { params }: { params: Promise<{ orgId: string }> }) {
+    const auth = await getServerSession(authOptions);
+    if (!auth?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { orgId } = await params;
+    if (!Types.ObjectId.isValid(orgId)) return NextResponse.json({ error: "Invalid workspace" }, { status: 400 });
+    const query = new URL(req.url).searchParams;
+    const page = Number(query.get("page") ?? 1);
+    const status = query.get("status") ?? "all";
+    const role = query.get("role") ?? "all";
+    const search = (query.get("search") ?? "").trim().slice(0, 254);
+    if (!Number.isSafeInteger(page) || page < 1 || page > 100000 ||
+        !["all", ...invitationStatuses].includes(status) || !["all", "owner", "member"].includes(role))
+        return NextResponse.json({ error: "Invalid invitation filters" }, { status: 400 });
+    try {
+        await connectDB();
+        const access = await requirePermission(auth.user.id, orgId, "invite_member");
+        if (access !== true) return access;
+        const filters: Record<string, unknown> = {};
+        if (status !== "all") filters.effectiveStatus = status;
+        if (role !== "all") filters.role = role;
+        if (search) filters.email = { $regex: Array.from(search, char => "\\^$.*+?()[]{}|".includes(char) ? "\\" + char : char).join(""), $options: "i" };
+        const [result] = await Invitation.aggregate([
+            { $match: { organization: new Types.ObjectId(orgId) } },
+            { $addFields: { expiresAt: { $ifNull: ["$expiresAt", { $add: ["$createdAt", 86400000] }] } } },
+            { $addFields: { effectiveStatus: { $cond: [
+                { $in: ["$status", ["accepted", "cancelled"]] }, "$status",
+                { $cond: [{ $or: [{ $eq: ["$status", "expired"] }, { $lte: ["$expiresAt", new Date()] }] }, "expired", "pending"] },
+            ] } } },
+            { $facet: {
+                totals: [{ $count: "count" }],
+                pending: [{ $match: { effectiveStatus: "pending" } }, { $count: "count" }],
+                filteredCount: [{ $match: filters }, { $count: "count" }],
+                rows: [
+                    { $match: filters },
+                    { $sort: { createdAt: -1, _id: -1 } }, { $skip: (page - 1) * 10 }, { $limit: 10 },
+                    { $project: { _id: 1, email: 1, role: 1, status: "$effectiveStatus", createdAt: 1, expiresAt: 1, lastSentAt: 1 } },
+                ],
+            } },
+        ]);
+        return NextResponse.json({
+            invitations: result.rows,
+            total: result.filteredCount[0]?.count ?? 0,
+            totalAll: result.totals[0]?.count ?? 0,
+            pending: result.pending[0]?.count ?? 0,
+            page, pageSize: 10,
+        });
+    } catch (error) {
+        console.error("Invitation listing failed", error);
+        return NextResponse.json({ error: "Could not load invitations" }, { status: 500 });
     }
 }

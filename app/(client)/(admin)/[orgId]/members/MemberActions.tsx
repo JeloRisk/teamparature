@@ -6,10 +6,14 @@ import { Button } from "@/app/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu"
 import WorkspaceAction from "../WorkspaceAction"
 
-export default function MemberActions({ orgId, id, role, email }: {
-    orgId: string; id: string; role: string; email: string
+export default function MemberActions({ orgId, id, role, email, isActive = true }: {
+    orgId: string; id: string; role: string; email: string; isActive?: boolean
 }) {
     const [action, setAction] = useState<"change_role" | "remove_member" | null>(null)
+    if (!isActive) return <WorkspaceAction orgId={orgId} action="restore_member" id={id}
+        label="Restore member"
+        description={`Restore workspace access for ${email}? They will rejoin as a Member and can submit check-ins again. Their past check-ins will remain available. An owner can change their role afterward.`} />
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

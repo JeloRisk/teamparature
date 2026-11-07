@@ -2,13 +2,14 @@ import { create } from "zustand"
 
 interface Member {
     _id: string
+    isActive?: boolean
     user: {
         _id: string
         firstName: string
         lastName: string
         email: string
         image?: string
-    }
+    } | null
     role: string
 }
 
@@ -24,11 +25,12 @@ interface Membership {
     isCreator: boolean
 }
 
-interface OrgInvitation {
+export interface OrgInvitation {
     _id: string
     email: string
     role: "owner" | "member"
     status: "pending" | "accepted" | "expired" | "cancelled"
+    lastSentAt?: string
     expiresAt?: string
     createdAt: string
 }

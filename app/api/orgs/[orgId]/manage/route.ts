@@ -6,6 +6,7 @@ import { validTimezone } from "@/lib/workspace-time"
 import connectDB from "@/lib/mongodb"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
+import User from "@/models/User"
 import { Team } from "@/models/Team"
 import { Mood } from "@/models/Mood"
 import Invitation from "@/models/Invitation"
@@ -22,7 +23,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
 
     try {
         const body = await req.json()
-        const actions = ["remove_member", "change_role", "cancel_invitation", "delete_workspace", "update_workspace"]
+        const actions = ["remove_member", "restore_member", "change_role", "cancel_invitation", "delete_workspace", "update_workspace"]
         if (!actions.includes(body.action)) throw new ManagementError("Invalid action", 400)
         if (!["delete_workspace", "update_workspace"].includes(body.action) && (typeof body.id !== "string" || !Types.ObjectId.isValid(body.id)))
             throw new ManagementError("Invalid record", 400)
@@ -81,6 +82,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                     )
                     if (result.modifiedCount !== 1)
                         throw new ManagementError("This invitation has changed. Refresh and try again.", 409)
+                    return
+                }
+
+                if (body.action === "restore_member") {
+                    const target = await Membership.findOne({ _id: body.id, organization: orgId }).session(session)
+                    if (!target) throw new ManagementError("Member not found", 404)
+                    if (target.isActive) return
+                    if (!(await User.exists({ _id: target.user }).session(session)))
+                        throw new ManagementError("This account no longer exists", 409)
+                    target.isActive = true
+                    target.role = "member"
+                    await target.save({ session })
                     return
                 }
 

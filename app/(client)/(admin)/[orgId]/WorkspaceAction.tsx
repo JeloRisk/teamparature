@@ -10,7 +10,7 @@ import { useMembershipStore } from "@/app/stores/useMembershipStore"
 
 interface Props {
     orgId: string
-    action: "remove_member" | "change_role" | "cancel_invitation" | "delete_workspace"
+    action: "restore_member" | "remove_member" | "change_role" | "cancel_invitation" | "delete_workspace"
     id?: string
     role?: "owner" | "member"
     name?: string
@@ -25,6 +25,7 @@ export default function WorkspaceAction({ label, description, initialOpen = fals
     const [busy, setBusy] = useState(false)
     const [confirmation, setConfirmation] = useState("")
     const [error, setError] = useState("")
+    const grantingAccess = payload.action === "change_role" || payload.action === "restore_member"
     const deleting = payload.action === "delete_workspace"
 
     async function submit() {
@@ -49,10 +50,10 @@ export default function WorkspaceAction({ label, description, initialOpen = fals
     }
 
     return <Dialog open={open} onOpenChange={value => { if (!busy) { setOpen(value); setError(""); setConfirmation(""); if (!value) onClosed?.() } }}>
-        {!initialOpen && <DialogTrigger asChild><Button variant="outline" size="sm" className={payload.action === "change_role" ? "rounded-lg" : "rounded-lg border-red-200 dark:border-[#654749] text-red-700 dark:text-[#eea09a] hover:bg-red-50 dark:hover:bg-[#443436]"}>{label}</Button></DialogTrigger>}
+        {!initialOpen && <DialogTrigger asChild><Button variant="outline" size="sm" className={grantingAccess ? "rounded-lg" : "rounded-lg border-red-200 dark:border-[#654749] text-red-700 dark:text-[#eea09a] hover:bg-red-50 dark:hover:bg-[#443436]"}>{label}</Button></DialogTrigger>}
         <DialogContent className="rounded-2xl border-border dark:border-border p-6 sm:max-w-md">
-            <div className={`mb-1 grid size-12 place-items-center rounded-2xl ${payload.action === "change_role" ? "bg-accent dark:bg-accent text-primary dark:text-primary" : "bg-red-50 dark:bg-[#443436] text-red-700 dark:text-[#eea09a]"}`}>
-                {payload.action === "change_role" ? <ShieldCheck className="size-6" aria-hidden="true" /> : <AlertTriangle className="size-6" aria-hidden="true" />}
+            <div className={`mb-1 grid size-12 place-items-center rounded-2xl ${grantingAccess ? "bg-accent dark:bg-accent text-primary dark:text-primary" : "bg-red-50 dark:bg-[#443436] text-red-700 dark:text-[#eea09a]"}`}>
+                {grantingAccess ? <ShieldCheck className="size-6" aria-hidden="true" /> : <AlertTriangle className="size-6" aria-hidden="true" />}
             </div>
             <DialogHeader className="text-left"><DialogTitle>{label}</DialogTitle><DialogDescription className="leading-6">{description}</DialogDescription></DialogHeader>
             {deleting && <div className="space-y-2">
@@ -63,7 +64,7 @@ export default function WorkspaceAction({ label, description, initialOpen = fals
             <DialogFooter className="mt-2 gap-2 border-t border-border dark:border-border pt-5">
                 <Button variant="outline" disabled={busy} onClick={() => { setOpen(false); onClosed?.() }}>Cancel</Button>
                 <Button disabled={busy || (deleting && confirmation !== payload.name)} onClick={submit}
-                    className={payload.action === "change_role" ? "bg-primary text-primary-foreground" : "bg-red-700 text-white hover:bg-red-800"}>
+                    className={grantingAccess ? "bg-primary text-primary-foreground" : "bg-red-700 text-white hover:bg-red-800"}>
                     {busy && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}{busy ? "Saving…" : label}
                 </Button>
             </DialogFooter>

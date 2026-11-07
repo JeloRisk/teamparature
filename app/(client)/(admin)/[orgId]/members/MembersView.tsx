@@ -1,7 +1,9 @@
 "use client"
 
+import { invitationExpiry as expiryDate, invitationStatus as statusOf } from "@/lib/invitation-status"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import type { OrgInvitation } from "@/app/stores/orgs/useTeamStore"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
 
 import {
@@ -21,12 +23,25 @@ import { Label } from "@/app/components/ui/label"
 
 export default function MembersPage() {
     const { orgId } = useParams<{ orgId: string }>()
-    const { organization, membership, memberships, invitations, loading, error, fetchOrganizationDetails } = useOrgStore()
+    const { organization, membership, memberships, loading, error, fetchOrganizationDetails } = useOrgStore()
     // console.log(memberships)
 
     const [tab, setTab] = useState<"members" | "invitations">("members")
     const [now, setNow] = useState(() => Date.now())
+    const [invitations, setInvitations] = useState<OrgInvitation[]>([])
+    const [statusFilter, setStatusFilter] = useState("all")
+    const [page, setPage] = useState(1)
+    const [total, setTotal] = useState(0)
+    const [totalAll, setTotalAll] = useState(0)
+    const [pendingCount, setPendingCount] = useState(0)
+    const [listLoading, setListLoading] = useState(true)
+    const [listError, setListError] = useState("")
+    const [revision, setRevision] = useState(0)
+    const [resending, setResending] = useState<string | null>(null)
+    const [notice, setNotice] = useState("")
+    const [resendError, setResendError] = useState("")
     const [search, setSearch] = useState("")
+    const [memberStatus, setMemberStatus] = useState("active")
     const [roleFilter, setRoleFilter] = useState("all")
     const [inviteEmail, setInviteEmail] = useState("")
     const [inviteRole, setInviteRole] = useState<"owner" | "member">("member")
@@ -44,11 +59,57 @@ export default function MembersPage() {
         return () => clearInterval(timer)
     }, [])
 
-    const invitationExpiry = (invite: typeof invitations[number]) =>
-        new Date(invite.expiresAt ?? new Date(new Date(invite.createdAt).getTime() + 86400000)).getTime()
-    const invitationStatus = (invite: typeof invitations[number]) =>
-        invite.status === "cancelled" ? "Cancelled" : invite.status === "accepted" ? "Accepted"
-            : invite.status === "expired" || invitationExpiry(invite) <= now ? "Expired" : "Pending"
+    useEffect(() => {
+        const controller = new AbortController()
+        const timer = setTimeout(async () => {
+            setListLoading(true)
+            setListError("")
+            try {
+                const query = new URLSearchParams({ page: String(page), status: statusFilter, role: roleFilter, search })
+                const res = await fetch(`/api/orgs/${orgId}/invite?${query}`, { signal: controller.signal })
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error || "Could not load invitations")
+                if (controller.signal.aborted) return
+                const pages = Math.max(1, Math.ceil(data.total / 10))
+                if (page > pages) { setPage(pages); return }
+                setInvitations(data.invitations)
+                setTotal(data.total)
+                setTotalAll(data.totalAll)
+                setPendingCount(data.pending)
+            } catch (error) {
+                if (!controller.signal.aborted) setListError(getErrorMessage(error))
+            } finally {
+                if (!controller.signal.aborted) setListLoading(false)
+            }
+        }, 250)
+        return () => { clearTimeout(timer); controller.abort() }
+    }, [orgId, page, statusFilter, roleFilter, search, revision, now])
+
+    async function resend(invite: OrgInvitation) {
+        if (resending) return
+        setResending(invite._id)
+        setNotice("")
+        setResendError("")
+        try {
+            const res = await fetch(`/api/orgs/${orgId}/invite/${invite._id}/resend`, { method: "POST" })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || "Could not resend invitation")
+            setNotice(`Invitation resent to ${invite.email}. The new link expires in 24 hours.`)
+            setStatusFilter("all")
+            setPage(1)
+            setRevision(value => value + 1)
+        } catch (error) {
+            setResendError(getErrorMessage(error))
+        } finally {
+            setResending(null)
+        }
+    }
+
+    const invitationExpiry = (invite: OrgInvitation) => expiryDate(invite).getTime()
+    const invitationStatus = (invite: OrgInvitation) => {
+        const status = statusOf(invite, now)
+        return status.charAt(0).toUpperCase() + status.slice(1)
+    }
 
     const getInitials = (first?: string, last?: string) => {
         if (!first && !last) return "NA"
@@ -56,6 +117,8 @@ export default function MembersPage() {
         return (first || last || "NA").slice(0, 2).toUpperCase()
     }
 
+    const activeMembers = memberships.filter(member => member.isActive !== false)
+    const removedMembers = memberships.filter(member => member.isActive === false)
     const filteredMembers = memberships.filter((m) => {
         const userName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim()
         const userEmail = m.user?.email || ""
@@ -63,14 +126,10 @@ export default function MembersPage() {
             userName.toLowerCase().includes(search.toLowerCase()) ||
             userEmail.toLowerCase().includes(search.toLowerCase())
         const matchesRole = roleFilter === "all" || m.role === roleFilter
-        return matchesSearch && matchesRole
+        const matchesStatus = memberStatus === "all" ||
+            (memberStatus === "removed" ? m.isActive === false : m.isActive !== false)
+        return matchesSearch && matchesRole && matchesStatus
     })
-    const pendingInvitations = invitations.filter(invite => invitationStatus(invite) === "Pending")
-    const filteredInvitations = invitations.filter(invite =>
-        invite.email.toLowerCase().includes(search.toLowerCase()) &&
-        (roleFilter === "all" || invite.role === roleFilter)
-    )
-
     function getErrorMessage(err: unknown): string {
         return err instanceof Error ? err.message : String(err)
     }
@@ -90,6 +149,9 @@ export default function MembersPage() {
             setInviteOpen(false)
             setTab("invitations")
             setNow(Date.now())
+            setPage(1)
+            setStatusFilter("all")
+            setRevision(value => value + 1)
             await fetchOrganizationDetails(orgId, true)
             setInviteEmail("")
             setInviteRole("member")
@@ -174,9 +236,9 @@ export default function MembersPage() {
 
             <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                    { label: "Active members", value: memberships.length, icon: Users, color: "bg-accent dark:bg-accent text-primary dark:text-primary" },
-                    { label: "Pending invitations", value: pendingInvitations.length, icon: Mail, color: "bg-orange-50 dark:bg-[#423c30] text-orange-700 dark:text-[#e1c590]" },
-                    { label: "Owners", value: memberships.filter(member => member.role === "owner").length, icon: ShieldCheck, color: "bg-violet-50 dark:bg-[#3c3546] text-violet-700 dark:text-[#c7b4d8]" },
+                    { label: "Active members", value: activeMembers.length, icon: Users, color: "bg-accent dark:bg-accent text-primary dark:text-primary" },
+                    { label: "Pending invitations", value: pendingCount, icon: Mail, color: "bg-orange-50 dark:bg-[#423c30] text-orange-700 dark:text-[#e1c590]" },
+                    { label: "Owners", value: activeMembers.filter(member => member.role === "owner").length, icon: ShieldCheck, color: "bg-violet-50 dark:bg-[#3c3546] text-violet-700 dark:text-[#c7b4d8]" },
                 ].map(({ label, value, icon: Icon, color }) => <div key={label} className="flex items-center gap-4 rounded-2xl border border-border dark:border-border bg-card dark:bg-card p-4">
                     <span className={`grid size-10 place-items-center rounded-xl ${color}`}><Icon className="size-5" aria-hidden="true" /></span>
                     <div><p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground dark:text-foreground">{value}</p></div>
@@ -188,7 +250,7 @@ export default function MembersPage() {
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         aria-controls={item + "-panel"} onClick={() => setTab(item)}
                         className={`rounded-lg px-4 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
-                        {item} ({item === "members" ? memberships.length : invitations.length})
+                        {item} ({item === "members" ? memberships.length : totalAll})
                     </button>
                 ))}
             </div>
@@ -201,11 +263,11 @@ export default function MembersPage() {
                     aria-label="Search members and invitations"
                     placeholder={tab === "members" ? "Search name or email…" : "Search invitation email…"}
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => { setPage(1); setSearch(e.target.value) }}
                     className="rounded-xl border-border dark:border-border bg-card dark:bg-card pl-9 focus-visible:ring-ring/25"
                 />
                 </div>
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <Select value={roleFilter} onValueChange={value => { setPage(1); setRoleFilter(value) }}>
                     <SelectTrigger className="w-40 rounded-xl border-border dark:border-border bg-card dark:bg-card focus:ring-ring/25">
                         <SelectValue placeholder="Filter by role" />
                     </SelectTrigger>
@@ -215,7 +277,28 @@ export default function MembersPage() {
                         <SelectItem value="member">Member</SelectItem>
                     </SelectContent>
                 </Select>
+                {tab === "members" && <Select value={memberStatus} onValueChange={setMemberStatus}>
+                    <SelectTrigger aria-label="Filter members by access" className="w-52 rounded-xl bg-card"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="active">Active members ({activeMembers.length})</SelectItem>
+                        <SelectItem value="removed">Removed members ({removedMembers.length})</SelectItem>
+                        <SelectItem value="all">All members ({memberships.length})</SelectItem>
+                    </SelectContent>
+                </Select>}
+                {tab === "invitations" && <Select value={statusFilter} onValueChange={value => { setPage(1); setStatusFilter(value) }}>
+                    <SelectTrigger aria-label="Filter invitations by status" className="w-44 rounded-xl bg-card"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="accepted">Accepted</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                </Select>}
             </div>
+
+            {notice && <p role="status" className="rounded-xl bg-accent p-3 text-sm text-accent-foreground">{notice}</p>}
+            {resendError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{resendError}</p>}
 
             {tab === "invitations" ? (
                 <div role="tabpanel" id="invitations-panel" aria-labelledby="invitations-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
@@ -225,7 +308,7 @@ export default function MembersPage() {
                             <TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Sent</TableHead><TableHead>Expires</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead>
                         </TableRow></TableHeader>
                         <TableBody>
-                            {filteredInvitations.map(invite => {
+                            {!listLoading && !listError && invitations.map(invite => {
                                 const status = invitationStatus(invite)
                                 return <TableRow key={invite._id}>
                                     <TableCell>{invite.email}</TableCell>
@@ -233,12 +316,27 @@ export default function MembersPage() {
                                     <TableCell className="whitespace-nowrap">{new Date(invite.createdAt).toLocaleString()}</TableCell>
                                     <TableCell className="whitespace-nowrap">{new Date(invitationExpiry(invite)).toLocaleString()}</TableCell>
                                     <TableCell><Badge variant="outline" className={status === "Accepted" ? "border-emerald-200 dark:border-[#43605a] bg-emerald-50 dark:bg-[#2e3c3b] text-emerald-800 dark:text-[#a6c9bf]" : (status === "Expired" || status === "Cancelled") ? "border-border dark:border-border bg-muted dark:bg-muted text-slate-700 dark:text-muted-foreground" : "border-amber-200 dark:border-[#66543b] bg-amber-50 dark:bg-[#423c30] text-amber-800 dark:text-[#e1c590]"}>{status}</Badge></TableCell>
-                                    <TableCell>{status === "Pending" && <WorkspaceAction orgId={orgId} action="cancel_invitation" id={invite._id} label="Cancel invitation" description={`Cancel the invitation to ${invite.email}? Its link will stop working.`} />}</TableCell>
+                                    <TableCell><div className="flex items-center gap-2">
+                                        {(status === "Pending" || status === "Expired") && <Button variant="outline" size="sm"
+                                            disabled={resending !== null || now - new Date(invite.lastSentAt ?? invite.createdAt).getTime() < 60000}
+                                            title="Resend with a fresh 24-hour link. Wait at least one minute between sends."
+                                            onClick={() => resend(invite)}>{resending === invite._id ? "Sending…" : "Resend"}</Button>}
+                                        {status === "Pending" && <WorkspaceAction orgId={orgId} action="cancel_invitation" id={invite._id} label="Cancel invitation" description={`Cancel the invitation to ${invite.email}? Its link will stop working.`} />}</div></TableCell>
                                 </TableRow>
                             })}
-                            {!filteredInvitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">No invitations found.</TableCell></TableRow>}
+                            {listLoading && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground" role="status">Loading invitations…</TableCell></TableRow>}
+                            {listError && <TableRow><TableCell colSpan={6} className="py-8 text-center"><p role="alert">{listError}</p><Button variant="outline" size="sm" className="mt-2" onClick={() => setRevision(value => value + 1)}>Retry</Button></TableCell></TableRow>}
+                            {!listLoading && !listError && !invitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">No invitations found.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm">
+                        <p aria-live="polite" className="text-muted-foreground">{total ? `${(page - 1) * 10 + 1}–${Math.min(page * 10, total)} of ${total} invitations` : "0 invitations"}</p>
+                        <div className="flex items-center gap-3">
+                            <Button variant="outline" size="sm" disabled={listLoading || page <= 1} onClick={() => setPage(value => value - 1)}>Previous</Button>
+                            <span>Page {page} of {Math.max(1, Math.ceil(total / 10))}</span>
+                            <Button variant="outline" size="sm" disabled={listLoading || page * 10 >= total} onClick={() => setPage(value => value + 1)}>Next</Button>
+                        </div>
+                    </div>
                 </div>
             ) : (
             /* members table */
@@ -263,13 +361,13 @@ export default function MembersPage() {
                                 <TableRow key={m._id} className="hover:bg-accent/50 dark:hover:bg-[#303740]/50 transition">
                                     <TableCell>
                                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground font-semibold">
-                                            {getInitials(m.user.firstName, m.user.lastName)}
+                                            {getInitials(m.user?.firstName, m.user?.lastName)}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                        {m.user.firstName} {m.user.lastName}
+                                        {m.user ? `${m.user.firstName} ${m.user.lastName}` : "Account unavailable"}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{m.user.email}</TableCell>
+                                    <TableCell className="text-muted-foreground">{m.user?.email ?? "—"}</TableCell>
                                     <TableCell>
                                         <Badge
                                             variant="outline"
@@ -281,14 +379,14 @@ export default function MembersPage() {
                                             {m.role}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell><Badge variant="outline" className="border-emerald-200 dark:border-[#43605a] bg-emerald-50 dark:bg-[#2e3c3b] text-emerald-800 dark:text-[#a6c9bf]">Joined</Badge></TableCell>
-                                    <TableCell className="text-right"><MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} /></TableCell>
+                                    <TableCell><Badge variant="outline" className={m.isActive === false ? "border-border bg-muted text-muted-foreground" : "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"}>{m.isActive === false ? "Removed" : "Active"}</Badge></TableCell>
+                                    <TableCell className="text-right">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : <span className="text-xs text-muted-foreground">Account unavailable</span>}</TableCell>
                                 </TableRow>
                             ))}
                         {filteredMembers.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center text-muted-foreground italic py-6">
-                                    No members found.
+                                    {memberStatus === "removed" ? "No removed members match these filters." : "No members match these filters."}
                                 </TableCell>
                             </TableRow>
                         )}
