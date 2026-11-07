@@ -13,7 +13,7 @@ const COLORS = ["#f97316", "#fde047", "#0ea5e9", "#7c3aed", "#22c55e"]
 
 export default function MoodDistribution() {
     return (
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="bg-card dark:bg-card rounded-2xl shadow-sm p-4">
             <h2 className="text-lg font-semibold mb-3">Mood Distribution</h2>
             <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -22,7 +22,7 @@ export default function MoodDistribution() {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                 </PieChart>
             </ResponsiveContainer>
         </div>

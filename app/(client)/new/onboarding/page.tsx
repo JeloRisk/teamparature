@@ -51,17 +51,17 @@ export default function OnboardingPage() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+        <div className="min-h-screen bg-gradient-to-br dark:bg-none from-indigo-50 via-purple-50 to-blue-50">
             {/* 🔹 Global Header */}
-            <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-white">
-                <h1 className="text-xl font-bold text-indigo-600">teamparature</h1>
+            <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-card dark:bg-card">
+                <h1 className="text-xl font-bold text-indigo-600 dark:text-[#c4bce5]">teamparature</h1>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full hover:bg-gray-100"
+                            className="rounded-full hover:bg-muted dark:hover:bg-muted"
                         >
                             <Avatar className="h-9 w-9">
                                 <AvatarFallback>{user?.firstName?.[0] ?? "U"}</AvatarFallback>
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleLogout}
-                            className="cursor-pointer text-red-600"
+                            className="cursor-pointer text-red-600 dark:text-[#eea09a]"
                         >
                             Logout
                         </DropdownMenuItem>
@@ -89,14 +89,14 @@ export default function OnboardingPage() {
             <main className="flex items-center justify-center px-4 py-12">
                 <Card className="w-full max-w-md shadow-xl rounded-3xl border border-indigo-100">
                     <CardHeader className="text-center space-y-2">
-                        <CardTitle className="text-xl font-semibold text-indigo-700">
+                        <CardTitle className="text-xl font-semibold text-indigo-700 dark:text-[#c4bce5]">
                             🚀 Create Your Organization
                         </CardTitle>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                         {message && (
-                            <div className="rounded-lg bg-indigo-50 p-3 text-sm text-indigo-700 border border-indigo-200">
+                            <div className="rounded-lg bg-indigo-50 dark:bg-[#34313e] p-3 text-sm text-indigo-700 dark:text-[#c4bce5] border border-indigo-200">
                                 {message}
                             </div>
                         )}

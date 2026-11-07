@@ -11,13 +11,13 @@ const data = [
 
 export default function MoodTrendChart() {
     return (
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="bg-card dark:bg-card rounded-2xl shadow-sm p-4">
             <h2 className="text-lg font-semibold mb-3">Mood Trends</h2>
             <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={data}>
                     <XAxis dataKey="date" stroke="#94a3b8" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                     <Line type="monotone" dataKey="happy" stroke="#f97316" strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="sad" stroke="#0ea5e9" strokeWidth={2} dot={false} />
                 </LineChart>

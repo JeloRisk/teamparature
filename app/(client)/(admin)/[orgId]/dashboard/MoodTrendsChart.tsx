@@ -26,7 +26,7 @@ interface MoodTrendsChartProps {
 
 export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
     return (
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-sky-100 via-cyan-50 to-orange-50 shadow-md transition hover:shadow-xl">
+        <Card className="relative overflow-hidden border-0 bg-gradient-to-br dark:bg-none from-sky-100 via-cyan-50 to-orange-50 shadow-md transition hover:shadow-xl">
             
             {/* soft glowing background */}
             <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-orange-200/40 blur-3xl" />
@@ -34,16 +34,16 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
 
             <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                    <CardTitle className="text-lg font-bold text-gray-900">
+                    <CardTitle className="text-lg font-bold text-foreground dark:text-foreground">
                         Mood Temperature Trends
                     </CardTitle>
 
-                    <p className="mt-1 text-sm text-gray-700">
+                    <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                         Emotional climate throughout the week
                     </p>
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 shadow-sm backdrop-blur">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 dark:bg-card/70 shadow-sm backdrop-blur">
                     <ThermometerSun className="h-5 w-5 text-orange-500" />
                 </div>
             </CardHeader>
@@ -85,15 +85,15 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
                         <Tooltip
                             cursor={{ fill: "rgba(255,255,255,0.3)" }}
                             contentStyle={{
-                                backgroundColor: "rgba(255,255,255,0.95)",
+                                backgroundColor: "var(--popover)",
                                 borderRadius: "14px",
-                                border: "1px solid #e5e7eb",
+                                border: "1px solid var(--border)",
                                 boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                color: "#111827",
+                                color: "var(--popover-foreground)",
                                 fontSize: "13px",
                             }}
                             labelStyle={{
-                                color: "#111827",
+                                color: "var(--popover-foreground)",
                                 fontWeight: 700,
                             }}
                         />
@@ -104,7 +104,7 @@ export default function MoodTrendsChart({ data }: MoodTrendsChartProps) {
                         formatter={(value) => (
                             <span
                                 style={{
-                                    color: "#111827",
+                                    color: "var(--popover-foreground)",
                                     fontWeight: 600,
                                     textTransform: "capitalize",
                                 }}

@@ -51,7 +51,7 @@ export default function DashboardClient({ organization }: Props) {
     return (
         <div className="space-y-10">
             {/* Org Header */}
-            <Card className="overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
+            <Card className="overflow-hidden border border-indigo-200 bg-gradient-to-r dark:bg-none from-indigo-50 via-purple-50 to-pink-50">
                 <CardHeader className="flex flex-row items-center gap-4">
                     {organization.logoUrl ? (
                         <Image
@@ -59,7 +59,7 @@ export default function DashboardClient({ organization }: Props) {
                             alt={organization.name}
                             width={64}
                             height={64}
-                            className="rounded-xl border bg-white p-1"
+                            className="rounded-xl border bg-card dark:bg-card p-1"
                         />
                     ) : (
                         <div className="h-16 w-16 rounded-xl bg-indigo-600 flex items-center justify-center text-lg font-bold text-white">
@@ -69,7 +69,7 @@ export default function DashboardClient({ organization }: Props) {
                     <div>
                         <CardTitle className="text-2xl font-bold">{organization.name}</CardTitle>
                         <p className="text-sm text-muted-foreground capitalize">
-                            Plan: <span className="font-medium text-indigo-600">{organization.plan}</span>
+                            Plan: <span className="font-medium text-indigo-600 dark:text-[#c4bce5]">{organization.plan}</span>
                         </p>
                     </div>
                 </CardHeader>
@@ -81,7 +81,7 @@ export default function DashboardClient({ organization }: Props) {
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Total Members</CardTitle>
                         <div className="p-2 bg-indigo-100 rounded-full">
-                            <Users className="h-5 w-5 text-indigo-600" />
+                            <Users className="h-5 w-5 text-indigo-600 dark:text-[#c4bce5]" />
                         </div>
                     </CardHeader>
                     <CardContent>

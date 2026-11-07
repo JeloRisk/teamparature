@@ -53,7 +53,7 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-[30%_70%]">
-            <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-700 via-blue-600 to-orange-500 text-white p-10 relative overflow-hidden">
+            <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br dark:bg-none from-blue-700 via-blue-600 to-orange-500 text-white p-10 relative overflow-hidden">
                 <div className="text-center max-w-xs space-y-4">
                     <h2 className="text-2xl font-semibold">Balance Your Workplace</h2>
                     <p className="text-sm text-blue-100">
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                 <div className="absolute top-12 left-12 text-4xl opacity-70 animate-bounce">🔥</div>
                 <div className="absolute bottom-12 right-12 text-4xl opacity-70 animate-pulse">❄️</div>
             </div>
-            <div className="flex items-center justify-center bg-white px-6 py-12">
+            <div className="flex items-center justify-center bg-card dark:bg-card px-6 py-12">
                 <div className="w-full max-w-md space-y-6">
                     <div className="text-center">
                         <Image
@@ -75,8 +75,8 @@ export default function RegisterPage() {
                             width={48}
                             height={48}
                             className="mx-auto h-12 w-auto mb-4"
-                        />                        <h1 className="text-4xl font-bold text-blue-700">Teamparature</h1>
-                        <p className="text-gray-500 text-sm mt-2">
+                        />                        <h1 className="text-4xl font-bold text-primary dark:text-primary">Teamparature</h1>
+                        <p className="text-gray-500 dark:text-muted-foreground text-sm mt-2">
                             Create your account and take control of your team’s balance and productivity.
                         </p>
                     </div>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
                                     value={form.firstName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:outline-none"
                                 />
                             </div>
                             <div className="relative">
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                                     value={form.lastName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                                 value={form.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:outline-none"
                             />
                         </div>
 
@@ -131,7 +131,7 @@ export default function RegisterPage() {
                                 value={form.password}
                                 onChange={handleChange}
                                 required
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:outline-none"
                             />
                         </div>
 
@@ -143,7 +143,7 @@ export default function RegisterPage() {
                                 type="date"
                                 value={form.birthday}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:outline-none"
                             />
                         </div>
 
@@ -167,15 +167,15 @@ export default function RegisterPage() {
                     {error && (
                         <p
                             role="alert"
-                            className="mt-4 text-sm text-center text-red-700 bg-red-100 p-3 rounded-md"
+                            className="mt-4 text-sm text-center text-red-700 dark:text-[#eea09a] bg-red-100 p-3 rounded-md"
                         >
                             {error}
                         </p>
                     )}
 
-                    <div className="mt-6 text-center text-sm text-gray-600">
+                    <div className="mt-6 text-center text-sm text-gray-600 dark:text-muted-foreground">
                         Already have an account?{' '}
-                        <Link href="/login" className="text-blue-600 hover:underline">
+                        <Link href="/login" className="text-primary dark:text-primary hover:underline">
                             Log in
                         </Link>
                     </div>

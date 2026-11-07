@@ -44,26 +44,26 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-5 text-white shadow-md">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground">
 
             {/* glow effects */}
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl" />
             <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />
 
             {/* HEADER */}
             <div className="relative flex items-start justify-between">
 
                 <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-blue-100">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                         Wellbeing Check
                     </p>
 
-                    <h2 className="mt-1 text-3xl font-bold leading-tight">
+                    <h2 className="mt-1 text-xl font-semibold leading-tight">
                         How are you feeling?
                     </h2>
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-lg backdrop-blur">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent dark:bg-card/15 text-lg backdrop-blur">
                     😊
                 </div>
             </div>
@@ -72,11 +72,11 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
             <div className=" mt-4">
 
                 {summary?.checkedInToday ? (
-                    <div className="rounded-2xl border border-white/10 bg-white/10 h-11 backdrop-blur-sm">
+                    <div className="rounded-2xl border border-white/10 bg-white/10 dark:bg-card/10 h-11 backdrop-blur-sm">
                         <div className="flex items-center gap-3">
 
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/20">
-                                <Smile className="h-5 w-5 text-emerald-100" />
+                                <Smile className="h-5 w-5 text-primary" />
                             </div>
 
                             <div className="">
@@ -84,7 +84,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                                     Already logged today
                                 </p>
 
-                                {/* <p className="text-sm text-blue-100">
+                                {/* <p className="text-sm text-muted-foreground">
                                     You’ve completed your check-in.
                                 </p> */}
                             </div>
@@ -93,7 +93,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 ) : (
 <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-        <button className="h-11 w-full rounded-2xl bg-white font-semibold text-blue-700 transition hover:bg-blue-50">
+        <button className="h-11 w-full rounded-2xl bg-card dark:bg-card font-semibold text-primary dark:text-primary transition hover:bg-accent dark:hover:bg-accent">
             Log Mood
         </button>
     </DialogTrigger>
@@ -101,7 +101,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
     <DialogContent className="overflow-hidden rounded-[28px] border-0 p-0 shadow-2xl sm:max-w-md">
 
         {/* top glow */}
-        <div className="relative bg-gradient-to-br from-white to-blue-50 px-6 py-5">
+        <div className="relative bg-gradient-to-br dark:bg-none dark:bg-card from-white to-blue-50 px-6 py-5">
 
             {/* floating glow */}
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-200/30 blur-3xl" />
@@ -109,11 +109,11 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
             {/* header */}
             <div className="relative flex items-start justify-between">
                 <div>
-                    <DialogTitle className="text-3xl font-bold text-slate-800">
+                    <DialogTitle className="text-3xl font-bold text-slate-800 dark:text-foreground">
                         Track Your Mood
                     </DialogTitle>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                         Quick emotional check-in
                     </p>
                 </div>
@@ -125,7 +125,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
 
                 {/* MOODS */}
                 <div>
-                    <h3 className="mb-3 text-lg font-semibold text-slate-800">
+                    <h3 className="mb-3 text-lg font-semibold text-slate-800 dark:text-foreground">
                         How are you feeling?
                     </h3>
 
@@ -170,8 +170,8 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
 
                                 ${
                                     mood === opt.value
-                                        ? "border-emerald-400 bg-blue-100 shadow-sm"
-                                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                                        ? "border-emerald-400 bg-accent dark:bg-accent shadow-sm"
+                                        : "border-border dark:border-border bg-card dark:bg-card hover:border-blue-300 hover:bg-accent dark:hover:bg-accent"
                                 }`}
                             >
                                 <div className="flex flex-col items-center justify-center">
@@ -180,7 +180,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                                         {opt.icon}
                                     </span>
 
-                                    <span className="mt-2 text-sm font-semibold text-slate-700">
+                                    <span className="mt-2 text-sm font-semibold text-slate-700 dark:text-muted-foreground">
                                         {opt.label}
                                     </span>
                                 </div>
@@ -192,11 +192,11 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 {/* INTENSITY */}
                 <div>
                     <div className="mb-3">
-                        <h3 className="text-lg font-semibold text-slate-800">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">
                             Mood Intensity
                         </h3>
 
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                             How intense is your mood?
                         </p>
                     </div>
@@ -212,8 +212,8 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
 
                                 ${
                                     rank === num
-                                        ? "border-blue-600 bg-blue-600 text-white shadow-md"
-                                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-300"
+                                        ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                        : "border-border dark:border-border bg-card dark:bg-card text-slate-700 dark:text-muted-foreground hover:border-blue-300"
                                 }`}
                             >
                                 {num}
@@ -225,7 +225,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                 {/* NOTE */}
                 <div>
                     <div className="mb-3">
-                        <h3 className="text-lg font-semibold text-slate-800">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">
                             Add a note (optional)
                         </h3>
                     </div>
@@ -236,7 +236,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                             value={note}
                             maxLength={200}
                             onChange={(e) => setNote(e.target.value)}
-                            className="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            className="min-h-[120px] w-full rounded-2xl border border-border dark:border-border bg-card dark:bg-card p-4 text-sm text-slate-700 dark:text-muted-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-blue-100"
                         />
 
                         <span className="absolute bottom-4 right-4 text-sm text-slate-400">
@@ -245,11 +245,11 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                     </div>
                 </div>
 
-                {error && <p role="alert" className="text-red-700">{error}</p>}
+                {error && <p role="alert" className="text-red-700 dark:text-[#eea09a]">{error}</p>}
                 <button
                     onClick={handleSubmit}
                     disabled={!mood || submitting}
-                    className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-lg font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-blue-600"
+                    className="h-14 w-full rounded-2xl bg-gradient-to-r dark:bg-none dark:bg-muted from-blue-600 to-blue-500 text-lg font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-blue-600"
                 >
                     {submitting ? "Saving…" : "Submit"}
                 </button>

@@ -13,6 +13,7 @@ import {
     BreadcrumbPage,
 } from "@/app/components/ui/breadcrumb"
 import { AppSidebar } from "@/app/components/AppSidebar"
+import ThemeToggle from "@/app/components/ThemeToggle"
 import { Menu } from "lucide-react"
 
 interface Workspace {
@@ -45,10 +46,10 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
             <SidebarInset>
-                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 md:px-10">
+                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-card dark:bg-card px-4 md:px-10">
                     <button
                         onClick={toggleSidebar}
-                        className="p-2 hover:bg-gray-100 rounded"
+                        className="p-2 hover:bg-muted dark:hover:bg-muted rounded"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
@@ -62,6 +63,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="ml-auto"><ThemeToggle /></div>
                 </header>
 
                 <main className="flex flex-1 flex-col p-4 md:px-10">{children}</main>

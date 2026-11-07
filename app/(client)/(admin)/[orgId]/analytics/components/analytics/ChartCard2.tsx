@@ -9,7 +9,7 @@ interface ChartCardProps {
 
 export default function ChartCard2({ title, children }: ChartCardProps) {
     return (
-        <Card className="rounded-2xl bg-white border border-slate-200 shadow-sm relative">
+        <Card className="rounded-2xl bg-card dark:bg-card border border-border dark:border-border shadow-sm relative">
             <CardHeader>
                 <CardTitle className="text-lg font-semibold">{title}</CardTitle>
 

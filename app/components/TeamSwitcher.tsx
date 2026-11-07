@@ -66,7 +66,7 @@ export function MembershipSwitcher() {
             case "admin":
                 return <Shield className="size-3.5 text-blue-500" />
             default:
-                return <User className="size-3.5 text-gray-500" />
+                return <User className="size-3.5 text-gray-500 dark:text-muted-foreground" />
         }
     }
 
@@ -82,7 +82,7 @@ export function MembershipSwitcher() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="data-[state=open]:bg-orange-500/10 data-[state=open]:text-orange-600"
+                            className="data-[state=open]:bg-orange-500/10 data-[state=open]:text-orange-600 dark:text-[#e1c590]"
                         >
                             <div className="bg-orange-500 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
                                 {activeMembership.organization.logoUrl ? (
@@ -99,7 +99,7 @@ export function MembershipSwitcher() {
                             </div>
 
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium text-orange-600">
+                                <span className="truncate font-medium text-orange-600 dark:text-[#e1c590]">
                                     {activeMembership.organization.name}
                                 </span>
                                 <span className="truncate text-xs text-blue-500 flex items-center gap-1">
@@ -108,7 +108,7 @@ export function MembershipSwitcher() {
                                 </span>
                             </div>
 
-                            <ChevronsUpDown className="ml-auto text-orange-600" />
+                            <ChevronsUpDown className="ml-auto text-orange-600 dark:text-[#e1c590]" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
 
@@ -127,11 +127,11 @@ export function MembershipSwitcher() {
                                 key={m._id}
                                 onClick={() => handleSwitch(m)}
                                 className={`gap-2 p-2 ${activeMembership._id === m._id
-                                    ? "bg-orange-50 text-orange-600"
+                                    ? "bg-orange-50 dark:bg-[#423c30] text-orange-600 dark:text-[#e1c590]"
                                     : ""
                                     }`}
                             >
-                                <div className="flex size-6 items-center justify-center rounded-md border bg-white">
+                                <div className="flex size-6 items-center justify-center rounded-md border bg-card dark:bg-card">
                                     {m.organization.logoUrl ? (
 
                                         <Image
@@ -161,7 +161,7 @@ export function MembershipSwitcher() {
                         <DropdownMenuSeparator />
 
                         <DropdownMenuItem className="gap-2 p-2">
-                            <div className="flex size-6 items-center justify-center rounded-md border bg-transparent text-orange-600">
+                            <div className="flex size-6 items-center justify-center rounded-md border bg-transparent text-orange-600 dark:text-[#e1c590]">
                                 <Plus className="size-4" />
                             </div>
                             <Link

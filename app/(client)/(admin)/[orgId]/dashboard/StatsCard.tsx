@@ -11,7 +11,7 @@ interface StatsCardProps {
     borderHoverColor?: string
 }
 
-export default function StatsCard({ title, value, description, icon: Icon, iconBg = "bg-gray-100", borderHoverColor = "hover:border-gray-300" }: StatsCardProps) {
+export default function StatsCard({ title, value, description, icon: Icon, iconBg = "bg-muted dark:bg-muted", borderHoverColor = "hover:border-gray-300" }: StatsCardProps) {
     return (
         <Card className={`border ${borderHoverColor} transition`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">

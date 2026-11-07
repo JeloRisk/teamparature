@@ -15,7 +15,7 @@ export default function OrganizationHeader({
     slug,
 }: OrganizationHeaderProps) {
     return (
-        <Card className="relative overflow-hidden border border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 hover:border-indigo-300 transition-shadow">
+        <Card className="relative overflow-hidden border border-indigo-200 bg-gradient-to-r dark:bg-none from-indigo-50 via-purple-50 to-pink-50 hover:border-indigo-300 transition-shadow">
 
             {/* background illustration */}
             <div className="absolute inset-y-0 right-0 hidden md:block w-[320px] opacity-90">
@@ -35,7 +35,7 @@ export default function OrganizationHeader({
                         alt={name}
                         width={64}
                         height={64}
-                        className="rounded-2xl border bg-white p-2 shadow-sm"
+                        className="rounded-2xl border bg-card dark:bg-card p-2 shadow-sm"
                     />
                 ) : (
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-sm">
@@ -44,13 +44,13 @@ export default function OrganizationHeader({
                 )}
 
                 <div className="flex flex-col">
-                    <CardTitle className="text-3xl font-bold text-gray-900">
+                    <CardTitle className="text-3xl font-bold text-foreground dark:text-foreground">
                         {name}
                     </CardTitle>
 
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-muted-foreground">
                         Slug:{" "}
-                        <span className="font-mono text-indigo-700">
+                        <span className="font-mono text-indigo-700 dark:text-[#c4bce5]">
                             {slug}
                         </span>
                     </p>

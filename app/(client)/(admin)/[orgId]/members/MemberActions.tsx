@@ -13,7 +13,7 @@ export default function MemberActions({ orgId, id, role, email }: {
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-9 rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-700">
+                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-9 rounded-lg text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent hover:text-primary dark:hover:text-primary">
                     <MoreHorizontal className="size-5" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
@@ -22,7 +22,7 @@ export default function MemberActions({ orgId, id, role, email }: {
                     <ShieldCheck className="mr-2 size-4" />{role === "owner" ? "Make member" : "Make owner"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="rounded-lg py-2 text-red-700 focus:bg-red-50 focus:text-red-800" onSelect={() => setAction("remove_member")}>
+                <DropdownMenuItem className="rounded-lg py-2 text-red-700 dark:text-[#eea09a] focus:bg-red-50 dark:focus:bg-red-950 focus:text-red-800 dark:focus:text-red-300" onSelect={() => setAction("remove_member")}>
                     <UserMinus className="mr-2 size-4" />Remove member
                 </DropdownMenuItem>
             </DropdownMenuContent>

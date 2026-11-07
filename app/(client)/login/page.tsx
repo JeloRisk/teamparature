@@ -25,7 +25,7 @@ export default function LoginPage() {
     if (status === 'loading') {
         return (
             <div className="flex items-center justify-center h-screen">
-                <p className="text-gray-600 text-sm">Checking authentication...</p>
+                <p className="text-gray-600 dark:text-muted-foreground text-sm">Checking authentication...</p>
             </div>
         );
     }
@@ -52,8 +52,8 @@ export default function LoginPage() {
     };
 
     return (
-        <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-100 to-blue-100 px-4">
-            <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md space-y-6">
+        <main className="flex items-center justify-center min-h-screen bg-gradient-to-br dark:bg-none from-orange-100 to-blue-100 px-4">
+            <div className="bg-card dark:bg-card shadow-lg rounded-2xl p-8 w-full max-w-md space-y-6">
                 <div className="flex justify-center">
                     <Image
                         src="/logo.png"
@@ -65,9 +65,9 @@ export default function LoginPage() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-2xl font-bold text-center text-gray-800">Login to Your Account</h1>
+                <h1 className="text-2xl font-bold text-center text-foreground dark:text-foreground">Login to Your Account</h1>
 
-                {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-[#eea09a] text-center">{error}</p>}
 
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -78,7 +78,7 @@ export default function LoginPage() {
                         name="email"
                         required
                         placeholder="you@example.com"
-                        className="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+                        className="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-ring"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
@@ -93,14 +93,14 @@ export default function LoginPage() {
                         name="password"
                         required
                         placeholder="••••••••"
-                        className="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+                        className="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-ring"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
 
                 <div className="text-right text-sm">
-                    <Link href="/forgot-password" className="text-blue-600 hover:underline">
+                    <Link href="/forgot-password" className="text-primary dark:text-primary hover:underline">
                         Forgot your password?
                     </Link>
                 </div>
@@ -114,11 +114,11 @@ export default function LoginPage() {
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
 
-                <div className="mt-6 text-center text-sm text-gray-600">
+                <div className="mt-6 text-center text-sm text-gray-600 dark:text-muted-foreground">
                     Don&apos;t have an account?{' '}
                     <Link
                         href="/register"
-                        className="text-blue-600 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="text-primary dark:text-primary hover:underline focus:outline-none focus:ring-1 focus:ring-ring"
                     >
                         Register
                     </Link>

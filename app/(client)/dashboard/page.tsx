@@ -68,11 +68,11 @@ export default function DashboardPage() {
     if (localError || error) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-4">
-                <p className="text-red-600 font-medium">
+                <p className="text-red-600 dark:text-[#eea09a] font-medium">
                     {localError || error}
                 </p>
                 <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary transition"
                     onClick={() => { setLocalError(null); fetchMemberships() }}
                 >
                     Retry

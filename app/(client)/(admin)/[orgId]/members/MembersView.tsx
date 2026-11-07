@@ -109,8 +109,8 @@ export default function MembersPage() {
             {/* header */}
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">{organization.name}</p>
-                    <h1 className="text-3xl font-semibold tracking-tight text-slate-950">People & invitations</h1>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary dark:text-primary">{organization.name}</p>
+                    <h1 className="text-3xl font-semibold tracking-tight text-foreground dark:text-foreground">People & invitations</h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         Manage workspace access and keep track of your invitations.
                     </p>
@@ -120,7 +120,7 @@ export default function MembersPage() {
                 {role === "owner" && (
                     <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                         <DialogTrigger asChild>
-                            <Button className="rounded-xl bg-blue-700 px-4 text-white hover:bg-blue-800">
+                            <Button className="rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90">
                                 <UserPlus className="mr-2 size-4" aria-hidden="true" />Invite member
                             </Button>
                         </DialogTrigger>
@@ -161,7 +161,7 @@ export default function MembersPage() {
                             <DialogFooter>
                                 <Button
                                     onClick={handleInvite}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    className="bg-primary hover:bg-primary text-primary-foreground"
                                     disabled={sending}
                                 >
                                     {sending ? "Sending..." : "Send Invite"}
@@ -174,20 +174,20 @@ export default function MembersPage() {
 
             <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                    { label: "Active members", value: memberships.length, icon: Users, color: "bg-blue-50 text-blue-700" },
-                    { label: "Pending invitations", value: pendingInvitations.length, icon: Mail, color: "bg-orange-50 text-orange-700" },
-                    { label: "Owners", value: memberships.filter(member => member.role === "owner").length, icon: ShieldCheck, color: "bg-violet-50 text-violet-700" },
-                ].map(({ label, value, icon: Icon, color }) => <div key={label} className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+                    { label: "Active members", value: memberships.length, icon: Users, color: "bg-accent dark:bg-accent text-primary dark:text-primary" },
+                    { label: "Pending invitations", value: pendingInvitations.length, icon: Mail, color: "bg-orange-50 dark:bg-[#423c30] text-orange-700 dark:text-[#e1c590]" },
+                    { label: "Owners", value: memberships.filter(member => member.role === "owner").length, icon: ShieldCheck, color: "bg-violet-50 dark:bg-[#3c3546] text-violet-700 dark:text-[#c7b4d8]" },
+                ].map(({ label, value, icon: Icon, color }) => <div key={label} className="flex items-center gap-4 rounded-2xl border border-border dark:border-border bg-card dark:bg-card p-4">
                     <span className={`grid size-10 place-items-center rounded-xl ${color}`}><Icon className="size-5" aria-hidden="true" /></span>
-                    <div><p className="text-xs font-medium text-slate-500">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900">{value}</p></div>
+                    <div><p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground dark:text-foreground">{value}</p></div>
                 </div>)}
             </div>
 
-            <div role="tablist" aria-label="Workspace people" className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1 w-fit">
+            <div role="tablist" aria-label="Workspace people" className="flex gap-1 rounded-xl border border-border dark:border-border bg-card dark:bg-card p-1 w-fit">
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         aria-controls={item + "-panel"} onClick={() => setTab(item)}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-blue-600 ${tab === item ? "bg-[#EEF2FE] text-[#4934c7]" : "text-slate-600"}`}>
+                        className={`rounded-lg px-4 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
                         {item} ({item === "members" ? memberships.length : invitations.length})
                     </button>
                 ))}
@@ -202,11 +202,11 @@ export default function MembersPage() {
                     placeholder={tab === "members" ? "Search name or email…" : "Search invitation email…"}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="rounded-xl border-slate-200 bg-white pl-9 focus-visible:ring-blue-200"
+                    className="rounded-xl border-border dark:border-border bg-card dark:bg-card pl-9 focus-visible:ring-ring/25"
                 />
                 </div>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-40 rounded-xl border-slate-200 bg-white focus:ring-blue-200">
+                    <SelectTrigger className="w-40 rounded-xl border-border dark:border-border bg-card dark:bg-card focus:ring-ring/25">
                         <SelectValue placeholder="Filter by role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -218,10 +218,10 @@ export default function MembersPage() {
             </div>
 
             {tab === "invitations" ? (
-                <div role="tabpanel" id="invitations-panel" aria-labelledby="invitations-tab" className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                <div role="tabpanel" id="invitations-panel" aria-labelledby="invitations-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
                     <Table>
                         <TableCaption>Invitation history for {organization.name}. Invitations expire after 24 hours.</TableCaption>
-                        <TableHeader><TableRow className="bg-slate-50/80">
+                        <TableHeader><TableRow className="bg-slate-50/80 dark:bg-muted/80">
                             <TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Sent</TableHead><TableHead>Expires</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead>
                         </TableRow></TableHeader>
                         <TableBody>
@@ -232,37 +232,37 @@ export default function MembersPage() {
                                     <TableCell className="capitalize">{invite.role}</TableCell>
                                     <TableCell className="whitespace-nowrap">{new Date(invite.createdAt).toLocaleString()}</TableCell>
                                     <TableCell className="whitespace-nowrap">{new Date(invitationExpiry(invite)).toLocaleString()}</TableCell>
-                                    <TableCell><Badge variant="outline" className={status === "Accepted" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : (status === "Expired" || status === "Cancelled") ? "border-slate-200 bg-slate-100 text-slate-700" : "border-amber-200 bg-amber-50 text-amber-800"}>{status}</Badge></TableCell>
+                                    <TableCell><Badge variant="outline" className={status === "Accepted" ? "border-emerald-200 dark:border-[#43605a] bg-emerald-50 dark:bg-[#2e3c3b] text-emerald-800 dark:text-[#a6c9bf]" : (status === "Expired" || status === "Cancelled") ? "border-border dark:border-border bg-muted dark:bg-muted text-slate-700 dark:text-muted-foreground" : "border-amber-200 dark:border-[#66543b] bg-amber-50 dark:bg-[#423c30] text-amber-800 dark:text-[#e1c590]"}>{status}</Badge></TableCell>
                                     <TableCell>{status === "Pending" && <WorkspaceAction orgId={orgId} action="cancel_invitation" id={invite._id} label="Cancel invitation" description={`Cancel the invitation to ${invite.email}? Its link will stop working.`} />}</TableCell>
                                 </TableRow>
                             })}
-                            {!filteredInvitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-slate-500">No invitations found.</TableCell></TableRow>}
+                            {!filteredInvitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">No invitations found.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </div>
             ) : (
             /* members table */
-            <div role="tabpanel" id="members-panel" aria-labelledby="members-tab" className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+            <div role="tabpanel" id="members-panel" aria-labelledby="members-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
                 <Table>
                     <TableCaption className="text-sm text-muted-foreground">
                         Members in{" "}
-                        <span className="font-semibold text-blue-700">{organization.name}</span>
+                        <span className="font-semibold text-primary dark:text-primary">{organization.name}</span>
                     </TableCaption>
                     <TableHeader>
-                        <TableRow className="bg-slate-50/80">
-                            <TableHead className="w-20 text-xs font-semibold text-slate-500">Initials</TableHead>
-                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</TableHead>
-                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</TableHead>
-                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</TableHead>
-                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</TableHead><TableHead>Actions</TableHead>
+                        <TableRow className="bg-slate-50/80 dark:bg-muted/80">
+                            <TableHead className="w-20 text-xs font-semibold text-muted-foreground dark:text-muted-foreground">Initials</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Name</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Email</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Role</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Status</TableHead><TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredMembers.map((m) => (
 
-                                <TableRow key={m._id} className="hover:bg-blue-50/50 transition">
+                                <TableRow key={m._id} className="hover:bg-accent/50 dark:hover:bg-[#303740]/50 transition">
                                     <TableCell>
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2FE] text-[#4934c7] font-semibold">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground font-semibold">
                                             {getInitials(m.user.firstName, m.user.lastName)}
                                         </div>
                                     </TableCell>
@@ -274,14 +274,14 @@ export default function MembersPage() {
                                         <Badge
                                             variant="outline"
                                             className={`capitalize border ${m.role === "owner"
-                                                ? "border-orange-100 bg-orange-50 text-orange-800"
-                                                : "border-blue-100 bg-blue-50 text-blue-800"
+                                                ? "border-orange-100 dark:border-[#66543b] bg-orange-50 dark:bg-[#423c30] text-orange-800 dark:text-[#e1c590]"
+                                                : "border-border dark:border-border bg-accent dark:bg-accent text-primary dark:text-primary"
                                                 }`}
                                         >
                                             {m.role}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell><Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800">Joined</Badge></TableCell>
+                                    <TableCell><Badge variant="outline" className="border-emerald-200 dark:border-[#43605a] bg-emerald-50 dark:bg-[#2e3c3b] text-emerald-800 dark:text-[#a6c9bf]">Joined</Badge></TableCell>
                                     <TableCell className="text-right"><MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} /></TableCell>
                                 </TableRow>
                             ))}

@@ -63,24 +63,24 @@ export default function LandingPage() {
   ];
 
   const bgBlobs = [
-    { color: "rgba(59, 130, 246, 0.25)", size: 300, top: "10%", left: "5%" },
-    { color: "rgba(251, 146, 60, 0.25)", size: 400, top: "50%", left: "70%" },
-    { color: "rgba(59, 130, 246, 0.25)", size: 250, top: "70%", left: "20%" },
+    { color: "rgba(157, 184, 231, 0.22)", size: 300, top: "10%", left: "5%" },
+    { color: "rgba(183, 164, 220, 0.14)", size: 400, top: "50%", left: "70%" },
+    { color: "rgba(157, 184, 231, 0.22)", size: 250, top: "70%", left: "20%" },
   ];
 
   return (
-    <main className="bg-blue-50 min-h-screen flex flex-col font-sans relative overflow-hidden">
+    <main className="bg-background min-h-screen flex flex-col font-sans relative overflow-hidden">
       <>
-        <header className="w-full py-5 px-6 md:px-24 flex items-center justify-between fixed bg-white shadow top-0 z-50">
+        <header className="w-full py-5 px-6 md:px-24 flex items-center justify-between fixed bg-card dark:bg-card shadow top-0 z-50">
           {/* Logo */}
-          <div className="text-2xl font-bold text-blue-600 flex-shrink-0 flex items-center gap-2">
+          <div className="text-2xl font-bold text-primary dark:text-primary flex-shrink-0 flex items-center gap-2">
             <Image src="/logo.png" alt="Teamparature Logo" width={36} height={36} />
 
             Teamparature
           </div>
 
           {/* Desktop Nav - Centered with flex-grow */}
-          <nav className="hidden md:flex flex-grow justify-center items-center gap-8 text-gray-700 font-medium">
+          <nav className="hidden md:flex flex-grow justify-center items-center gap-8 text-muted-foreground dark:text-muted-foreground font-medium">
             <a href="#features" className="hover:text-blue-500 transition-colors">Features</a>
             <a href="#pricing" className="hover:text-blue-500 transition-colors">Pricing</a>
             <a href="#contact" className="hover:text-blue-500 transition-colors">Contact</a>
@@ -88,8 +88,8 @@ export default function LandingPage() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-            <button onClick={() => router.push('/login')} className="px-5 py-2.5 text-gray-700 rounded-full font-medium hover:bg-gray-100 transition-all">Login</button>
-            <Button onClick={() => router.push('/register')} className="bg-blue-500 text-white hover:bg-blue-600 px-6 py-2 rounded-lg font-bold">
+            <button onClick={() => router.push('/login')} className="px-5 py-2.5 text-muted-foreground dark:text-muted-foreground rounded-full font-medium hover:bg-muted dark:hover:bg-muted transition-all">Login</button>
+            <Button onClick={() => router.push('/register')} className="bg-primary text-primary-foreground hover:bg-primary px-6 py-2 rounded-lg font-bold">
               Register
             </Button>
           </div>
@@ -98,7 +98,7 @@ export default function LandingPage() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-gray-800"
+              className="p-2 rounded-md text-foreground dark:text-foreground"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -107,15 +107,15 @@ export default function LandingPage() {
         </header>
 
         {/* Mobile Menu Overlay */}
-        <div className={`md:hidden fixed inset-0 bg-white/90 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-6 transition-opacity duration-300 ease-in-out ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}>
-          <a href="#features" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-blue-500 transition-colors">Features</a>
-          <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-blue-500 transition-colors">Pricing</a>
-          <a href="#contact" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-blue-500 transition-colors">Contact</a>
+        <div className={`md:hidden fixed inset-0 bg-white/90 dark:bg-card/90 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-6 transition-opacity duration-300 ease-in-out ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}>
+          <a href="#features" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-muted-foreground dark:text-muted-foreground hover:text-blue-500 transition-colors">Features</a>
+          <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-muted-foreground dark:text-muted-foreground hover:text-blue-500 transition-colors">Pricing</a>
+          <a href="#contact" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-muted-foreground dark:text-muted-foreground hover:text-blue-500 transition-colors">Contact</a>
 
-          <button onClick={() => { router.push('/login'); setIsMenuOpen(false); }} className="w-48 px-6 py-3 text-gray-700 rounded-full font-medium bg-gray-100 hover:bg-gray-200 transition-all">
+          <button onClick={() => { router.push('/login'); setIsMenuOpen(false); }} className="w-48 px-6 py-3 text-muted-foreground dark:text-muted-foreground rounded-full font-medium bg-muted dark:bg-muted hover:bg-muted transition-all">
             Login
           </button>
-          <button onClick={() => { router.push('/register'); setIsMenuOpen(false); }} className="w-48 px-6 py-3 bg-blue-500 text-white rounded-lg font-bold shadow-lg hover:bg-blue-600 transition-all">
+          <button onClick={() => { router.push('/register'); setIsMenuOpen(false); }} className="w-48 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-bold shadow-lg hover:bg-primary transition-all">
             Register
           </button>
         </div>
@@ -156,17 +156,17 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-gray-900 max-w-3xl relative z-10 px-4">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-foreground dark:text-foreground max-w-3xl relative z-10 px-4">
           Keep Your Team at the Perfect Temperature
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-gray-700 mt-6 max-w-2xl relative z-10 px-4">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground dark:text-muted-foreground mt-6 max-w-2xl relative z-10 px-4">
           Real-time insights into your team&aposs mood and energy for better collaboration and happiness.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center relative z-10">
-          <Button className="bg-blue-500 text-white hover:bg-blue-600 font-bold px-6 py-3 rounded-lg shadow-lg">
+          <Button className="bg-primary text-primary-foreground hover:bg-primary font-bold px-6 py-3 rounded-lg shadow-lg">
             Get Started
           </Button>
-          <Button className="bg-orange-500 text-white hover:bg-orange-600 font-bold px-6 py-3 rounded-lg shadow-lg">
+          <Button className="bg-secondary text-secondary-foreground hover:bg-accent font-bold px-6 py-3 rounded-lg shadow-lg">
             Learn More
           </Button>
         </div>
@@ -174,30 +174,30 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="px-6 md:px-24 py-16 md:py-24">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 text-gray-900">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 text-foreground dark:text-foreground">
           Why Your Team Needs Teamparature
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div className="p-6">
             <span className="text-4xl sm:text-5xl mb-4 block">📊</span>
             <h3 className="text-xl font-semibold mb-2">Data-Driven Decisions</h3>
-            <p className="text-gray-700">Understand your team’s mood and energy before problems arise.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Understand your team’s mood and energy before problems arise.</p>
           </div>
           <div className="p-6">
             <span className="text-4xl sm:text-5xl mb-4 block">🤫</span>
             <h3 className="text-xl font-semibold mb-2">Honest Feedback</h3>
-            <p className="text-gray-700">Anonymous logging ensures honesty without fear of judgment.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Anonymous logging ensures honesty without fear of judgment.</p>
           </div>
           <div className="p-6">
             <span className="text-4xl sm:text-5xl mb-4 block">💡</span>
             <h3 className="text-xl font-semibold mb-2">Smart Insights</h3>
-            <p className="text-gray-700">Receive actionable tips based on real-time trends.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Receive actionable tips based on real-time trends.</p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white text-gray-700 py-10 text-center flex flex-col items-center gap-2 border-t border-gray-200 relative z-10 px-6">
+      <footer className="bg-card dark:bg-card text-muted-foreground dark:text-muted-foreground py-10 text-center flex flex-col items-center gap-2 border-t border-border dark:border-border relative z-10 px-6">
         <p>© 2025 Teamparature. All rights reserved.</p>
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6">
           <a href="#" className="hover:text-blue-500 transition-colors font-medium">Privacy</a>
@@ -213,39 +213,39 @@ export default function LandingPage() {
 
 {/* Features */ }
 {/* <section id="features" className="px-8 md:px-24 py-24 relative z-10">
-        <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">
+        <h2 className="text-4xl font-bold text-center mb-16 text-foreground dark:text-foreground">
           Why Teamparature?
         </h2>
         <div className="grid md:grid-cols-3 gap-12">
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300"
+              className="bg-card dark:bg-card rounded-2xl shadow-lg p-10 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300"
             >
               {feature.icon}
-              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-gray-900">{feature.title}</h3>
-              <p className="text-gray-700">{feature.description}</p>
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-foreground dark:text-foreground">{feature.title}</h3>
+              <p className="text-muted-foreground dark:text-muted-foreground">{feature.description}</p>
             </div>
           ))}
         </div>
       </section> */}
-{/* <section className="px-8 md:px-24 py-24 bg-gray-50 text-gray-900">
+{/* <section className="px-8 md:px-24 py-24 bg-gray-50 dark:bg-card text-foreground dark:text-foreground">
         <h2 className="text-4xl font-bold text-center mb-16">How Teamparature Works</h2>
         <div className="grid md:grid-cols-3 gap-12">
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
+          <div className="flex flex-col items-center text-center p-6 bg-card dark:bg-card rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
             <Activity className="w-12 h-12 text-blue-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Log Mood</h3>
-            <p className="text-gray-700">Team members log their mood and energy levels daily or weekly.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Team members log their mood and energy levels daily or weekly.</p>
           </div>
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
+          <div className="flex flex-col items-center text-center p-6 bg-card dark:bg-card rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
             <UserCheck className="w-12 h-12 text-orange-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Track Trends</h3>
-            <p className="text-gray-700">Visual nenwboards show mood & energy trends for each team and project.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Visual nenwboards show mood & energy trends for each team and project.</p>
           </div>
-          <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
+          <div className="flex flex-col items-center text-center p-6 bg-card dark:bg-card rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
             <Lightbulb className="w-12 h-12 text-blue-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Get Suggestions</h3>
-            <p className="text-gray-700">Smart tips and nudges help improve team morale and collaboration.</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Smart tips and nudges help improve team morale and collaboration.</p>
           </div>
         </div>
       </section> */}

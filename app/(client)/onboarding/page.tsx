@@ -80,7 +80,7 @@ export default function OnboardingPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center text-gray-500">
+            <div className="flex min-h-screen items-center justify-center text-gray-500 dark:text-muted-foreground">
                 Checking your memberships...
             </div>
         );
@@ -129,17 +129,17 @@ export default function OnboardingPage() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+        <div className="min-h-screen bg-gradient-to-br dark:bg-none from-indigo-50 via-purple-50 to-blue-50">
             {/* 🔹 Global Header */}
-            <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-white">
-                <h1 className="text-xl font-bold text-indigo-600">MyApp</h1>
+            <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-card dark:bg-card">
+                <h1 className="text-xl font-bold text-indigo-600 dark:text-[#c4bce5]">MyApp</h1>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full hover:bg-gray-100"
+                            className="rounded-full hover:bg-muted dark:hover:bg-muted"
                         >
                             <Avatar className="h-9 w-9">
                                 <AvatarFallback>
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleLogout}
-                            className="cursor-pointer text-red-600"
+                            className="cursor-pointer text-red-600 dark:text-[#eea09a]"
                         >
                             Logout
                         </DropdownMenuItem>
@@ -171,10 +171,10 @@ export default function OnboardingPage() {
                     <CardHeader className="text-center space-y-2">
                         {step === 1 && (
                             <>
-                                <CardTitle className="text-3xl font-extrabold text-indigo-600">
+                                <CardTitle className="text-3xl font-extrabold text-indigo-600 dark:text-[#c4bce5]">
                                     Hey 👋 Welcome!
                                 </CardTitle>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-600 dark:text-muted-foreground">
                                     Do you want to{" "}
                                     <span className="font-medium text-indigo-500">
                                         start something new
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
                             </>
                         )}
                         {step === 2 && mode === "create" && (
-                            <CardTitle className="text-xl font-semibold text-indigo-700">
+                            <CardTitle className="text-xl font-semibold text-indigo-700 dark:text-[#c4bce5]">
                                 🚀 Let’s name your organization
                             </CardTitle>
                         )}
@@ -201,7 +201,7 @@ export default function OnboardingPage() {
 
                     <CardContent className="space-y-6">
                         {message && (
-                            <div className="rounded-lg bg-indigo-50 p-3 text-sm text-indigo-700 border border-indigo-200">
+                            <div className="rounded-lg bg-indigo-50 dark:bg-[#34313e] p-3 text-sm text-indigo-700 dark:text-[#c4bce5] border border-indigo-200">
                                 {message}
                             </div>
                         )}

@@ -24,8 +24,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
 
             <SidebarInset>
                 {/* Header */}
-                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
-                    <button onClick={toggleSidebar} className="p-2 hover:bg-gray-100 rounded">
+                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-card dark:bg-card px-4">
+                    <button onClick={toggleSidebar} className="p-2 hover:bg-muted dark:hover:bg-muted rounded">
                         <Menu className="h-5 w-5" />
                     </button>
 

@@ -93,10 +93,10 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     return (
         <div className="space-y-6">
             {/* Section Header */}
-            <div className="rounded-xl p-4 bg-gradient-to-r from-sky-50 via-white to-orange-50 border border-slate-200">
+            <div className="rounded-xl p-4 bg-gradient-to-r dark:bg-none from-sky-50 via-white to-orange-50 border border-border dark:border-border">
                 <div className="flex items-center gap-2">
                     <Snowflake className="w-5 h-5 text-sky-500" />
-                    <h3 className="text-sm font-semibold tracking-wide text-slate-700">
+                    <h3 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-muted-foreground">
                         Ice & Fire Analytics — Organizational Climate
                     </h3>
                     <Flame className="w-5 h-5 text-orange-500 ml-auto" />
@@ -110,7 +110,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     value={`${analytics.avgRank.toFixed(2)} / 5`}
                     sub={`${analytics.posPct}% 🔥 positive · ${analytics.negPct}% ❄️ negative`}
                     glow="from-orange-50 to-sky-50"
-                    icon={<Activity className="w-5 h-5 text-orange-600" />}
+                    icon={<Activity className="w-5 h-5 text-orange-600 dark:text-[#e1c590]" />}
                 />
 
                 <KpiCard
@@ -118,7 +118,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     value={analytics.totalLogs}
                     sub={`Participants: ${analytics.participants}`}
                     glow="from-slate-50 to-slate-50"
-                    icon={<Users className="w-5 h-5 text-slate-600" />}
+                    icon={<Users className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />}
                 />
 
                 <KpiCard
@@ -140,7 +140,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     value={`${analytics.posPct}/${analytics.negPct}`}
                     sub="happy+excited / sad+stressed"
                     glow="from-orange-50 to-sky-50"
-                    icon={<Flame className="w-5 h-5 text-orange-600" />}
+                    icon={<Flame className="w-5 h-5 text-orange-600 dark:text-[#e1c590]" />}
                 />
             </div>
 
@@ -178,7 +178,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                                 textAnchor="middle"
                                 fontSize={24}
                                 fontWeight={600}
-                                fill="#374151"
+                                fill="var(--foreground)"
                             >
                                 {gaugeValue}%
                             </text>
@@ -187,7 +187,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                                 y="70%"
                                 textAnchor="middle"
                                 fontSize={12}
-                                fill="#6b7280"
+                                fill="var(--muted-foreground)"
                             >
                                 Avg Mood {avgRank.toFixed(2)} / 5
                             </text>
@@ -212,7 +212,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                                     <Cell key={i} fill={d.color} />
                                 ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </ChartCard>
@@ -224,7 +224,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     <LineChart data={analytics.detailedSeries}>
                         <XAxis dataKey="day" stroke="#9ca3af" />
                         <YAxis stroke="#9ca3af" />
-                        <Tooltip />
+                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                         <Line
                             type="monotone"
                             dataKey="positive"
@@ -257,7 +257,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     <BarChart data={engagementData}>
                         <XAxis dataKey="day" stroke="#9ca3af" />
                         <YAxis stroke="#9ca3af" />
-                        <Tooltip />
+                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                         <defs>
                             <linearGradient id="engagement" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor={FIRE.glow} />

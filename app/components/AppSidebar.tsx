@@ -74,15 +74,15 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
                         "group w-full rounded-lg transition-colors",
                         "flex items-center gap-2 py-[22px] px-[20px]",
                         isActive
-                          ? "bg-[#EEF2FE] font-semibold text-[#4934c7] hover:bg-[#e5e8fa] hover:text-[#4934c7]"
-                          : "text-gray-700 hover:bg-[#f4f5fc] "
+                          ? "bg-accent dark:bg-sidebar-accent font-semibold text-accent-foreground dark:text-sidebar-accent-foreground hover:bg-accent dark:hover:bg-accent hover:text-accent-foreground dark:hover:text-accent-foreground"
+                          : "text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-muted "
                       ].join(" ")}
                     >
                       <Link href={item.url}>
                         <Icon
                           className={[
                             "h-5 w-5",
-                            isActive ? "text-[#4934c7]" : "text-blue-600"
+                            isActive ? "text-accent-foreground dark:text-sidebar-accent-foreground" : "text-primary dark:text-primary"
                           ].join(" ")}
                         />
                         <span className="truncate">{item.title}</span>
