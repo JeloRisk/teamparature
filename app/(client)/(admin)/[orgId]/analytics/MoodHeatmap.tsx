@@ -1,9 +1,9 @@
 "use client";
 import dynamic from "next/dynamic"
 
-import React from "react";
+import { useTheme } from "next-themes";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
-import { format, startOfWeek, addDays } from "date-fns";
+import { format } from "date-fns";
 import ChartCard2 from "./components/analytics/ChartCard2";
 
 type AllowedMood = "happy" | "excited" | "neutral" | "sad" | "stressed";
@@ -15,11 +15,11 @@ interface MoodEntry {
 }
 
 const moodColors: Record<AllowedMood, string> = {
-    happy: "#fb923c",
-    excited: "#f97316",
-    neutral: "#a3a3a3",
-    sad: "#60a5fa",
-    stressed: "#3b82f6",
+    happy: "#e9bb85",
+    excited: "#e8a4bb",
+    neutral: "#bfc5d6",
+    sad: "#b7a4dc",
+    stressed: "#ead082",
 };
 
 const moodToNumber: Record<AllowedMood, number> = {
@@ -63,11 +63,8 @@ function groupByMonthAndWeek(moods: MoodEntry[], year: number) {
 
                 if (weekEntries.length > 0) {
                     const mood = weekEntries[0].mood;
-                    const startDate = startOfWeek(
-                        new Date(year, idx, (week - 1) * 7 + 1),
-                        { weekStartsOn: 1 }
-                    );
-                    const endDate = addDays(startDate, 6);
+                    const startDate = new Date(year, idx, (week - 1) * 7 + 1);
+                    const endDate = new Date(year, idx, Math.min(week * 7, new Date(year, idx + 1, 0).getDate()));
 
                     return {
                         x: month,
@@ -87,16 +84,26 @@ function groupByMonthAndWeek(moods: MoodEntry[], year: number) {
 }
 
 export default function MoodHeatmapApex({ moods, year }: { moods: MoodEntry[]; year: number }) {
+    const { resolvedTheme } = useTheme();
+    const dark = resolvedTheme === "dark";
+    const empty = dark ? "#29314b" : "#edf0fa";
+    const label = dark ? "#a9b2d0" : "#626d91";
     const series = groupByMonthAndWeek(moods, year);
 
     const options: ApexCharts.ApexOptions = {
-        chart: { type: "heatmap", toolbar: { show: false } },
+        chart: { type: "heatmap", toolbar: { show: false }, background: "transparent", foreColor: label },
+        theme: { mode: dark ? "dark" : "light" },
+        legend: { show: false },
+        stroke: { width: 3, colors: [dark ? "#1e2438" : "#fcfcff"] },
+        grid: { show: false },
         dataLabels: { enabled: false },
-        colors: ["#e5e7eb"], // fallback
+        colors: [empty],
         plotOptions: {
             heatmap: {
+                enableShades: false,
+                radius: 5,
                 colorScale: {
-                    ranges: Object.entries(moodColors).map(([mood, color]) => {
+                    ranges: [{ from: 0, to: 0, color: empty, name: "No entry" }, ...Object.entries(moodColors).map(([mood, color]) => {
                         const val = moodToNumber[mood as AllowedMood];
                         return {
                             from: val,
@@ -104,7 +111,7 @@ export default function MoodHeatmapApex({ moods, year }: { moods: MoodEntry[]; y
                             color,
                             name: mood,
                         };
-                    }),
+                    })],
                 },
             },
         },
@@ -112,26 +119,39 @@ export default function MoodHeatmapApex({ moods, year }: { moods: MoodEntry[]; y
             custom: function ({ seriesIndex, dataPointIndex, w }) {
                 const point = w.config.series[seriesIndex].data[dataPointIndex] as HeatmapDataPoint;
                 if (!point.mood) {
-                    return `<div>No mood recorded</div>`;
+                    return `<div style="padding:10px 12px;background:var(--popover);color:var(--popover-foreground)">No mood recorded</div>`;
                 }
-                return `<div>
+                return `<div style="padding:10px 12px;background:var(--popover);color:var(--popover-foreground)">
       <strong>${point.range}</strong><br/>
       Mood: ${point.mood.charAt(0).toUpperCase() + point.mood.slice(1)}
     </div>`;
             },
         },
 
-        xaxis: { categories: series[0].data.map((d) => d.x) },
+        xaxis: {
+            categories: series[0].data.map((d) => d.x),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: label } },
+        },
+        yaxis: { labels: { style: { colors: [label] } } },
     };
 
     return (
         <ChartCard2 title="Team Emotional Heatmap">
+            <p className="mb-3 text-xs text-muted-foreground">{year} · Week 1 covers days 1–7, through Week 5 for days 29–31.</p>
+            <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                {Object.entries(moodColors).map(([mood, color]) => <li key={mood} className="flex items-center gap-2 capitalize"><span className="size-3 rounded-sm" style={{ backgroundColor: color }} />{mood}</li>)}
+                <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: empty }} />No entry</li>
+            </ul>
+            <div className="overflow-x-auto"><div className="min-w-[620px]">
             <ReactApexChart
                 options={options}
                 series={series}
                 type="heatmap"
                 height={350}
             />
+            </div></div>
         </ChartCard2>
     );
 }

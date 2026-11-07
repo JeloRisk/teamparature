@@ -1,5 +1,6 @@
 "use client"
 
+import MoodIcon from "@/app/components/MoodIcon"
 import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 
@@ -130,7 +131,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                     </h3>
 
                     {/* positive -> negative */}
-                    <div className="grid grid-cols-5 gap-3">
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
 
                         {[
                             {
@@ -166,7 +167,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                                 onClick={() =>
                                     setMood(opt.value as AllowedMood)
                                 }
-                                className={`group rounded-2xl border p-4 transition-all
+                                className={`group rounded-2xl border px-2 py-3 transition-colors
 
                                 ${
                                     mood === opt.value
@@ -176,9 +177,7 @@ export default function MoodCheck({ orgId }: { orgId: string }) {
                             >
                                 <div className="flex flex-col items-center justify-center">
 
-                                    <span className="text-4xl transition-transform group-hover:scale-110">
-                                        {opt.icon}
-                                    </span>
+                                    <MoodIcon mood={opt.value as AllowedMood} className="size-11 shrink-0" />
 
                                     <span className="mt-2 text-sm font-semibold text-slate-700 dark:text-muted-foreground">
                                         {opt.label}

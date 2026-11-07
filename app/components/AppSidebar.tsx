@@ -8,6 +8,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -37,11 +38,18 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
     ...(role === "owner" ? [
       { title: "Members", url: `/${orgId}/members`, icon: Users },
       { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
-      { title: "Settings", url: `/${orgId}/settings`, icon: Settings },
     ] : role === "member" ? [
       { title: "Mood Overview", url: `/${orgId}/mood-overview`, icon: CalendarDays },
     ] : []),
   ] : []
+
+  const navigationGroups = [
+    { title: "Workspace", items: menuItems },
+    ...(orgId && role === "owner" ? [{
+      title: "Settings",
+      items: [{ title: "Workspace settings", url: `/${orgId}/settings`, icon: Settings }],
+    }] : []),
+  ]
 
   const pathname = usePathname();
   const user = useUserStore((state) => state.user)
@@ -50,7 +58,7 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
 
   return (
     <Sidebar {...props} collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="px-4 pb-6 pt-5 group-data-[collapsible=icon]:px-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <MembershipSwitcher />
@@ -58,11 +66,13 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="p-0">
-        <SidebarGroup>
+      <SidebarContent className="gap-8 px-4 py-3 group-data-[collapsible=icon]:px-2">
+        {navigationGroups.map(section => (
+        <SidebarGroup key={section.title} className="p-0">
+          <SidebarGroupLabel className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{section.title}</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
+            <SidebarMenu className="gap-3">
+              {section.items.map((item) => {
                 const isActive = pathname === item.url;
                 const Icon = item.icon;
 
@@ -70,9 +80,10 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
+                      tooltip={item.title}
                       className={[
-                        "group w-full rounded-lg transition-colors",
-                        "flex items-center gap-2 py-[22px] px-[20px]",
+                        "group h-11 w-full rounded-xl transition-colors",
+                        "flex items-center gap-3 px-3.5 py-3 text-[13px]",
                         isActive
                           ? "bg-accent dark:bg-sidebar-accent font-semibold text-accent-foreground dark:text-sidebar-accent-foreground hover:bg-accent dark:hover:bg-accent hover:text-accent-foreground dark:hover:text-accent-foreground"
                           : "text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-muted "
@@ -95,9 +106,10 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
 
           </SidebarGroupContent>
         </SidebarGroup>
+        ))}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-4 group-data-[collapsible=icon]:px-2">
         <NavUser user={{
           firstName: user.firstName ?? '',
           lastName: user.lastName ?? '',

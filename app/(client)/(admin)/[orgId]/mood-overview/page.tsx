@@ -1,3 +1,4 @@
+import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CalendarDays, ChevronLeft, ChevronRight, Minus } from "lucide-react"
@@ -104,7 +105,7 @@ export default async function MoodOverviewPage({ params, searchParams }: {
                                     {view === "Daily" && <p className="text-xs text-muted-foreground dark:text-muted-foreground">{isToday ? "Today · " : ""}{format(from, "MMM d")}</p>}
                                     {entry && view === "Daily" ? (
                                         <>
-                                            <span className="mt-2 text-2xl" aria-hidden="true">{moods[entry.mood][0]}</span>
+                                            <MoodIcon mood={entry.mood} className="mt-2 size-11" />
                                             <p className="text-sm font-semibold text-foreground dark:text-foreground">{moods[entry.mood][1]}</p>
                                             <p className="text-xs text-muted-foreground dark:text-muted-foreground">{entry.rank}/5</p>
                                         </>
@@ -114,7 +115,7 @@ export default async function MoodOverviewPage({ params, searchParams }: {
                                             <ul aria-label="Mood breakdown" className="mt-2 flex flex-wrap justify-center gap-1">
                                                 {breakdown.map(item => (
                                                     <li key={item.mood} aria-label={`${item.label}: ${item.count}`} className="rounded-full bg-card dark:bg-card px-2 py-1 text-xs text-slate-700 dark:text-muted-foreground">
-                                                        <span aria-hidden="true">{item.emoji} {item.count}</span>
+                                                        <span aria-hidden="true" className="flex items-center gap-1"><MoodIcon mood={item.mood as MoodName} className="size-6" />{item.count}</span>
                                                     </li>
                                                 ))}
                                             </ul>

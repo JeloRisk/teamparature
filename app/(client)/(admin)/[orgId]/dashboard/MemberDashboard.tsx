@@ -1,17 +1,18 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import MoodIcon from "@/app/components/MoodIcon"
 import { Check, CircleCheck, Thermometer } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Textarea } from "@/app/components/ui/textarea"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 
 const moods = [
-    { value: "happy", label: "Happy", emoji: "😊" },
-    { value: "excited", label: "Excited", emoji: "🤩" },
-    { value: "neutral", label: "Neutral", emoji: "😐" },
-    { value: "sad", label: "Sad", emoji: "😔" },
-    { value: "stressed", label: "Stressed", emoji: "😰" },
+    { value: "happy", label: "Happy" },
+    { value: "neutral", label: "Neutral" },
+    { value: "sad", label: "Sad" },
+    { value: "stressed", label: "Stressed" },
+    { value: "excited", label: "Excited" },
 ] as const
 
 export default function MemberDashboard({ organization }: { organization: { _id: string; name: string } }) {
@@ -91,7 +92,7 @@ function MemberCheckIn({ organization }: { organization: { _id: string; name: st
                                         <input className="peer sr-only" type="radio" name="mood" value={option.value}
                                             checked={mood === option.value} onChange={() => setMood(option.value)} />
                                         <span className="flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border border-border dark:border-border px-2 text-sm font-medium text-slate-700 dark:text-muted-foreground hover:bg-muted dark:hover:bg-muted peer-checked:border-primary peer-checked:bg-accent dark:peer-checked:bg-accent dark:peer-checked:text-accent-foreground peer-checked:text-accent-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2">
-                                            <span className="text-xl" aria-hidden="true">{option.emoji}</span>
+                                            <MoodIcon mood={option.value} className="size-11" />
                                             {option.label}
                                             {mood === option.value && <Check className="absolute right-2 top-2 size-3.5" aria-hidden="true" />}
                                         </span>
