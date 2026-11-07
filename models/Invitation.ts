@@ -5,7 +5,7 @@ export interface InvitationDocument extends Document {
     email: string;
     role: "owner" | "member";
     invitedBy: mongoose.Types.ObjectId;
-    status: "pending" | "accepted" | "expired";
+    status: "pending" | "accepted" | "expired" | "cancelled";
     token: string;
     createdAt: Date;
     expiresAt: Date;
@@ -16,7 +16,7 @@ const InvitationSchema = new Schema<InvitationDocument>({
     email: { type: String, required: true },
     role: { type: String, enum: ["owner", "member"], default: "member" },
     invitedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: String, enum: ["pending", "accepted", "expired"], default: "pending" },
+    status: { type: String, enum: ["pending", "accepted", "expired", "cancelled"], default: "pending" },
     token: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },

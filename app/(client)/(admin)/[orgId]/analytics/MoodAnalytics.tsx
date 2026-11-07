@@ -56,7 +56,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     if (loadedOrgId !== orgId || loading) return <p>Loading analytics…</p>
     if (error) return <p role="alert">{error}</p>
 
-    const { totalLogs, avgRank } = analytics
+    const { avgRank } = analytics
 
     const moodCounts = analytics.moodCounts || {
         happy: 0,

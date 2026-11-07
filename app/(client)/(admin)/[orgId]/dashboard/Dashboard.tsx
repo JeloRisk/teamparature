@@ -3,7 +3,7 @@ import OrganizationHeader from "./OrganizationHeader"
 import MoodCheck from "./MoodCheck"
 import MoodAnalytics from "./MoodAnalytics"
 import StatsCard from "./StatsCard"
-import { Users, Crown, TrendingUp } from "lucide-react"
+import { Users, TrendingUp } from "lucide-react"
 import { Role } from "@/lib/rbac"
 interface DashboardProps {
     userRole: Role

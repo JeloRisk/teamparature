@@ -21,7 +21,8 @@ import {
   LayoutDashboard,
   Users,
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  Settings
 } from "lucide-react";
 import { useUserStore } from '../stores/useUserStore';
 import { MembershipSwitcher } from './TeamSwitcher';
@@ -36,6 +37,7 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
     ...(role === "owner" ? [
       { title: "Members", url: `/${orgId}/members`, icon: Users },
       { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
+      { title: "Settings", url: `/${orgId}/settings`, icon: Settings },
     ] : role === "member" ? [
       { title: "Mood Overview", url: `/${orgId}/mood-overview`, icon: CalendarDays },
     ] : []),

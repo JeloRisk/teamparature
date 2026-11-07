@@ -51,6 +51,7 @@ export async function POST(req: Request) {
             );
         } else {
             membership.isActive = true;
+            membership.role = "member";
             await membership.save();
 
             return NextResponse.json({

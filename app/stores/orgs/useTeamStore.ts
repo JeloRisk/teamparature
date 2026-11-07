@@ -28,7 +28,7 @@ interface OrgInvitation {
     _id: string
     email: string
     role: "owner" | "member"
-    status: "pending" | "accepted" | "expired"
+    status: "pending" | "accepted" | "expired" | "cancelled"
     expiresAt?: string
     createdAt: string
 }

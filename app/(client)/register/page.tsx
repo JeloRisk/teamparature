@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Mail, Lock, User, Calendar } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function RegisterPage() {
     const [form, setForm] = useState({
@@ -174,9 +175,9 @@ export default function RegisterPage() {
 
                     <div className="mt-6 text-center text-sm text-gray-600">
                         Already have an account?{' '}
-                        <a href="/login" className="text-blue-600 hover:underline">
+                        <Link href="/login" className="text-blue-600 hover:underline">
                             Log in
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -8,7 +8,7 @@ export const dashboardFeatures = [
     {
         key: "mood-check",
         permission: "check_mood",
-        render: (orgId: string, userId: string) => (
+        render: (orgId: string) => (
             <MoodCheck orgId={orgId} />
         ),
     },
