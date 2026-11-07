@@ -45,7 +45,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
             <SidebarInset>
-                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
+                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 md:px-10">
                     <button
                         onClick={toggleSidebar}
                         className="p-2 hover:bg-gray-100 rounded"
@@ -64,7 +64,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     </Breadcrumb>
                 </header>
 
-                <main className="flex-1 p-4">{children}</main>
+                <main className="flex flex-1 flex-col p-4 md:px-10">{children}</main>
             </SidebarInset>
         </>
     )

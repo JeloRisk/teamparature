@@ -58,7 +58,10 @@ export async function POST(req: Request) {
             organization: orgId,
             email,
             status: "pending",
-            expiresAt: { $gt: new Date() },
+            $or: [
+                { expiresAt: { $gt: new Date() } },
+                { expiresAt: { $exists: false }, createdAt: { $gt: new Date(Date.now() - 86400000) } },
+            ],
         });
         if (existingInvitation) {
             return NextResponse.json(
@@ -81,21 +84,26 @@ export async function POST(req: Request) {
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         });
 
-        // Send email
-        await sendOrgInvitationEmail({
-            inviterName: inviter.firstName || inviter.email,
-            inviteeEmail: email,
-            orgName: org.name,
-            token,
-        });
+        try {
+            await sendOrgInvitationEmail({
+                inviterName: inviter.firstName || inviter.email,
+                inviteeEmail: email,
+                orgName: org.name,
+                token,
+            });
+        } catch (error) {
+            console.error("Invitation email delivery failed:", error);
+            await Invitation.deleteOne({ _id: invitation._id, status: "pending" });
+            return NextResponse.json(
+                { error: "Could not send the invitation email. Ask the workspace administrator to check the email configuration, then try again." },
+                { status: 502 }
+            );
+        }
 
         return NextResponse.json({ message: "Invitation sent", invitation });
     } catch (err: unknown) {
         console.error(err);
 
-        const message =
-            err instanceof Error ? err.message : typeof err === "string" ? err : "Something went wrong";
-
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Could not create the invitation. Please try again." }, { status: 500 });
     }
 }

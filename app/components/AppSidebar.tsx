@@ -20,7 +20,8 @@ import { NavUser } from "@/app/components/nav-user"
 import {
   LayoutDashboard,
   Users,
-  BarChart3
+  BarChart3,
+  CalendarDays
 } from "lucide-react";
 import { useUserStore } from '../stores/useUserStore';
 import { MembershipSwitcher } from './TeamSwitcher';
@@ -35,6 +36,8 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
     ...(role === "owner" ? [
       { title: "Members", url: `/${orgId}/members`, icon: Users },
       { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
+    ] : role === "member" ? [
+      { title: "Mood Overview", url: `/${orgId}/mood-overview`, icon: CalendarDays },
     ] : []),
   ] : []
 
@@ -69,15 +72,15 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
                         "group w-full rounded-lg transition-colors",
                         "flex items-center gap-2 py-[22px] px-[20px]",
                         isActive
-                          ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
-                          : "text-gray-700 hover:bg-blue-100 "
+                          ? "bg-[#EEF2FE] font-semibold text-[#4934c7] hover:bg-[#e5e8fa] hover:text-[#4934c7]"
+                          : "text-gray-700 hover:bg-[#f4f5fc] "
                       ].join(" ")}
                     >
                       <Link href={item.url}>
                         <Icon
                           className={[
                             "h-5 w-5",
-                            isActive ? "text-white" : " text-blue-600 "
+                            isActive ? "text-[#4934c7]" : "text-blue-600"
                           ].join(" ")}
                         />
                         <span className="truncate">{item.title}</span>

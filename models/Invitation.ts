@@ -8,6 +8,7 @@ export interface InvitationDocument extends Document {
     status: "pending" | "accepted" | "expired";
     token: string;
     createdAt: Date;
+    expiresAt: Date;
 }
 
 const InvitationSchema = new Schema<InvitationDocument>({
@@ -17,7 +18,8 @@ const InvitationSchema = new Schema<InvitationDocument>({
     invitedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, enum: ["pending", "accepted", "expired"], default: "pending" },
     token: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now, expires: "1d" },
+    createdAt: { type: Date, default: Date.now },
+    expiresAt: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
 });
 
 export default mongoose.models.Invitation ||

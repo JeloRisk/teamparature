@@ -23,9 +23,16 @@ export async function POST(req: Request) {
     const invitation = await Invitation.findOne({ token });
     if (!invitation) return NextResponse.json({ error: "Invalid or expired token" }, { status: 404 });
 
+    if (invitation.email.toLowerCase() !== session.user.email.toLowerCase()) {
+        return NextResponse.json({ error: "Sign in with the invited email address" }, { status: 403 });
+    }
+    if (invitation.status === "accepted") {
+        return NextResponse.json({ message: "Invitation already accepted" });
+    }
+
     // Check if token is expired (createdAt + 24h)
-    const expiresAt = new Date(invitation.createdAt.getTime() + 24 * 60 * 60 * 1000);
-    if (new Date() > expiresAt) {
+    const expiresAt = invitation.expiresAt ?? new Date(invitation.createdAt.getTime() + 24 * 60 * 60 * 1000);
+    if (invitation.status === "expired" || new Date() >= expiresAt) {
         return NextResponse.json({ error: "Invitation expired" }, { status: 410 });
     }
 

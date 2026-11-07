@@ -14,5 +14,5 @@ export const getWorkspaceMembership = cache(async (orgId: string) => {
         user: session.user.id,
         organization: orgId,
         isActive: true,
-    }).select("role")
+    }).select("role user")
 })

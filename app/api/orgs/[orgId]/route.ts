@@ -1,6 +1,7 @@
 // app/api/orgs/[orgId]/route.ts
 import { NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb"
+import Invitation from "@/models/Invitation"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
 import { getServerSession } from "next-auth"
@@ -15,7 +16,8 @@ export async function GET(
 
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+            return NextResponse.json({
+ error: "Unauthorized" }, { status: 401 })
         }
 
         // Get orgId from awaited params
@@ -45,7 +47,12 @@ export async function GET(
             .populate("user", "firstName lastName name email image") // include more fields
             .lean() : []
 
+        const invitations = membership.role === "owner" ? await Invitation.find({
+            organization: orgId,
+        }).select("_id email role status createdAt expiresAt").sort({ createdAt: -1 }).lean() : []
+
         return NextResponse.json({
+            invitations,
             organization,
             membership: {
                 role: membership.role,

@@ -57,7 +57,7 @@
     "@types/date-fns": "^2.5.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.11",
-    "@types/nodemailer": "^7.0.0",
+    "@types/nodemailer": "^7.0.12",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19",
     "@types/react-calendar-heatmap": "^1.9.0",

@@ -24,7 +24,17 @@ interface Membership {
     isCreator: boolean
 }
 
+interface OrgInvitation {
+    _id: string
+    email: string
+    role: "owner" | "member"
+    status: "pending" | "accepted" | "expired"
+    expiresAt?: string
+    createdAt: string
+}
+
 interface OrgState {
+    invitations: OrgInvitation[]
     organization: Organization | null
     membership: Membership | null
     memberships: Member[]
@@ -43,6 +53,7 @@ export const useOrgStore = create<OrgState>((set, get) => ({
     organization: null,
     membership: null,
     memberships: [],
+    invitations: [],
     loading: false,
     error: null,
 
@@ -68,6 +79,7 @@ export const useOrgStore = create<OrgState>((set, get) => ({
                 organization: data.organization,
                 membership: data.membership,
                 memberships: data.memberships || [],
+                invitations: data.invitations || [],
                 loading: false,
             })
 
@@ -83,6 +95,7 @@ export const useOrgStore = create<OrgState>((set, get) => ({
             organization: null,
             membership: null,
             memberships: [],
+    invitations: [],
             loading: false,
             error: null,
         }),
