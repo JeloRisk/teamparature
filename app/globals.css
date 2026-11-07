@@ -121,3 +121,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+@keyframes auth-ambient-float {
+  from { transform: translateY(-8px) rotate(-6deg); }
+  to { transform: translateY(8px) rotate(6deg); }
+}
+
+.auth-ambient {
+  animation: auth-ambient-float 8s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-ambient { animation: none; }
+}
