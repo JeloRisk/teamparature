@@ -11,7 +11,6 @@ export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
     const isAuthenticated = !!token;
     const userRole = token?.role as string | undefined;
-    const onboarded = token?.onboarded as boolean | undefined;
 
     const guestRoutes = ['/login', '/register'];
     const protectedRoutes = ['/dashboard'];
@@ -34,16 +33,6 @@ export async function middleware(req: NextRequest) {
 
     // 3️⃣ Redirect non-admin users away from admin pages
     if (isAuthenticated && adminRoutes.some(route => pathname.startsWith('/admin')) && userRole !== 'admin') {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
-    // 4️⃣ Redirect users to onboarding if not onboarded
-    if (isAuthenticated && !onboarded && pathname !== onboardingRoute) {
-        return NextResponse.redirect(new URL(onboardingRoute, req.url));
-    }
-
-    // 5️⃣ Redirect onboarded users away from onboarding page
-    if (isAuthenticated && onboarded && pathname === onboardingRoute) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 

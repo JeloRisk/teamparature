@@ -6,7 +6,8 @@ import { useMembershipStore } from "@/app/stores/useMembershipStore"
 
 export default function DashboardPage() {
     const router = useRouter()
-    const { memberships, fetchMemberships, loading } = useMembershipStore()
+    const { memberships, fetchMemberships, loading, error } = useMembershipStore()
+    const [loaded, setLoaded] = useState(false)
     const [localError, setLocalError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -21,6 +22,8 @@ export default function DashboardPage() {
                 } else {
                     setLocalError("Failed to load memberships");
                 }
+            } finally {
+                setLoaded(true)
             }
         };
         load();
@@ -28,9 +31,12 @@ export default function DashboardPage() {
 
 
     useEffect(() => {
-        if (loading) return
+        if (!loaded || loading || error) return
         if (localError) return
-        if (!memberships || memberships.length === 0) return
+        if (memberships.length === 0) {
+            router.replace("/onboarding")
+            return
+        }
 
         const owners = memberships.filter((m) => m.role === "owner")
         const others = memberships.filter((m) => m.role !== "owner")
@@ -49,9 +55,9 @@ export default function DashboardPage() {
         if (chosen) {
             router.replace(`/${chosen.organization._id}`)
         }
-    }, [memberships, loading, localError, router])
+    }, [memberships, loaded, loading, error, localError, router])
 
-    if (loading) {
+    if (!loaded || loading) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <p className="text-muted-foreground">Loading your dashboard...</p>
@@ -59,15 +65,15 @@ export default function DashboardPage() {
         )
     }
 
-    if (localError || !memberships || memberships.length === 0) {
+    if (localError || error) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-4">
                 <p className="text-red-600 font-medium">
-                    {localError || "No memberships found or access denied."}
+                    {localError || error}
                 </p>
                 <button
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    onClick={() => fetchMemberships().catch(() => setLocalError("Retry failed"))}
+                    onClick={() => { setLocalError(null); fetchMemberships() }}
                 >
                     Retry
                 </button>

@@ -1,3 +1,4 @@
+import connectDB from "@/lib/mongodb"
 import { Membership } from "@/models/Membership"
 import { Organization } from "@/models/Organization"
 import { Team } from "@/models/Team"
@@ -11,8 +12,10 @@ export async function GET() {
             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 })
         }
 
+        await connectDB()
+
         // raw memberships
-        const memberships = await Membership.find({ user: session.user.id }).lean()
+        const memberships = await Membership.find({ user: session.user.id, isActive: true }).lean()
 
         // fetch org + team manually
         const orgIds = memberships.map((m) => m.organization).filter(Boolean)
@@ -26,7 +29,7 @@ export async function GET() {
         const orgMap = new Map(orgs.map((o) => [String(o._id), o]))
         const teamMap = new Map(teams.map((t) => [String(t._id), t]))
 
-        const formatted = memberships.map((m) => ({
+        const formatted = memberships.filter(m => orgMap.has(String(m.organization))).map((m) => ({
             _id: m._id,
             role: m.role,
             isActive: m.isActive,

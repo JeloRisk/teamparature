@@ -45,7 +45,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
         set({ loading: true, error: null })
 
         try {
-            const res = await fetch("/api/me/memberships")
+            const res = await fetch("/api/me/memberships", { signal: AbortSignal.timeout(15000) })
             if (!res.ok) throw new Error("Failed to fetch memberships")
             const data = await res.json()
             set({

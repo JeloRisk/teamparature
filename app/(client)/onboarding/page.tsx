@@ -31,28 +31,47 @@ export default function OnboardingPage() {
 
     const { logout, user } = useAuthStore();
     const [message, setMessage] = useState<string | null>(null);
+    const [checkError, setCheckError] = useState(false);
+    const [attempt, setAttempt] = useState(0);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        setLoading(true);
+        setCheckError(false);
         const checkMembership = async () => {
             try {
-                const res = await fetch("/api/me/memberships");
+                const res = await fetch("/api/me/memberships", { signal: controller.signal });
+                if (!res.ok) throw new Error("Could not load memberships");
                 const data = await res.json();
 
-                if (data?.memberships?.length > 0) {
-                    router.replace("/dashboard");
+                const membership = data.memberships?.find((item: { isActive: boolean; organization: { _id: string } | null }) =>
+                    item.isActive && item.organization?._id);
+                if (membership) {
+                    router.replace(`/${membership.organization._id}`);
                 } else {
                     setLoading(false);
                 }
             } catch (err) {
                 console.error("Failed to check memberships", err);
+                setCheckError(true);
                 setLoading(false);
+            } finally {
+                clearTimeout(timeout);
             }
         };
 
         checkMembership();
-    }, [router]);
+    }, [router, attempt]);
+
+    if (checkError) {
+        return <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+            <p role="alert">Couldn’t check your memberships. Please try again.</p>
+            <Button onClick={() => setAttempt(value => value + 1)}>Retry</Button>
+        </div>;
+    }
 
     const handleLogout = async () => {
         await logout();
