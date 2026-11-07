@@ -1,0 +1,54 @@
+@startuml
+title Teamparature - Use Case Diagram
+left to right direction
+skinparam shadowing false
+actor Guest
+actor "Registered user" as User
+actor "Workspace member" as Member
+actor "Workspace owner" as Owner
+actor "Email service" as Email
+Member --|> User
+Owner --|> Member
+rectangle Teamparature {
+usecase "Register / log in" as Auth
+usecase "Log out" as Logout
+usecase "Create workspace" as Create
+usecase "Join by code / accept invitation" as Join
+usecase "View / switch workspaces" as Switch
+usecase "Submit daily mood check-in" as Check
+usecase "View own mood history" as History
+usecase "View team dashboard and analytics" as Analytics
+usecase "View, remove and restore members" as Manage
+usecase "Change member roles" as Roles
+usecase "Send / resend invitations" as Invite
+usecase "Send invitation email" as Send
+usecase "View / cancel invitations" as Cancel
+usecase "View activity history" as Activity
+usecase "Update workspace settings" as Settings
+usecase "Delete workspace" as Delete
+}
+Guest -- Auth
+User -- Logout
+User -- Create
+User -- Join
+User -- Switch
+Member -- Check
+Member -- History
+Owner -- Analytics
+Owner -- Manage
+Owner -- Roles
+Owner -- Invite
+Owner -- Cancel
+Owner -- Activity
+Owner -- Settings
+Owner -- Delete
+Invite ..> Send : <<include>>
+Email -- Send
+note bottom of Check
+Mood, intensity and optional note.
+One check-in per workspace day.
+end note
+note bottom of Roles
+Cannot remove or demote the last owner.
+end note
+@enduml

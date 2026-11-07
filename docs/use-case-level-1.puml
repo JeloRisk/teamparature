@@ -1,0 +1,32 @@
+@startuml
+title Teamparature - Level 1 UML Use Case Diagram
+left to right direction
+skinparam shadowing false
+actor "Workspace User" as User
+actor "Workspace Owner" as Owner
+Owner --|> User
+rectangle "Teamparature" {
+  usecase "Log in / log out" as Auth
+  usecase "Create workspace" as Create
+  usecase "Join workspace" as Join
+  usecase "View / switch workspaces" as Switch
+  usecase "Submit daily mood check-in" as Check
+  usecase "View own mood history" as History
+  usecase "View team dashboard and analytics" as Analytics
+  usecase "Manage members and roles" as Members
+  usecase "Manage invitations" as Invites
+  usecase "View activity history" as Activity
+  usecase "Manage workspace" as Settings
+}
+User -- Auth
+User -- Create
+User -- Join
+User -- Switch
+User -- Check
+User -- History
+Owner -- Analytics
+Owner -- Members
+Owner -- Invites
+Owner -- Activity
+Owner -- Settings
+@enduml

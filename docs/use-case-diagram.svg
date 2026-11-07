@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1120" viewBox="0 0 1400 1120"><defs><marker id="general" markerWidth="16" markerHeight="16" refX="14" refY="8" orient="auto"><path d="M1 1 L14 8 L1 15 Z" fill="white" stroke="#334155"/></marker><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#334155"/></marker></defs><rect width="1400" height="1120" fill="white"/><g font-family="Arial, sans-serif" fill="#172033"><text x="700" y="42" text-anchor="middle" font-size="28" font-weight="bold">Teamparature — UML Use Case Diagram</text><rect x="255" y="78" width="900" height="920" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="705" y="110" text-anchor="middle" font-size="20" font-weight="bold">Teamparature</text>
+<g stroke='#334155' stroke-width='2' fill='white'><circle cx='105' cy='129' r='14'/><path d='M105 143 V185 M80 160 H130 M105 185 L83 215 M105 185 L127 215' fill='none'/></g><text x='105' y='240' text-anchor='middle' font-size='17'>Guest</text>
+<g stroke='#334155' stroke-width='2' fill='white'><circle cx='105' cy='359' r='14'/><path d='M105 373 V415 M80 390 H130 M105 415 L83 445 M105 415 L127 445' fill='none'/></g><text x='105' y='470' text-anchor='middle' font-size='17'>Registered user</text>
+<g stroke='#334155' stroke-width='2' fill='white'><circle cx='105' cy='674' r='14'/><path d='M105 688 V730 M80 705 H130 M105 730 L83 760 M105 730 L127 760' fill='none'/></g><text x='105' y='785' text-anchor='middle' font-size='17'>Workspace member</text>
+<g stroke='#334155' stroke-width='2' fill='white'><circle cx='1290' cy='489' r='14'/><path d='M1290 503 V545 M1265 520 H1315 M1290 545 L1268 575 M1290 545 L1312 575' fill='none'/></g><text x='1290' y='600' text-anchor='middle' font-size='17'>Workspace owner</text>
+<g stroke='#334155' stroke-width='2' fill='white'><circle cx='1290' cy='884' r='14'/><path d='M1290 898 V940 M1265 915 H1315 M1290 940 L1268 970 M1290 940 L1312 970' fill='none'/></g><text x='1290' y='995' text-anchor='middle' font-size='17'>Email service</text>
+<path d='M105 654 V490' stroke='#334155' stroke-width='1.5' fill='none' marker-end='url(#general)'/><path d='M1290 610 V1040 H105 V800' stroke='#334155' stroke-width='1.5' fill='none' marker-end='url(#general)'/>
+<path d='M130 160 L282 170' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 390 L282 290' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 390 L282 375' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 390 L282 460' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 390 L282 545' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 705 L282 690' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M130 705 L282 775' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 170' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 255' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 340' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 425' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 510' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 595' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 680' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 520 L1128 765' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<path d='M1265 915 L1128 925' stroke='#64748b' stroke-width='1.3' fill='none'/>
+<ellipse cx='470' cy='170' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='175' text-anchor='middle' font-size='15'>Register / log in</text>
+<ellipse cx='470' cy='290' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='295' text-anchor='middle' font-size='15'>Log out</text>
+<ellipse cx='470' cy='375' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='380' text-anchor='middle' font-size='15'>Create workspace</text>
+<ellipse cx='470' cy='460' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='465' text-anchor='middle' font-size='15'>Join by code / accept invitation</text>
+<ellipse cx='470' cy='545' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='550' text-anchor='middle' font-size='15'>View / switch workspaces</text>
+<ellipse cx='470' cy='690' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='695' text-anchor='middle' font-size='15'>Submit daily mood check-in</text>
+<ellipse cx='470' cy='775' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='470' y='780' text-anchor='middle' font-size='15'>View own mood history</text>
+<ellipse cx='940' cy='170' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='175' text-anchor='middle' font-size='15'>View team dashboard and analytics</text>
+<ellipse cx='940' cy='255' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='260' text-anchor='middle' font-size='15'>View, remove and restore members</text>
+<ellipse cx='940' cy='340' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='345' text-anchor='middle' font-size='15'>Change member roles</text>
+<ellipse cx='940' cy='425' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='430' text-anchor='middle' font-size='15'>Send / resend invitations</text>
+<ellipse cx='940' cy='510' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='515' text-anchor='middle' font-size='15'>View / cancel invitations</text>
+<ellipse cx='940' cy='595' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='600' text-anchor='middle' font-size='15'>View activity history</text>
+<ellipse cx='940' cy='680' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='685' text-anchor='middle' font-size='15'>Update workspace settings</text>
+<ellipse cx='940' cy='765' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='770' text-anchor='middle' font-size='15'>Delete workspace</text>
+<ellipse cx='940' cy='925' rx='188' ry='31' fill='white' stroke='#334155' stroke-width='1.5'/><text x='940' y='930' text-anchor='middle' font-size='15'>Send invitation email</text>
+<path d="M940 456 V473 H730 V870 H940 V893" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/><text x="750" y="853" font-size="15">«include»</text><text x="470" y="842" text-anchor="middle" font-size="14">Mood, intensity and optional note.</text><text x="470" y="863" text-anchor="middle" font-size="14">One check-in per workspace day.</text><text x="940" y="812" text-anchor="middle" font-size="14">The last owner cannot be removed or demoted.</text><text x="700" y="1080" text-anchor="middle" font-size="15">Hollow triangle: inherits actor capabilities. Dashed arrow: required included use case.</text><text x="700" y="1103" text-anchor="middle" font-size="14">Roles apply per workspace; owner inherits workspace member capabilities.</text></g></svg>
