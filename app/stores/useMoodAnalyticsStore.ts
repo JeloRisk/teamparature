@@ -5,7 +5,7 @@ interface DetailedSeriesItem {
     total: number
     positive?: number
     negative?: number
-    avg?: number
+    avg?: number | null
 }
 
 
@@ -18,12 +18,15 @@ interface MoodCounts {
 }
 
 interface MoodAnalytics {
+    timezone: string
+    periodStart: string
+    periodEnd: string
     heatmap: { month: number; day: number; mood: keyof MoodCounts }[]
     year: number
-    orgTemperature: number
-    avgRank: number
+    orgTemperature: number | null
+    avgRank: number | null
     totalLogs: number
-    volatility: number
+    volatility: number | null
     positive: number
     negative: number
     posPct: number
@@ -36,12 +39,15 @@ interface MoodAnalytics {
 }
 
 const defaultAnalytics: MoodAnalytics = {
+    timezone: "UTC",
+    periodStart: "",
+    periodEnd: "",
     heatmap: [],
     year: new Date().getFullYear(),
-    orgTemperature: 0,
-    avgRank: 0,
+    orgTemperature: null,
+    avgRank: null,
     totalLogs: 0,
-    volatility: 0,
+    volatility: null,
     positive: 0,
     negative: 0,
     posPct: 0,

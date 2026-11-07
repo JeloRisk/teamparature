@@ -1,22 +1,4 @@
-/*
- * GET /api/orgs/:orgId/moods/analytics
- * 
- * Returns aggregated mood analytics for a given organization.
- * 
- * Response JSON object:
- * {
- *   orgTemperature: number, // Gauge value 0-100 based on average mood rank
- *   avgRank: number,        // Average mood rank across all logs (0-5)
- *   totalLogs: number,      // Total number of mood logs
- *   volatility: number,     // Standard deviation of daily average mood rank over last 14 days
- *   positive: number,       // Count of positive moods ("happy", "excited")
- *   negative: number,       // Count of negative moods ("sad", "stressed")
- *   posPct: number,         // Number of positive mood logs (or percentage if modified)
- *   negPct: number,         // Number of negative mood logs (or percentage if modified)
- *   participants: number,   // Unique participants who submitted moods
- *   series: Array<{day: string, logs: number}> // Daily log counts for last 14 days
- * }
- */
+import { positiveShare } from "@/lib/mood-reporting"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import connectDB from "@/lib/mongodb"
@@ -47,9 +29,9 @@ export async function GET(
     const timezone = await getWorkspaceTimezone(orgId)
     const boundaries = workspaceDayBoundaries(timezone, 13)
     const year = Number(formatInTimeZone(new Date(), timezone, "yyyy"))
-    const [[allTime], daily, heatmap] = await Promise.all([
+    const [[period], daily, heatmap] = await Promise.all([
         Mood.aggregate([
-            { $match: { organization } },
+            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[14] } } },
             { $facet: {
                 moods: [
                     { $group: {
@@ -102,12 +84,12 @@ export async function GET(
     ])
 
     const moodTypes = ["happy", "excited", "neutral", "sad", "stressed"]
-    const totalLogs = allTime.moods.reduce((sum: number, row: { count: number }) => sum + row.count, 0)
-    const rankSum = allTime.moods.reduce((sum: number, row: { rankSum: number }) => sum + row.rankSum, 0)
-    const avgRank = totalLogs ? rankSum / totalLogs : 0
+    const totalLogs = period.moods.reduce((sum: number, row: { count: number }) => sum + row.count, 0)
+    const rankSum = period.moods.reduce((sum: number, row: { rankSum: number }) => sum + row.rankSum, 0)
+    const avgRank = totalLogs ? rankSum / totalLogs : null
     const percentage = (count: number) => totalLogs ? Math.round(count * 100 / totalLogs) : 0
     const moodMetrics = Object.fromEntries(moodTypes.map(mood => {
-        const row = allTime.moods.find((row: { _id: string }) => row._id === mood)
+        const row = period.moods.find((row: { _id: string }) => row._id === mood)
         return [mood, {
             count: row?.count ?? 0,
             percentage: percentage(row?.count ?? 0),
@@ -118,7 +100,7 @@ export async function GET(
     const moodCounts = Object.fromEntries(moodTypes.map(mood => [mood, moodMetrics[mood].count]))
     const positive = moodCounts.happy + moodCounts.excited
     const negative = moodCounts.sad + moodCounts.stressed
-    const participants = allTime.participants[0]?.count ?? 0
+    const participants = period.participants[0]?.count ?? 0
     const detailedSeries = boundaries.slice(0, 14).map(date => {
         const row = daily.find(row => row._id.getTime() === date.getTime())
         const happy = row?.happy ?? 0
@@ -127,7 +109,7 @@ export async function GET(
         const stressed = row?.stressed ?? 0
         return {
             day: date.toLocaleDateString("en-US", { month: "short", day: "2-digit", timeZone: timezone }),
-            avg: Number((row?.avg ?? 0).toFixed(2)),
+            avg: row ? Number(row.avg.toFixed(2)) : null,
             total: row?.total ?? 0,
             happy, excited, sad, stressed,
             neutral: row?.neutral ?? 0,
@@ -138,7 +120,7 @@ export async function GET(
     const volatilitySeries = daily.map(row => Number(row.avg ?? 0))
 
     // --- Volatility ---
-    let volatility = 0
+    let volatility: number | null = null
     if (volatilitySeries.length > 1) {
         const mean =
             volatilitySeries.reduce((a, b) => a + b, 0) / volatilitySeries.length
@@ -148,13 +130,16 @@ export async function GET(
         volatility = Math.sqrt(variance)
     }
 
-    const orgTemperature = Math.round((avgRank / 5) * 100)
+    const orgTemperature = positiveShare(moodCounts.happy, moodCounts.excited, totalLogs)
 
     return NextResponse.json({
+        timezone,
+        periodStart: boundaries[0].toISOString(),
+        periodEnd: boundaries[14].toISOString(),
         orgTemperature,
-        avgRank: Number(avgRank.toFixed(2)),
+        avgRank: avgRank === null ? null : Number(avgRank.toFixed(2)),
         totalLogs,
-        volatility: Number(volatility.toFixed(2)),
+        volatility: volatility === null ? null : Number(volatility.toFixed(2)),
         positive,
         negative,
         posPct: percentage(positive),

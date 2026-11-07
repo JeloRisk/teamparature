@@ -1,5 +1,6 @@
 "use client"
 
+import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { CalendarDays, Users, ClipboardCheck, TrendingUp, Sparkles, Leaf, ArrowUpRight, Smile } from "lucide-react"
@@ -45,9 +46,9 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const participation = members ? Math.round(participants / members * 100) : 0
     // Temperature reflects the share of positive mood check-ins, independent of intensity.
     const positive = (today?.happy ?? 0) + (today?.excited ?? 0)
-    const temperature = logs ? Math.round(positive / logs * 100) : null
+    const temperature = positiveShare(today?.happy ?? 0, today?.excited ?? 0, logs)
     const previousTotal = yesterday ? moodOptions.reduce((sum, item) => sum + yesterday[item.key], 0) : 0
-    const previous = yesterday && previousTotal ? Math.round((yesterday.happy + yesterday.excited) / previousTotal * 100) : null
+    const previous = positiveShare(yesterday?.happy ?? 0, yesterday?.excited ?? 0, previousTotal)
     const change = temperature !== null && previous !== null ? temperature - previous : null
     const mostCommon = [...distribution].sort((a, b) => b.value - a.value)[0]
     const timezone = summary?.timezone ?? "UTC"
