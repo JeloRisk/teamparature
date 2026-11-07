@@ -50,7 +50,9 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const previous = yesterday && previousTotal ? Math.round((yesterday.happy + yesterday.excited) / previousTotal * 100) : null
     const change = temperature !== null && previous !== null ? temperature - previous : null
     const mostCommon = [...distribution].sort((a, b) => b.value - a.value)[0]
-    const greeting = !now ? "Welcome" : now.getHours() < 12 ? "Good morning" : now.getHours() < 18 ? "Good afternoon" : "Good evening"
+    const timezone = summary?.timezone ?? "UTC"
+    const hour = now ? Number(new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "numeric", hourCycle: "h23" }).format(now)) : 0
+    const greeting = !now ? "Welcome" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
     const name = user?.firstName ?? user?.name?.split(" ")[0]
     const value = (number: number) => summary ? number : "—"
 
@@ -62,7 +64,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground dark:text-foreground">{greeting}{name ? `, ${name}` : ""} <span aria-hidden="true">👋</span></h1>
                         <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">Here’s how {organization.name} is feeling today.</p>
                     </div>
-                    {now && <div className="flex items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm dark:bg-card dark:text-foreground"><CalendarDays className="size-4 text-primary" />{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</div>}
+                    {now && <div className="flex items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm dark:bg-card dark:text-foreground"><CalendarDays className="size-4 text-primary" />{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}</div>}
                 </header>
 
                 {error && <div role="alert" className="rounded-xl bg-card p-4 text-sm">{error}. <button className="underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}

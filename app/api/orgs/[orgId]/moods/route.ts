@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/mongodb"
 import { Membership } from "@/models/Membership"
 import { Mood } from "@/models/Mood"
+import { getWorkspaceTimezone, workspaceDayBoundaries } from "@/lib/workspace-time"
 import { POST as submitMood } from "./owner/route"
 
 export async function POST(req: Request, context: { params: Promise<{ orgId: string }> }) {
@@ -25,17 +26,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const days = Array.from({ length: 8 }, (_, i) => {
-        const date = new Date(today)
-        date.setDate(today.getDate() + i - 6)
-        return date
-    })
+    const timezone = await getWorkspaceTimezone(orgId)
+    const days = workspaceDayBoundaries(timezone, 6)
+    const today = days[6]
 
     const checkIn = Mood.exists({ organization, user, date: { $gte: today, $lt: days[7] } })
     if (membership.role !== "owner") {
-        return NextResponse.json({ checkedInToday: Boolean(await checkIn) })
+        return NextResponse.json({ checkedInToday: Boolean(await checkIn), timezone })
     }
 
     const [checkedIn, counts, participants] = await Promise.all([
@@ -60,7 +57,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
     const trend = days.slice(0, 7).map((date) => {
         const count = counts.find((entry) => entry._id.getTime() === date.getTime())
         return {
-            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            day: date.toLocaleDateString("en-US", { weekday: "short", timeZone: timezone }),
             happy: count?.happy ?? 0,
             neutral: count?.neutral ?? 0,
             sad: count?.sad ?? 0,
@@ -69,5 +66,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         }
     })
 
-    return NextResponse.json({ checkedInToday: Boolean(checkedIn), trend, participantsToday: participants.length })
+    return NextResponse.json({ checkedInToday: Boolean(checkedIn), trend, participantsToday: participants.length, timezone })
 }

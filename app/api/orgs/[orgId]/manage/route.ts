@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import mongoose, { Types } from "mongoose"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { validTimezone } from "@/lib/workspace-time"
 import connectDB from "@/lib/mongodb"
 import { Organization } from "@/models/Organization"
 import { Membership } from "@/models/Membership"
@@ -21,12 +22,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
 
     try {
         const body = await req.json()
-        const actions = ["remove_member", "change_role", "cancel_invitation", "delete_workspace"]
+        const actions = ["remove_member", "change_role", "cancel_invitation", "delete_workspace", "update_workspace"]
         if (!actions.includes(body.action)) throw new ManagementError("Invalid action", 400)
-        if (body.action !== "delete_workspace" && (typeof body.id !== "string" || !Types.ObjectId.isValid(body.id)))
+        if (!["delete_workspace", "update_workspace"].includes(body.action) && (typeof body.id !== "string" || !Types.ObjectId.isValid(body.id)))
             throw new ManagementError("Invalid record", 400)
         if (body.action === "change_role" && !["owner", "member"].includes(body.role))
             throw new ManagementError("Invalid role", 400)
+
+        if (body.action === "update_workspace") {
+            if (typeof body.name !== "string" || !body.name.trim() || body.name.trim().length > 100)
+                throw new ManagementError("Workspace name must be 1–100 characters", 400)
+            if (typeof body.description !== "string" || body.description.length > 1000)
+                throw new ManagementError("Description must be at most 1,000 characters", 400)
+            if (!validTimezone(body.timezone))
+                throw new ManagementError("Choose a valid timezone", 400)
+        }
 
         await connectDB()
         const session = await mongoose.startSession()
@@ -37,6 +47,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgId: 
                 if (!organization) throw new ManagementError("Workspace not found", 404)
                 const actor = await Membership.findOne({ organization: orgId, user: auth.user.id, isActive: true }).session(session)
                 if (actor?.role !== "owner") throw new ManagementError("Owner access required", 403)
+
+                if (body.action === "update_workspace") {
+                    await Organization.updateOne({ _id: orgId }, {
+                        $set: { name: body.name.trim(), description: body.description.trim(), timezone: body.timezone },
+                    }, { session })
+                    return
+                }
 
                 if (body.action === "delete_workspace") {
                     if (body.name !== organization.name) throw new ManagementError("Enter the workspace name exactly to confirm", 400)

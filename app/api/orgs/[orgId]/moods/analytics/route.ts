@@ -23,6 +23,8 @@ import connectDB from "@/lib/mongodb"
 import { Types } from "mongoose"
 import { authOptions } from "@/lib/auth"
 import { requirePermission } from "@/lib/rbac"
+import { getWorkspaceTimezone, workspaceDayBoundaries } from "@/lib/workspace-time"
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz"
 import { Mood } from "@/models/Mood"
 
 export async function GET(
@@ -42,16 +44,9 @@ export async function GET(
     if (access !== true) return access
 
     const organization = new Types.ObjectId(orgId)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const boundaries = Array.from({ length: 15 }, (_, i) => {
-        const date = new Date(today)
-        date.setDate(today.getDate() + i - 13)
-        return date
-    })
-
-    const year = today.getFullYear()
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timezone = await getWorkspaceTimezone(orgId)
+    const boundaries = workspaceDayBoundaries(timezone, 13)
+    const year = Number(formatInTimeZone(new Date(), timezone, "yyyy"))
     const [[allTime], daily, heatmap] = await Promise.all([
         Mood.aggregate([
             { $match: { organization } },
@@ -86,8 +81,8 @@ export async function GET(
         ]),
         Mood.aggregate([
             { $match: { organization, date: {
-                $gte: new Date(year, 0, 1),
-                $lt: new Date(year + 1, 0, 1),
+                $gte: fromZonedTime(`${year}-01-01T00:00:00`, timezone),
+                $lt: fromZonedTime(`${year + 1}-01-01T00:00:00`, timezone),
             } } },
             { $sort: { date: 1 } },
             { $project: {
@@ -131,7 +126,7 @@ export async function GET(
         const sad = row?.sad ?? 0
         const stressed = row?.stressed ?? 0
         return {
-            day: date.toLocaleDateString("en-US", { month: "short", day: "2-digit" }),
+            day: date.toLocaleDateString("en-US", { month: "short", day: "2-digit", timeZone: timezone }),
             avg: Number((row?.avg ?? 0).toFixed(2)),
             total: row?.total ?? 0,
             happy, excited, sad, stressed,

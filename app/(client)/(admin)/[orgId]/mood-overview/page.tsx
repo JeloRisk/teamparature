@@ -1,3 +1,5 @@
+import { fromZonedTime, toZonedTime } from "date-fns-tz"
+import { getWorkspaceTimezone } from "@/lib/workspace-time"
 import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -27,7 +29,8 @@ export default async function MoodOverviewPage({ params, searchParams }: {
 
     const query = await searchParams
     const view = views.find(item => item.toLowerCase() === query.view) ?? "Daily"
-    const today = new Date()
+    const timezone = await getWorkspaceTimezone(orgId)
+    const today = toZonedTime(new Date(), timezone)
     const requested = typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date)
         ? new Date(`${query.date}T00:00:00`)
         : today
@@ -45,7 +48,7 @@ export default async function MoodOverviewPage({ params, searchParams }: {
     const boundary = (i: number) => view === "Monthly" ? addMonths(start, i)
         : addDays(start, i * (view === "Weekly" ? 7 : 1))
     const end = boundary(size)
-    const entries = await Mood.find({ organization: orgId, user: membership.user, date: { $gte: start, $lt: end } })
+    const entries = await Mood.find({ organization: orgId, user: membership.user, date: { $gte: fromZonedTime(start, timezone), $lt: fromZonedTime(end, timezone) } })
         .select("date mood rank").sort({ date: -1 }).lean<Entry[]>()
     const range = view === "Monthly" ? format(start, "yyyy")
         : view === "Weekly" ? format(anchor, "MMMM yyyy")
@@ -90,7 +93,10 @@ export default async function MoodOverviewPage({ params, searchParams }: {
                         {Array.from({ length: size }, (_, i) => {
                             const from = boundary(i)
                             const to = boundary(i + 1)
-                            const matches = entries.filter(entry => entry.date >= from && entry.date < to)
+                            const matches = entries.filter(entry => {
+                                const localDate = toZonedTime(entry.date, timezone)
+                                return localDate >= from && localDate < to
+                            })
                             const entry = matches[0]
                             const isToday = view === "Daily" && isSameDay(from, today)
                             const breakdown = Object.entries(moods).map(([mood, [emoji, label]]) => ({

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
 import { Mood } from "@/models/Mood";
 import { Membership } from "@/models/Membership";
+import { getWorkspaceTimezone, workspaceDayBoundaries } from "@/lib/workspace-time";
 import { authOptions } from "@/lib/auth";
 
 
@@ -26,14 +27,13 @@ export async function POST(
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+        const timezone = await getWorkspaceTimezone(orgId);
+        const [today, tomorrow] = workspaceDayBoundaries(timezone, 0);
 
         const exists = await Mood.exists({
             user,
             organization: orgId,
-            date: { $gte: today },
+            date: { $gte: today, $lt: tomorrow },
         });
 
         if (exists) {

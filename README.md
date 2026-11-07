@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+See [Feature backlog](FEATURE_BACKLOG.md) for prioritized product improvements.
+
 First, run the development server:
 
 ```bash

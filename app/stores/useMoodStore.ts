@@ -5,6 +5,7 @@ type Trend = Record<Mood, number> & { day: string }
 
 interface Summary {
     checkedInToday: boolean
+    timezone?: string
     trend?: Trend[]
     participantsToday?: number
 }
