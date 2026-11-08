@@ -81,10 +81,10 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     <h2 className={compact ? "mt-1 text-lg font-semibold tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
                         How are you feeling?
                     </h2>
-                    {compact && <p className="mt-2 max-w-64 text-xs leading-5 text-muted-foreground">Take a moment for yourself. Every feeling is welcome.</p>}
+                    {compact && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
                 </div>
 
-                {compact ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Today</span> : <MoodIcon mood="happy" className="size-11" />}
+                {!compact && <MoodIcon mood="happy" className="size-11" />}
             </div>
 
             {/* CONTENT */}
@@ -96,13 +96,13 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
-                        <p className="text-[11px] text-muted-foreground">Tap a feeling to check in · intensity defaults to 3 of 5</p>
+                        <p className="text-xs text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
                         <div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Choose your mood">
                             {quickMoods.map(({ value, label }) => (
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className="group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border border-border/70 px-1 py-2 transition hover:border-primary/60 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
+                                    className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-transparent px-1 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
                                     <MoodIcon mood={value} className="size-9 sm:size-10" />
                                     <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground sm:text-xs">{label}</span>
                                 </button>
