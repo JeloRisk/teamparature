@@ -12,8 +12,6 @@ import {
     DialogTrigger,
 } from "@/app/components/ui/dialog"
 
-import { Smile } from "lucide-react"
-
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
 export default function MoodCheck({ orgId, compact = false }: { orgId: string; compact?: boolean }) {
@@ -75,7 +73,6 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
 
             {/* HEADER */}
             <div className="relative flex items-start justify-between gap-4">
-
                 <div>
                     {/* <p className="text-xs font-medium text-primary">
                         Today’s check-in
@@ -87,30 +84,15 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     {compact && <p className="mt-2 max-w-64 text-xs leading-5 text-muted-foreground">Take a moment for yourself. Every feeling is welcome.</p>}
                 </div>
 
-                {!compact && <MoodIcon mood="happy" className="size-11" />}
+                {compact ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Today</span> : <MoodIcon mood="happy" className="size-11" />}
             </div>
 
             {/* CONTENT */}
             <div className={compact ? "w-full" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div className="flex h-11 items-center rounded-xl bg-accent/40 px-3 text-sm">
-                        <div className="flex items-center gap-3">
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent">
-                                <Smile className="h-5 w-5 text-primary" />
-                            </div>
-
-                            <div className="">
-                                <p className="font-semibold">
-                                    You’ve checked in today
-                                </p>
-
-                                {/* <p className="text-sm text-muted-foreground">
-                                    You’ve completed your check-in.
-                                </p> */}
-                            </div>
-                        </div>
+                    <div className="flex h-11 items-center rounded-xl bg-accent/40 px-4 text-sm">
+                        <p className="font-semibold">You’ve checked in today</p>
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">

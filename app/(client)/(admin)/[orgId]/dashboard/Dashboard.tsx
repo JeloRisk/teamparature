@@ -4,7 +4,7 @@ import { DashboardSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays, Users, ClipboardCheck, ArrowUpRight, Thermometer, ArrowUp, ArrowDown } from "lucide-react"
+import { CalendarDays, ArrowUp, ArrowDown } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 import { useUserStore } from "@/app/stores/useUserStore"
@@ -27,7 +27,7 @@ const moodOptions = [
     { key: "excited", label: "Excited", color: "#e8a4bb" },
 ] as const
 
-const panel = "rounded-3xl border border-border/60 bg-card/95 p-5 shadow-[0_8px_30px_-24px_rgba(79,94,217,0.22)] sm:p-6"
+const panel = "rounded-2xl border border-border bg-card p-5 sm:p-6"
 const tooltip = { backgroundColor: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: 14 }
 
 export default function Dashboard({ organization, ownerCount, memberCount }: DashboardProps) {
@@ -47,7 +47,6 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const participants = summary?.participantsToday ?? 0
     const participation = members ? Math.round(participants / members * 100) : 0
     // Temperature reflects the share of positive mood check-ins, independent of intensity.
-    const positive = (today?.happy ?? 0) + (today?.excited ?? 0)
     const temperature = positiveShare(today?.happy ?? 0, today?.excited ?? 0, logs)
     const previousTotal = yesterday ? moodOptions.reduce((sum, item) => sum + yesterday[item.key], 0) : 0
     const previous = positiveShare(yesterday?.happy ?? 0, yesterday?.excited ?? 0, previousTotal)
@@ -62,11 +61,10 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     return (
         <div className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
             <div className="mx-auto max-w-7xl space-y-6">
-                <header className="relative isolate flex flex-wrap items-start justify-between gap-4">
-                    <div aria-hidden="true" className="pointer-events-none absolute -left-4 -top-6 -z-10 h-40 w-72 max-w-full rounded-full bg-[#b7c8ff]/30 blur-3xl dark:bg-primary/10" />
+                <header className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p className="mb-2 text-xs font-medium text-muted-foreground">{organization.name}</p>
-                        <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{greeting}{name ? `, ${name}` : ""}.</h1>
+                        {/* <p className="mb-2 text-xs font-medium text-muted-foreground">{organization.name}</p> */}
+                        <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{greeting}{name ? `, ${organization.name}` : ""}.</h1>
                         <p className="mt-2 text-sm text-muted-foreground">A little perspective on how your team is feeling.</p>
                     </div>
                     {now && <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-card/70 px-3 py-2 text-xs text-muted-foreground"><CalendarDays className="size-4" aria-hidden="true" />{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}</div>}
@@ -78,11 +76,10 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     <section className={`${panel} md:col-span-2 xl:col-span-1`}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>
-                    <section className={`${panel} relative overflow-hidden bg-gradient-to-br from-card to-accent/30`}>
-                        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-accent/40 blur-3xl" />
-                        <div className="relative">
+                    <section className={`${panel} relative flex h-full flex-col xl:pb-16`}>
+                        <div className="flex flex-1 flex-col">
                             <div className="flex items-center justify-between gap-3">
-                                <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight"><Thermometer className="size-4 text-primary" aria-hidden="true" />Team temperature</h2>
+                                <h2 className="text-lg font-semibold tracking-tight">Team temperature</h2>
                                 <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Today</span>
                             </div>
                             <div className="mt-5 flex items-end justify-between gap-4">
@@ -90,33 +87,25 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                     <p className="text-5xl font-semibold leading-none tracking-tight text-primary">{temperature === null ? "—" : `${temperature}%`}</p>
                                     <p className="mt-3 text-sm text-muted-foreground">{logs ? "Happy or Excited check-ins" : "Waiting for today’s first check-in"}</p>
                                 </div>
-                                <svg aria-hidden="true" viewBox="0 0 160 100" className="h-16 w-20 shrink-0 overflow-hidden rounded-2xl opacity-90 sm:h-20 sm:w-28 dark:opacity-60">
-                                    <path d="M16 30c4-9 12-11 19-8 8-14 26-13 32 1 9-1 16 2 19 7Z" className="fill-white/75 dark:fill-primary/15" />
-                                    <circle cx="112" cy="57" r="24" fill="#f6d590" />
-                                    <path d="M0 76C25 55 43 57 68 72S111 45 160 62V100H0Z" fill="#c6d5ff" />
-                                    <path d="M0 88C27 68 52 93 82 79S126 64 160 74V100H0Z" fill="#aabfff" />
-                                </svg>
                             </div>
-                            <p className="mt-4 text-xs leading-5 text-muted-foreground">{logs ? `${positive} of ${logs} responses are positive. Every mood is part of the picture.` : "The summary will appear as people share how they feel."}</p>
-                            <div className="mt-5 border-t border-border pt-4 text-xs text-muted-foreground">
-                                {change === null ? "A comparison appears when today and yesterday both have responses." : <span className="inline-flex items-center gap-1.5">
+                            <div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground xl:absolute xl:bottom-5 xl:left-5 xl:right-5 xl:mt-0">
+                                {change === null ? "Comparison available when both days have check-ins." : <span className="inline-flex items-center gap-1.5">
                                     {change > 0 ? <ArrowUp className="size-3.5" aria-hidden="true" /> : change < 0 ? <ArrowDown className="size-3.5" aria-hidden="true" /> : null}
-                                    {change === 0 ? "No change" : `${Math.abs(change)} percentage points ${change > 0 ? "higher" : "lower"}`} in positive share compared with yesterday.
+                                    {change === 0 ? "Same positive share as yesterday." : `${Math.abs(change)} percentage points ${change > 0 ? "higher" : "lower"} than yesterday.`}
                                 </span>}
                             </div>
                         </div>
                     </section>
 
-                    <section className={panel}>
-                        <div className="flex items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight"><ClipboardCheck className="size-4 text-primary" aria-hidden="true" />Participation</h2><span className="text-[11px] text-muted-foreground">Today</span></div>
-                        <p className="mt-6 flex items-baseline gap-2"><strong className="text-4xl font-semibold tracking-tight">{participants}</strong><span className="text-sm text-muted-foreground">of {members} members checked in</span></p>
+                    <section className={`${panel} relative flex h-full flex-col xl:pb-16`}>
+                        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold tracking-tight">Participation</h2><span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Today</span></div>
+                        <p className="mt-6 flex items-baseline gap-2"><strong className="text-4xl font-semibold tracking-tight">{participants}</strong><span className="text-sm text-muted-foreground">of {members} active members checked in</span></p>
                         <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
                             <div className="h-full rounded-full bg-primary/65" style={{ width: `${Math.min(participation, 100)}%` }} />
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">{participation}% participation</p>
-                        <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Users className="size-3.5" aria-hidden="true" />{members} active members</span>
-                            <Link href={`/${organization._id}/members`} className="flex items-center gap-1 text-xs font-medium text-primary">Manage team<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
+                        <div className="mt-auto flex items-center justify-between border-t border-border pt-4 xl:absolute xl:bottom-5 xl:left-5 xl:right-5 xl:mt-0">
+                            <span className="text-xs text-muted-foreground">{participation}% participation</span>
+                            <Link href={`/${organization._id}/members`} className="text-xs font-medium text-primary">Manage team</Link>
                         </div>
                     </section>
                 </div>
@@ -124,8 +113,8 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                 <div className="grid items-stretch gap-4 xl:grid-cols-[1.6fr_1fr]">
                     <section className={`${panel} min-w-0`}>
                         <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
-                            <div><h2 className="text-lg font-semibold tracking-tight">The week at a glance</h2><p className="mt-1.5 text-xs text-muted-foreground">Daily check-ins by mood · Last 7 days</p></div>
-                            <Link href={`/${organization._id}/analytics`} className="flex items-center gap-1 text-xs font-medium text-primary">Explore analytics<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
+                            <div><h2 className="text-lg font-semibold tracking-tight">The week at a glance</h2><p className="mt-1.5 text-xs text-muted-foreground">Daily check-ins by mood</p></div>
+                            <Link href={`/${organization._id}/analytics`} className="text-xs font-medium text-primary">Explore analytics</Link>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-60 min-w-0" role="img" aria-label="Stacked area chart showing daily check-in counts for each mood over seven days">
                             <ResponsiveContainer width="100%" height="100%"><AreaChart data={trend} margin={{ top: 10, right: 4, bottom: 0, left: 0 }}>
@@ -140,7 +129,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
 
                     <section className={`${panel} flex flex-col`}>
-                        <div className="flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">Today’s mood mix</h2><span className="text-[11px] text-muted-foreground">{logs} check-in{logs === 1 ? "" : "s"}</span></div>
+                        <div className="flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">Today’s mood mix</h2></div>
                         <div className="mt-5 flex flex-1 flex-col justify-between gap-4">
                             {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
                                 <MoodIcon mood={item.key} className="size-9 shrink-0" />

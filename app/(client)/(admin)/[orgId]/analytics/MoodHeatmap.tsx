@@ -124,7 +124,6 @@ export default function MoodHeatmapApex({ moods, year, timezone, asOfDate, lates
     return (
         <ChartCard2 title="Team Emotional Heatmap">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-muted-foreground">{year === latestYear ? "Calendar year to date" : "Calendar year"} · {year} through {asOfDate} · {timezone}. Each cell shows the most common mood that week.</p>
                 <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                     Year
                     <select aria-label="Heatmap year" value={year} onChange={event => onYearChange(Number(event.target.value))} className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
