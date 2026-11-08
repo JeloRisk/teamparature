@@ -10,6 +10,12 @@ interface DetailedSeriesItem {
 }
 
 
+interface WeekdayMood {
+    weekday: number
+    total: number
+    counts: Record<"happy" | "neutral" | "sad" | "stressed" | "excited", number>
+}
+
 interface MoodCounts {
     happy: number
     neutral: number
@@ -33,6 +39,10 @@ interface MoodAnalytics {
     posPct: number
     negPct: number
     participants: number
+    activeMembers: number
+    previousTotalLogs: number
+    previousTemperature: number | null
+    weekdayMoods: WeekdayMood[]
     series: number[]
     detailedSeries: DetailedSeriesItem[]
     moodMetrics: number[]
@@ -54,6 +64,10 @@ const defaultAnalytics: MoodAnalytics = {
     posPct: 0,
     negPct: 0,
     participants: 0,
+    activeMembers: 0,
+    previousTotalLogs: 0,
+    previousTemperature: null,
+    weekdayMoods: [],
     series: [],
     detailedSeries: [],
     moodMetrics: [],

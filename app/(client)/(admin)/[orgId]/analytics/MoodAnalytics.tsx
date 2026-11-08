@@ -85,10 +85,22 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
 
 
-    const engagementData = analytics.detailedSeries?.map((s: { day: string; total: number }) => ({
-        day: s.day,
-        logs: s.total,
-    })) || []
+    const temperatureChange = gaugeValue !== null && analytics.previousTemperature !== null
+        ? gaugeValue - analytics.previousTemperature
+        : null
+    const checkInChange = analytics.totalLogs - analytics.previousTotalLogs
+    const participationRate = analytics.activeMembers
+        ? Math.round(analytics.participants * 100 / analytics.activeMembers)
+        : 0
+    const leadingCount = Math.max(...Object.values(moodCounts))
+    const leadingMoods = analytics.totalLogs
+        ? (Object.entries(moodCounts) as [MoodType, number][])
+            .filter(([, count]) => count === leadingCount)
+            .map(([mood]) => mood)
+        : []
+    const leadingLabel = leadingMoods.map(mood => mood.charAt(0).toUpperCase() + mood.slice(1)).join(" and ")
+    const leadingShare = analytics.totalLogs ? Math.round(leadingCount * 100 / analytics.totalLogs) : 0
+    const volumeDirection = checkInChange > 0 ? "more" : checkInChange < 0 ? "fewer" : "the same number of"
 
 
     //
@@ -127,7 +139,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 <KpiCard
                     title="Check-ins · 14 days"
                     value={analytics.totalLogs}
-                    sub={`Participants: ${analytics.participants}`}
+                    sub={`${analytics.participants} of ${analytics.activeMembers} active members · ${participationRate}% participation`}
                     glow="from-slate-50 to-slate-50"
                     icon={<Users className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />}
                 />
@@ -149,6 +161,43 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 />
             </div>
 
+            <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                <div>
+                    <h3 className="text-lg font-semibold tracking-tight">Team insights</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Patterns in the last 14 days, with response counts for context.</p>
+                </div>
+                {analytics.totalLogs === 0 ? (
+                    <p className="mt-5 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">There are no check-ins in this period yet. Insights will appear as the team checks in.</p>
+                ) : (
+                    <div className="mt-5 grid gap-3 md:grid-cols-3">
+                        <div className="rounded-xl bg-muted/40 p-4">
+                            <p className="text-xs font-medium text-muted-foreground">Most selected mood</p>
+                            <p className="mt-2 text-lg font-semibold">{leadingLabel}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{leadingCount} of {analytics.totalLogs} check-ins · {leadingShare}%</p>
+                        </div>
+                        <div className="rounded-xl bg-muted/40 p-4">
+                            <p className="text-xs font-medium text-muted-foreground">Team temperature</p>
+                            <p className="mt-2 text-lg font-semibold">
+                                {temperatureChange === null ? "Not enough comparison data" : temperatureChange === 0 ? "Holding steady" : `${Math.abs(temperatureChange)} points ${temperatureChange > 0 ? "higher" : "lower"}`}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {temperatureChange === null
+                                    ? `${analytics.totalLogs} check-ins now; ${analytics.previousTotalLogs} in the prior period`
+                                    : `${gaugeValue}% now vs ${analytics.previousTemperature}% in the prior 14 days`}
+                            </p>
+                        </div>
+                        <div className="rounded-xl bg-muted/40 p-4">
+                            <p className="text-xs font-medium text-muted-foreground">Participation</p>
+                            <p className="mt-2 text-lg font-semibold">{analytics.participants} of {analytics.activeMembers} active members</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {analytics.activeMembers ? `${participationRate}% checked in · ` : "No active members · "}
+                                {checkInChange === 0 ? "same check-in volume as the prior period" : `${Math.abs(checkInChange)} ${volumeDirection} check-ins than the prior period`}
+                            </p>
+                        </div>
+                    </div>
+                )}
+                <p className="mt-4 text-xs text-muted-foreground">These are team-level patterns from voluntary check-ins. They show what people reported, not why they feel that way.</p>
+            </section>
 
             {/* Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -224,32 +273,41 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </ChartCard>
             </div>
 
-            {/* Line Trend */}
-            <ChartCard title="Daily mood counts · 14 days">
+            <ChartCard title="Daily check-ins by mood · 14 days">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={analytics.detailedSeries}>
-                        <XAxis dataKey="day" stroke="#9ca3af" />
-                        <YAxis allowDecimals={false} stroke="#9ca3af" />
+                    <BarChart data={analytics.detailedSeries} barSize={22}>
+                        <XAxis dataKey="day" stroke="var(--muted-foreground)" />
+                        <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
                         <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
-                        <Line
-                            type="monotone"
-                            dataKey="positive"
-                            stroke={FIRE.ember}
-                            strokeWidth={3}
-                            name="Happy + Excited"
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="negative"
-                            stroke={ICE.blue}
-                            strokeWidth={3}
-                            name="Sad + Stressed"
-                        />
-
-                    </LineChart>
+                        {(Object.keys(MOOD_COLORS) as MoodType[]).map((mood, index, moods) => (
+                            <Bar key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} radius={index === moods.length - 1 ? [5, 5, 0, 0] : 0} />
+                        ))}
+                    </BarChart>
                 </ResponsiveContainer>
             </ChartCard>
 
+            <ChartCard title="Mood patterns by weekday · 90 days">
+                <p className="mb-4 text-xs text-muted-foreground">Check-in counts for each mood, grouped by the day of the week in {analytics.timezone}. Hover a cell to see its count.</p>
+                <div className="grid grid-cols-[5.25rem_repeat(7,minmax(2.25rem,1fr))] gap-1.5 sm:gap-2" role="table" aria-label="Mood check-ins by weekday over the last 90 days">
+                    <div role="columnheader" className="pb-2" />
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                        <div key={day} role="columnheader" className="pb-2 text-center text-[10px] font-medium text-muted-foreground sm:text-xs">
+                            {day}<span className="mt-0.5 block text-[9px] font-normal sm:text-[10px]">{analytics.weekdayMoods[index]?.total ?? 0}</span>
+                        </div>
+                    ))}
+                    {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => (
+                        <div key={mood} className="contents" role="row">
+                            <div role="rowheader" className="flex items-center text-[10px] capitalize text-muted-foreground sm:text-xs">{mood}</div>
+                            {analytics.weekdayMoods.map(day => {
+                                const count = day.counts[mood] ?? 0
+                                const maxCount = Math.max(1, ...analytics.weekdayMoods.flatMap(item => Object.values(item.counts)))
+                                const opacity = count ? Math.max(16, Math.round(count / maxCount * 76)) : 0
+                                return <div key={day.weekday} role="cell" title={`${mood}: ${count} check-ins on ${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day.weekday - 1]}`} aria-label={`${mood}: ${count} check-ins`} className="grid h-9 place-items-center rounded-lg border border-border/50 text-xs font-medium" style={{ backgroundColor: count ? `color-mix(in srgb, ${MOOD_COLORS[mood]} ${opacity}%, var(--card))` : "var(--muted)" }}>{count || "—"}</div>
+                            })}
+                        </div>
+                    ))}
+                </div>
+            </ChartCard>
 
             <ChartCard title="Daily intensity · 14 days">
                 <ResponsiveContainer width="100%" height="100%">
@@ -262,23 +320,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </ResponsiveContainer>
             </ChartCard>
 
-            {/* Engagement */}
-            <ChartCard title="Engagement (Daily Check-ins)">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={engagementData}>
-                        <XAxis dataKey="day" stroke="#9ca3af" />
-                        <YAxis allowDecimals={false} stroke="#9ca3af" />
-                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
-                        <defs>
-                            <linearGradient id="engagement" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={FIRE.glow} />
-                                <stop offset="100%" stopColor={ICE.frost} />
-                            </linearGradient>
-                        </defs>
-                        <Bar dataKey="logs" fill="url(#engagement)" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </ChartCard>
             <MoodHeatmap moods={analytics.heatmap} year={analytics.year} timezone={analytics.timezone} />
         </div>
     )

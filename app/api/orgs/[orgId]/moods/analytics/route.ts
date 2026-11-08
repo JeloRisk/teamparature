@@ -9,6 +9,7 @@ import { requirePermission } from "@/lib/rbac"
 import { getWorkspaceTimezone, workspaceDayBoundaries } from "@/lib/workspace-time"
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz"
 import { Mood } from "@/models/Mood"
+import { Membership } from "@/models/Membership"
 
 export async function GET(
     req: Request,
@@ -29,8 +30,12 @@ export async function GET(
     const organization = new Types.ObjectId(orgId)
     const timezone = await getWorkspaceTimezone(orgId)
     const boundaries = workspaceDayBoundaries(timezone, 13)
+    const previousBoundaries = workspaceDayBoundaries(timezone, 27)
+    const weekdayBoundaries = workspaceDayBoundaries(timezone, 89)
+    const activeMemberships = await Membership.find({ organization, isActive: true }).select("user").lean()
+    const activeUserIds = activeMemberships.map(membership => membership.user)
     const year = Number(formatInTimeZone(new Date(), timezone, "yyyy"))
-    const [[period], daily, heatmap] = await Promise.all([
+    const [[period], daily, [previousPeriod], weekdayMoodRows, heatmap] = await Promise.all([
         Mood.aggregate([
             { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[14] } } },
             { $facet: {
@@ -43,7 +48,7 @@ export async function GET(
                     } },
                     { $project: { count: 1, rankSum: 1, uniqueUsers: { $size: "$users" } } },
                 ],
-                participants: [{ $group: { _id: "$user" } }, { $count: "count" }],
+                participants: [{ $match: { user: { $in: activeUserIds } } }, { $group: { _id: "$user" } }, { $count: "count" }],
             } },
         ]),
         Mood.aggregate([
@@ -61,6 +66,19 @@ export async function GET(
                     stressed: { $sum: { $cond: [{ $eq: ["$mood", "stressed"] }, 1, 0] } },
                 },
             } },
+        ]),
+        Mood.aggregate([
+            { $match: { organization, date: { $gte: previousBoundaries[0], $lt: boundaries[0] } } },
+            { $group: {
+                _id: null,
+                total: { $sum: 1 },
+                positive: { $sum: { $cond: [{ $in: ["$mood", ["happy", "excited"]] }, 1, 0] } },
+            } },
+        ]),
+        Mood.aggregate([
+            { $match: { organization, date: { $gte: weekdayBoundaries[0], $lt: weekdayBoundaries[90] } } },
+            { $project: { mood: 1, weekday: { $dayOfWeek: { date: "$date", timezone } } } },
+            { $group: { _id: { weekday: "$weekday", mood: "$mood" }, count: { $sum: 1 } } },
         ]),
         Mood.aggregate([
             { $match: { organization, date: {
@@ -107,6 +125,17 @@ export async function GET(
     const positive = moodCounts.happy + moodCounts.excited
     const negative = moodCounts.sad + moodCounts.stressed
     const participants = period.participants[0]?.count ?? 0
+    const activeMembers = activeMemberships.length
+    const previousTotalLogs = previousPeriod?.total ?? 0
+    const previousTemperature = positiveShare(previousPeriod?.positive ?? 0, 0, previousTotalLogs)
+    const weekdayMoods = Array.from({ length: 7 }, (_, index) => {
+        const weekday = index + 1
+        const counts = Object.fromEntries(moodTypes.map(mood => [
+            mood,
+            weekdayMoodRows.find(row => row?._id?.weekday === weekday && row?._id?.mood === mood)?.count ?? 0,
+        ]))
+        return { weekday, counts, total: Object.values(counts).reduce((sum, count) => sum + count, 0) }
+    })
     const detailedSeries = boundaries.slice(0, 14).map(date => {
         const row = daily.find(row => row._id.getTime() === date.getTime())
         const happy = row?.happy ?? 0
@@ -151,6 +180,10 @@ export async function GET(
         posPct: percentage(positive),
         negPct: percentage(negative),
         participants,
+        activeMembers,
+        previousTotalLogs,
+        previousTemperature,
+        weekdayMoods,
         moodCounts,
         moodMetrics,
         detailedSeries,

@@ -120,14 +120,14 @@ export default function MoodHeatmapApex({ moods, year, timezone }: { moods: Heat
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#8894bf" : "#bec8ed" }} />Tied moods</li>
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: empty }} />No entry</li>
             </ul>
-            <div className="overflow-x-auto"><div className="min-w-[620px]">
+            <div className="w-full min-w-0 overflow-hidden">
             <ReactApexChart
                 options={options}
                 series={series}
                 type="heatmap"
                 height={350}
             />
-            </div></div>
+            </div>
         </ChartCard2>
     );
 }
