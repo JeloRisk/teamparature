@@ -27,7 +27,7 @@ const moodOptions = [
     { key: "excited", label: "Excited", color: "#e8a4bb" },
 ] as const
 
-const panel = "rounded-3xl border border-border/80 bg-card p-5 sm:p-6"
+const panel = "rounded-3xl border border-border/60 bg-card/95 p-5 shadow-[0_8px_30px_-24px_rgba(79,94,217,0.22)] sm:p-6"
 const tooltip = { backgroundColor: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: 14 }
 
 export default function Dashboard({ organization, ownerCount, memberCount }: DashboardProps) {
@@ -62,13 +62,14 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     return (
         <div className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
             <div className="mx-auto max-w-7xl space-y-6">
-                <header className="flex flex-wrap items-start justify-between gap-4">
+                <header className="relative isolate flex flex-wrap items-start justify-between gap-4">
+                    <div aria-hidden="true" className="pointer-events-none absolute -left-4 -top-6 -z-10 h-40 w-72 max-w-full rounded-full bg-[#b7c8ff]/30 blur-3xl dark:bg-primary/10" />
                     <div>
                         <p className="mb-2 text-xs font-medium text-muted-foreground">{organization.name}</p>
-                        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{greeting}{name ? `, ${name}` : ""}.</h1>
+                        <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{greeting}{name ? `, ${name}` : ""}.</h1>
                         <p className="mt-2 text-sm text-muted-foreground">A little perspective on how your team is feeling.</p>
                     </div>
-                    {now && <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground"><CalendarDays className="size-4" aria-hidden="true" />{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}</div>}
+                    {now && <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-card/70 px-3 py-2 text-xs text-muted-foreground"><CalendarDays className="size-4" aria-hidden="true" />{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}</div>}
                 </header>
 
                 {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
@@ -77,16 +78,24 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     <section className={`${panel} md:col-span-2 xl:col-span-1`}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>
-                    <section className={`${panel} relative overflow-hidden`}>
+                    <section className={`${panel} relative overflow-hidden bg-gradient-to-br from-card to-accent/30`}>
                         <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-accent/40 blur-3xl" />
                         <div className="relative">
                             <div className="flex items-center justify-between gap-3">
-                                <h2 className="flex items-center gap-2 text-sm font-medium"><Thermometer className="size-4 text-primary" aria-hidden="true" />Team temperature</h2>
+                                <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight"><Thermometer className="size-4 text-primary" aria-hidden="true" />Team temperature</h2>
                                 <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Today</span>
                             </div>
-                            <div className="mt-6 flex flex-wrap items-end gap-4">
-                                <p className="text-5xl font-semibold leading-none tracking-tight text-primary">{temperature === null ? "—" : `${temperature}%`}</p>
-                                <p className="pb-1 text-sm text-muted-foreground">{logs ? "Happy or Excited check-ins" : "Waiting for today’s first check-in"}</p>
+                            <div className="mt-5 flex items-end justify-between gap-4">
+                                <div className="min-w-0">
+                                    <p className="text-5xl font-semibold leading-none tracking-tight text-primary">{temperature === null ? "—" : `${temperature}%`}</p>
+                                    <p className="mt-3 text-sm text-muted-foreground">{logs ? "Happy or Excited check-ins" : "Waiting for today’s first check-in"}</p>
+                                </div>
+                                <svg aria-hidden="true" viewBox="0 0 160 100" className="h-16 w-20 shrink-0 overflow-hidden rounded-2xl opacity-90 sm:h-20 sm:w-28 dark:opacity-60">
+                                    <path d="M16 30c4-9 12-11 19-8 8-14 26-13 32 1 9-1 16 2 19 7Z" className="fill-white/75 dark:fill-primary/15" />
+                                    <circle cx="112" cy="57" r="24" fill="#f6d590" />
+                                    <path d="M0 76C25 55 43 57 68 72S111 45 160 62V100H0Z" fill="#c6d5ff" />
+                                    <path d="M0 88C27 68 52 93 82 79S126 64 160 74V100H0Z" fill="#aabfff" />
+                                </svg>
                             </div>
                             <p className="mt-4 text-xs leading-5 text-muted-foreground">{logs ? `${positive} of ${logs} responses are positive. Every mood is part of the picture.` : "The summary will appear as people share how they feel."}</p>
                             <div className="mt-5 border-t border-border pt-4 text-xs text-muted-foreground">
@@ -99,7 +108,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
 
                     <section className={panel}>
-                        <div className="flex items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-sm font-medium"><ClipboardCheck className="size-4 text-primary" aria-hidden="true" />Participation</h2><span className="text-[11px] text-muted-foreground">Today</span></div>
+                        <div className="flex items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight"><ClipboardCheck className="size-4 text-primary" aria-hidden="true" />Participation</h2><span className="text-[11px] text-muted-foreground">Today</span></div>
                         <p className="mt-6 flex items-baseline gap-2"><strong className="text-4xl font-semibold tracking-tight">{participants}</strong><span className="text-sm text-muted-foreground">of {members} members checked in</span></p>
                         <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
                             <div className="h-full rounded-full bg-primary/65" style={{ width: `${Math.min(participation, 100)}%` }} />
@@ -115,7 +124,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                 <div className="grid items-stretch gap-4 xl:grid-cols-[1.6fr_1fr]">
                     <section className={`${panel} min-w-0`}>
                         <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
-                            <div><h2 className="text-sm font-medium">The week at a glance</h2><p className="mt-1.5 text-xs text-muted-foreground">Daily check-ins by mood · Last 7 days</p></div>
+                            <div><h2 className="text-lg font-semibold tracking-tight">The week at a glance</h2><p className="mt-1.5 text-xs text-muted-foreground">Daily check-ins by mood · Last 7 days</p></div>
                             <Link href={`/${organization._id}/analytics`} className="flex items-center gap-1 text-xs font-medium text-primary">Explore analytics<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-60 min-w-0" role="img" aria-label="Stacked area chart showing daily check-in counts for each mood over seven days">
@@ -131,7 +140,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
 
                     <section className={`${panel} flex flex-col`}>
-                        <div className="flex items-center justify-between"><h2 className="text-sm font-medium">Today’s mood mix</h2><span className="text-[11px] text-muted-foreground">{logs} check-in{logs === 1 ? "" : "s"}</span></div>
+                        <div className="flex items-center justify-between"><h2 className="text-lg font-semibold tracking-tight">Today’s mood mix</h2><span className="text-[11px] text-muted-foreground">{logs} check-in{logs === 1 ? "" : "s"}</span></div>
                         <div className="mt-5 flex flex-1 flex-col justify-between gap-4">
                             {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
                                 <MoodIcon mood={item.key} className="size-9 shrink-0" />

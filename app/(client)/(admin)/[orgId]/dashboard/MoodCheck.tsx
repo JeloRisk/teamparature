@@ -27,6 +27,27 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     const [rank, setRank] = useState(3)
     const [note, setNote] = useState("")
 
+    const quickMoods: { value: AllowedMood; label: string }[] = [
+        { value: "happy", label: "Happy" },
+        { value: "neutral", label: "Neutral" },
+        { value: "sad", label: "Sad" },
+        { value: "stressed", label: "Stressed" },
+        { value: "excited", label: "Excited" },
+    ]
+
+    const handleQuickSubmit = async (selectedMood: AllowedMood) => {
+        if (submitting) return
+        setSubmitting(true)
+        setError("")
+        try {
+            await addMood({ orgId, mood: selectedMood, rank: 3, note: "" })
+        } catch {
+            setError("Could not save your check-in. Please try again.")
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
     const handleSubmit = async () => {
         if (!mood || submitting) return
 
@@ -60,7 +81,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                         Today’s check-in
                     </p>
 
-                    <h2 className={compact ? "mt-1 text-sm font-medium" : "mt-1 text-xl font-semibold leading-tight"}>
+                    <h2 className={compact ? "mt-1 text-lg font-semibold tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
                         How are you feeling?
                     </h2>
                     {compact && <p className="mt-2 max-w-64 text-xs leading-5 text-muted-foreground">Take a moment for yourself. Every feeling is welcome.</p>}
@@ -90,6 +111,23 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                                 </p> */}
                             </div>
                         </div>
+                    </div>
+                ) : compact ? (
+                    <div className="space-y-3">
+                        <p className="text-[11px] text-muted-foreground">Tap a feeling to check in · intensity defaults to 3 of 5</p>
+                        <div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Choose your mood">
+                            {quickMoods.map(({ value, label }) => (
+                                <button key={value} type="button" disabled={submitting}
+                                    onClick={() => handleQuickSubmit(value)}
+                                    aria-label={`Check in as ${label}`}
+                                    className="group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border border-border/70 px-1 py-2 transition hover:border-primary/60 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
+                                    <MoodIcon mood={value} className="size-9 sm:size-10" />
+                                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground sm:text-xs">{label}</span>
+                                </button>
+                            ))}
+                        </div>
+                        {submitting && <p className="text-center text-xs text-muted-foreground" role="status">Saving your check-in…</p>}
+                        {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
                     </div>
                 ) : (
 <Dialog open={open} onOpenChange={setOpen}>
