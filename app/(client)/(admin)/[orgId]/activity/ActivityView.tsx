@@ -97,7 +97,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         </TableHead>
     }
 
-    return <div className="max-w-6xl space-y-6 py-2 sm:py-4">
+    return <div className="w-full max-w-none space-y-6 py-2 sm:py-4">
         <header className="flex flex-wrap items-center justify-between gap-4">
             <div><p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><History className="size-4" />Workspace administration</p>
                 <h1 className="text-3xl font-semibold tracking-tight">Activity history</h1>

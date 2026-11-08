@@ -168,7 +168,7 @@ export default function MembersPage() {
     if (!organization) return <p>No organization found</p>
 
     return (
-        <div className="max-w-6xl space-y-6 py-2 sm:py-4">
+        <div className="w-full max-w-none space-y-6 py-2 sm:py-4">
             {/* header */}
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
