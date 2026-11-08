@@ -27,6 +27,8 @@ export default function LandingPage() {
 
   const emojiRefs = useRef<HTMLSpanElement[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [demoMood, setDemoMood] = useState("Happy");
+  const [demoIntensity, setDemoIntensity] = useState(3);
 
 
   const addEmojiRef = (el: HTMLSpanElement) => {
@@ -181,7 +183,7 @@ export default function LandingPage() {
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 bottom-0 size-80 rounded-full bg-orange-200/35 blur-3xl" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
           <div data-reveal className="landing-reveal">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">A daily moment, made easy</p>
+            {/* <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">A daily moment, made easy</p> */}
             <h2 className="mt-5 max-w-xl text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl">Notice the feeling. Make room for the conversation.</h2>
             <p className="mt-6 max-w-lg text-lg leading-8 text-slate-600">A quick check-in helps people pause and reflect. Over time, the team can see patterns without reducing anyone to a number.</p>
             <a href="#how-it-works" className="mt-8 inline-flex items-center gap-2 font-semibold text-blue-700 transition hover:gap-3">How it works <ArrowRight className="size-4" /></a>
@@ -194,16 +196,16 @@ export default function LandingPage() {
                 <div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">A check-in can be simple</p><h3 className="mt-2 text-xl font-bold text-slate-950">How are you feeling today?</h3></div>
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">Example</span>
               </div>
-              <div className="mt-6 grid grid-cols-5 gap-2 sm:gap-3">
+              <div role="group" aria-label="Choose a mood" className="mt-6 grid grid-cols-5 gap-2 sm:gap-3">
                 {[["🙂", "Happy", "bg-amber-50"], ["🤩", "Excited", "bg-orange-50"], ["😐", "Neutral", "bg-slate-100"], ["😔", "Sad", "bg-blue-50"], ["😣", "Stressed", "bg-indigo-50"]].map(([emoji, mood, color]) => (
-                  <div key={mood} className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200/80 ${color} px-1 py-3 sm:min-h-24`}><span className="text-2xl sm:text-3xl">{emoji}</span><span className="text-[10px] font-semibold text-slate-700 sm:text-xs">{mood}</span></div>
+                  <button key={mood} type="button" onClick={() => setDemoMood(mood)} aria-pressed={demoMood === mood} className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border px-1 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:min-h-24 ${color} ${demoMood === mood ? "border-blue-600 ring-2 ring-blue-600/20 shadow-sm" : "border-slate-200/80 hover:border-blue-300"}`}><span className="text-2xl sm:text-3xl">{emoji}</span><span className="text-[10px] font-semibold text-slate-700 sm:text-xs">{mood}</span></button>
                 ))}
               </div>
               <div className="mt-7 border-t border-slate-100 pt-5">
-                <div className="flex items-center justify-between text-sm"><span className="font-semibold text-slate-800">How strong is that feeling?</span><span className="text-slate-500">3 of 5</span></div>
-                <div className="mt-3 flex gap-2">{[1,2,3,4,5].map((level) => <span key={level} className={`grid h-9 flex-1 place-items-center rounded-xl text-sm font-semibold ${level === 3 ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500"}`}>{level}</span>)}</div>
+                <div className="flex items-center justify-between text-sm"><span className="font-semibold text-slate-800">How strong is that feeling?</span><span className="text-slate-500">{demoIntensity} of 5</span></div>
+                <div role="group" aria-label="Choose feeling intensity" className="mt-3 flex gap-2">{[1,2,3,4,5].map((level) => <button key={level} type="button" onClick={() => setDemoIntensity(level)} aria-pressed={demoIntensity === level} aria-label={`Intensity ${level} of 5`} className={`grid h-9 flex-1 place-items-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${demoIntensity === level ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-800"}`}>{level}</button>)}</div>
               </div>
-              <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[#f6f7fb] p-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-lg shadow-sm">✦</span><p className="text-sm leading-6 text-slate-600">A small pause to check in with yourself.</p></div>
+              <div aria-live="polite" className="mt-5 flex items-center gap-3 rounded-2xl bg-[#f6f7fb] p-4"><p className="text-sm leading-6 text-slate-600">You selected <span className="font-semibold text-slate-800">{demoMood}</span> at intensity <span className="font-semibold text-slate-800">{demoIntensity} of 5</span>.</p></div>
               <p className="mt-4 text-center text-xs text-slate-400">Illustrative example · no real team data</p>
             </div>
             <div aria-hidden="true" className="absolute -right-5 -top-7 grid size-14 place-items-center rounded-2xl border border-white bg-white text-2xl shadow-lg shadow-blue-950/10">❄️</div>
@@ -215,7 +217,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="scroll-mt-24 bg-white px-6 py-24 md:px-12 md:py-32">
         <div className="mx-auto max-w-7xl">
           <div data-reveal className="landing-reveal max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-orange-700">Thoughtfully simple</p>
+            {/* <p className="text-sm font-semibold uppercase tracking-[0.18em] text-orange-700">Thoughtfully simple</p> */}
             <h2 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">A healthier rhythm, one check-in at a time.</h2>
           </div>
           <div className="mt-12 grid border-t border-slate-200 md:grid-cols-3">
@@ -233,7 +235,7 @@ export default function LandingPage() {
           <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-[-8rem] size-96 rounded-full bg-blue-600/20 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 bottom-[-10rem] size-96 rounded-full bg-orange-500/15 blur-3xl" />
           <div className="relative z-10 flex flex-col justify-center py-4 md:min-h-[22rem]">
-            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-200"><span className="size-2 rounded-full bg-orange-400" />A calmer way to check in</p>
+            {/* <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-200"><span className="size-2 rounded-full bg-orange-400" />A calmer way to check in</p> */}
             <h2 className="mt-5 max-w-2xl text-3xl font-bold leading-[1.1] tracking-tight text-white sm:text-4xl md:text-[2.8rem]">Make space for your team to be heard.</h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">Create a workspace and build a check-in rhythm that works for your team.</p>
             <div className="mt-8"><Button onClick={() => router.push("/register")} className="rounded-xl bg-blue-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-400">Create workspace <ArrowRight className="ml-2 size-4" aria-hidden="true" /></Button></div>

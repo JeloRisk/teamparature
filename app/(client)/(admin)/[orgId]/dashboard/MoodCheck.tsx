@@ -77,9 +77,9 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             <div className="relative flex items-start justify-between gap-4">
 
                 <div>
-                    <p className="text-xs font-medium text-primary">
+                    {/* <p className="text-xs font-medium text-primary">
                         Today’s check-in
-                    </p>
+                    </p> */}
 
                     <h2 className={compact ? "mt-1 text-lg font-semibold tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
                         How are you feeling?

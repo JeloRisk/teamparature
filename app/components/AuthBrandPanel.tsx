@@ -1,14 +1,9 @@
-import { ChartNoAxesCombined, UsersRound, Leaf } from "lucide-react"
-
-const features = [
-    { title: "Track Together", description: "See team mood trends over time.", icon: ChartNoAxesCombined, color: "text-[#626aff]" },
-    { title: "Build Awareness", description: "Understand what your team needs.", icon: UsersRound, color: "text-[#626aff]" },
-    { title: "Work Better", description: "Create a more supportive workspace.", icon: Leaf, color: "text-[#65ae79]" },
-]
+import Image from "next/image"
+import Link from "next/link"
 
 export default function AuthBrandPanel() {
     return (
-        <aside className="relative flex w-full flex-col justify-between overflow-hidden rounded-[28px] border border-white bg-gradient-to-br from-[#fbfcff] via-[#edf2ff] to-[#dfe7ff] px-8 pb-9 pt-16 text-[#25264e] xl:px-12 xl:pt-20">
+        <aside className="relative flex w-full flex-col justify-between overflow-hidden rounded-[28px] border border-white bg-gradient-to-br from-[#fbfcff] via-[#edf2ff] to-[#dfe7ff] px-8 pb-9 pt-8 text-[#25264e] xl:px-12 xl:pb-10 xl:pt-10">
             <div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-24 size-96 rounded-full bg-[#b7c8ff]/35 blur-3xl" />
             <svg aria-hidden="true" viewBox="0 0 160 70" className="pointer-events-none absolute right-4 top-12 h-16 w-28 fill-white/65">
                 <path d="M8 59c7-19 23-23 37-19C61 11 97 14 110 38c19-1 33 6 40 21Z" />
@@ -16,6 +11,10 @@ export default function AuthBrandPanel() {
             <svg aria-hidden="true" viewBox="0 0 160 70" className="pointer-events-none absolute right-6 top-52 h-9 w-20 fill-white/50">
                 <path d="M8 59c7-19 23-23 37-19C61 11 97 14 110 38c19-1 33 6 40 21Z" />
             </svg>
+            <Link href="/" aria-label="Teamparature home" className="relative z-10 mb-10 inline-flex w-fit items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5d61f5]">
+                <Image src="/logo.png" alt="" width={34} height={34} />
+                <span className="text-lg font-semibold tracking-tight text-[#5474ff]">Teamparature</span>
+            </Link>
             <div className="relative z-10">
                 <svg aria-hidden="true" viewBox="0 0 48 40" className="mb-2 -ml-5 h-9 w-11 text-[#8785ff]" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
                     <path d="m8 29 11 6M20 11l8 14M40 6l1 17" />
@@ -41,16 +40,6 @@ export default function AuthBrandPanel() {
                 </svg>
             </div>
 
-            <div className="relative z-10 mt-1 grid grid-cols-3 gap-4">
-                {features.map(({ title, description, icon: Icon, color }, index) => (
-                    <div key={title} className="relative text-center">
-                        {index > 0 && <span aria-hidden="true" className="absolute -left-2 bottom-1 h-16 w-px bg-[#dce4ff]" />}
-                        <span className={`mx-auto mb-3 grid size-11 place-items-center rounded-2xl border border-white bg-white/70 shadow-[0_5px_15px_-8px_rgba(80,100,180,0.25)] ${color}`}><Icon className="size-6" strokeWidth={1.8} aria-hidden="true" /></span>
-                        <h3 className="text-xs font-semibold xl:text-sm">{title}</h3>
-                        <p className="mx-auto mt-2 max-w-28 text-[11px] leading-5 text-[#7580a1] xl:text-xs">{description}</p>
-                    </div>
-                ))}
-            </div>
         </aside>
     )
 }

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
 import AuthBrandPanel from "./AuthBrandPanel"
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -20,17 +19,15 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className="relative w-full max-w-7xl rounded-[28px] border border-white/90 bg-white/50 p-2 shadow-[0_20px_80px_-40px_rgba(40,52,100,0.25)]">
                 <div className="grid overflow-hidden rounded-[22px] bg-white lg:grid-cols-2">
                     <section className="flex flex-col lg:order-2">
-                        <header className="flex flex-wrap items-center justify-between gap-3 px-6 pt-7 sm:px-10">
+                        <header className="flex items-center px-6 pt-7 sm:px-10 lg:hidden">
                             <Link href="/" className="flex items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
                                 <Image src="/logo.png" alt="" width={32} height={32} />
                                 <span className="text-lg font-semibold tracking-tight text-[#5474ff]">Teamparature</span>
                             </Link>
-                            <Link href="/" className="flex items-center gap-1 rounded-lg px-1 py-2 text-xs text-slate-400 hover:text-primary"><ArrowLeft className="size-3" />Home</Link>
                         </header>
                         <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-12 sm:py-12">
                             <div className="w-full max-w-sm">{children}</div>
                         </div>
-                        <footer className="px-6 pb-6 text-xs text-slate-400 sm:px-10">A little check-in. A more connected team.</footer>
                     </section>
                     <div className="hidden p-4 pr-0 lg:order-1 lg:flex"><AuthBrandPanel /></div>
                 </div>
