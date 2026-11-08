@@ -97,17 +97,18 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         </TableHead>
     }
 
-    return <div className="w-full max-w-none space-y-6 py-2 sm:py-4">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-            <div><p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><History className="size-4" />Workspace administration</p>
-                <h1 className="text-3xl font-semibold tracking-tight">Activity history</h1>
-                <p className="mt-2 text-sm text-muted-foreground">See who changed workspace access and when. Only workspace owners can view this history.</p>
+    return <div className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
+    <div className="mx-auto max-w-7xl space-y-6 sm:space-y-7">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+            <div>
+                <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
             </div>
             <Button variant="outline" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Refresh</Button>
         </header>
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-            <div className="flex flex-wrap items-end gap-3">
-                <div className="min-w-52 flex-1 space-y-2">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="space-y-4 border-b border-border p-4 sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1.5fr)_minmax(12rem,1fr)_minmax(9rem,0.8fr)_minmax(9rem,0.8fr)]">
+                <div className="min-w-0 space-y-2 sm:col-span-2 xl:col-span-1">
                     <label htmlFor="activity-search" className="block text-xs font-medium text-muted-foreground">Search activity</label>
                     <div className="relative">
                         <Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" />
@@ -115,20 +116,18 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                         {search && <button type="button" aria-label="Clear search" className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground hover:bg-accent" onClick={() => { setSearch(""); setPage(1) }}><X className="size-4" /></button>}
                     </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 sm:col-span-2 xl:col-span-1">
                     <label htmlFor="activity-filter" className="block text-xs font-medium text-muted-foreground">Activity type</label>
-                    <select id="activity-filter" value={action} onChange={event => { setAction(event.target.value); setPage(1) }} className="h-10 max-w-56 rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
+                    <select id="activity-filter" value={action} onChange={event => { setAction(event.target.value); setPage(1) }} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
                         <option value="all">All activity</option>
                         {Object.entries(activityActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                     </select>
                 </div>
-                <div className="space-y-2"><label htmlFor="activity-start" className="block text-xs font-medium text-muted-foreground">From</label><Input id="activity-start" className="h-10 w-40 rounded-xl bg-background" type="date" value={start} max={end || undefined} onChange={event => { setStart(event.target.value); setPage(1) }} /></div>
-                <div className="space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-10 w-40 rounded-xl bg-background" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
-                {(search || start || end || action !== "all") && <Button variant="ghost" className="h-10 text-muted-foreground" onClick={clearFilters}><X className="size-3.5" />Clear filters</Button>}
+                <div className="min-w-0 space-y-2"><label htmlFor="activity-start" className="block text-xs font-medium text-muted-foreground">From</label><Input id="activity-start" className="h-10 w-full min-w-0 rounded-xl bg-background" type="date" value={start} max={end || undefined} onChange={event => { setStart(event.target.value); setPage(1) }} /></div>
+                <div className="min-w-0 space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-10 w-full min-w-0 rounded-xl bg-background" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Dates include the full end day in {timezone.replaceAll("_", " ")}. Select a column heading to sort.</p>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            </div>
+            <p className="px-4 pt-3 text-xs text-muted-foreground sm:hidden">Scroll horizontally to view all activity details.</p>
             <Table>
                 <TableHeader><TableRow className="bg-muted/40">
                     {columns.slice(0, 3).map(sortableHeader)}
@@ -162,5 +161,6 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                 </div>
             </footer>
         </div>
+    </div>
     </div>
 }
