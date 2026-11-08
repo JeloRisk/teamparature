@@ -4,7 +4,7 @@ import { DashboardSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays, ArrowUp, ArrowDown } from "lucide-react"
+import { CalendarDays } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 import type { Role } from "@/lib/rbac"
@@ -38,7 +38,6 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
 
     const trend = summary?.trend ?? []
     const today = trend.at(-1)
-    const yesterday = trend.at(-2)
     const distribution = moodOptions.map(item => ({ ...item, value: today?.[item.key] ?? 0 }))
     const logs = distribution.reduce((sum, item) => sum + item.value, 0)
     const positiveCheckIns = (today?.happy ?? 0) + (today?.excited ?? 0)
@@ -47,9 +46,6 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const participation = members ? Math.round(participants / members * 100) : 0
     // Temperature reflects the share of positive mood check-ins, independent of intensity.
     const temperature = positiveShare(today?.happy ?? 0, today?.excited ?? 0, logs)
-    const previousTotal = yesterday ? moodOptions.reduce((sum, item) => sum + yesterday[item.key], 0) : 0
-    const previous = positiveShare(yesterday?.happy ?? 0, yesterday?.excited ?? 0, previousTotal)
-    const change = temperature !== null && previous !== null ? temperature - previous : null
     const timezone = summary?.timezone ?? "UTC"
     const participationText = members
         ? `${participants} of ${members} active members checked in today`
@@ -76,23 +72,18 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
                     <section className={panel} aria-labelledby="today-pulse-heading">
                         <div className="flex items-center justify-between gap-4">
-                            <h2 id="today-pulse-heading" className="text-lg font-semibold tracking-tight">Today</h2>
+                            <h2 id="today-pulse-heading" className="text-lg font-semibold leading-6 tracking-tight">Today</h2>
                             <span className="text-xs text-muted-foreground">{logs} {logs === 1 ? "check-in" : "check-ins"}</span>
                         </div>
                         <div className="mt-6 grid gap-6 md:grid-cols-2 md:divide-x md:divide-border">
                             <div className="min-w-0 md:pr-6">
-                                <h3 className="text-sm font-medium text-muted-foreground">Team temperature</h3>
+                                <h3 className="text-sm font-semibold text-foreground">Team temperature</h3>
                                 <p className="mt-3 text-4xl font-semibold leading-none tracking-tight tabular-nums">{temperature === null ? "—" : `${temperature}%`}</p>
                                 <p className="mt-2 text-sm text-muted-foreground">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
-                                <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                                    {change === null ? "Yesterday’s comparison needs check-ins on both days." : <span className="inline-flex items-center gap-1.5">
-                                        {change > 0 ? <ArrowUp className="size-3.5 shrink-0" aria-hidden="true" /> : change < 0 ? <ArrowDown className="size-3.5 shrink-0" aria-hidden="true" /> : null}
-                                        {change === 0 ? "Same positive share as yesterday." : `${Math.abs(change)} percentage points ${change > 0 ? "higher" : "lower"} than yesterday.`}
-                                    </span>}
-                                </p>
+
                             </div>
                             <div className="min-w-0 md:pl-6">
-                                <h3 className="text-sm font-medium text-muted-foreground">Participation</h3>
+                                <h3 className="text-sm font-semibold text-foreground">Participation</h3>
                                 <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                                     <strong className="text-4xl font-semibold leading-none tracking-tight tabular-nums">{participants}</strong>
                                     <span className="text-sm text-muted-foreground">of {members} active members checked in</span>
@@ -109,17 +100,30 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
                 </div>
 
-                <section className={`${panel} grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(15rem,0.8fr)]`}>
+                <div className="grid gap-4 xl:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.7fr)]">
+                    <section className={`${panel} min-w-0`}>
+                        <h2 className="text-lg font-semibold leading-6 tracking-tight">Today&apos;s mood mix</h2>
+                        <p className="mt-1 text-sm leading-5 text-muted-foreground">{logs ? "Percent of today’s check-ins" : "No responses yet"}</p>
+                        <div className="mt-5 flex flex-col gap-4">
+                            {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
+                                <MoodIcon mood={item.key} className="size-9 shrink-0" />
+                                <div className="min-w-0 flex-1"><div className="mb-1.5 flex items-center justify-between gap-2 text-sm"><span className="font-medium">{item.label}</span><span className="tabular-nums text-muted-foreground">{logs ? Math.round(item.value / logs * 100) : 0}% <span className="ml-1 text-xs">({item.value})</span></span></div>
+                                    <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ backgroundColor: item.color, width: `${logs ? item.value / logs * 100 : 0}%` }} /></div>
+                                </div>
+                            </div>)}
+                        </div>
+                    </section>
+                <section className={`${panel} min-w-0`}>
                     <div className="min-w-0">
                         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                            <div><h2 className="text-lg font-semibold tracking-tight">This week</h2><p className="mt-1 text-sm text-muted-foreground">Daily check-ins by mood</p></div>
-                            <Link href={`/${organization._id}/analytics`} className="text-xs font-medium text-primary">Explore analytics</Link>
+                            <div><h2 className="text-lg font-semibold leading-6 tracking-tight">This week</h2><p className="mt-1 text-sm text-muted-foreground">Daily check-ins by mood</p></div>
+                            <Link href={`/${organization._id}/analytics`} className="text-sm font-medium text-primary">Explore analytics</Link>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-60 min-w-0" role="img" aria-label="Stacked area chart showing daily check-in counts for each mood over seven days">
                             <ResponsiveContainer width="100%" height="100%"><AreaChart data={trend} margin={{ top: 10, right: 4, bottom: 0, left: 0 }}>
                                 <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
-                                <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={10} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
-                                <YAxis domain={[0, (dataMax: number) => Math.max(1, dataMax)]} allowDecimals={false} tickLine={false} axisLine={false} width={28} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+                                <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={10} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+                                <YAxis domain={[0, (dataMax: number) => Math.max(1, dataMax)]} allowDecimals={false} tickLine={false} axisLine={false} width={28} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
                                 <Tooltip contentStyle={tooltip} />
                                 {moodOptions.map(item => <Area key={item.key} name={item.label} type="linear" dataKey={item.key} stackId="moods" stroke={item.color} strokeWidth={1.5} fill={item.color} fillOpacity={0.4} />)}
                             </AreaChart></ResponsiveContainer>
@@ -127,19 +131,8 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4">{moodOptions.map(item => <span key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}</div>
                     </div>
 
-                    <div className="border-t border-border pt-5 xl:border-l xl:border-t-0 xl:pl-7 xl:pt-0">
-                        <h2 className="text-lg font-semibold tracking-tight">Today’s mood mix</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">{logs ? `Share of ${logs} ${logs === 1 ? "check-in" : "check-ins"}` : "No responses yet"}</p>
-                        <div className="mt-5 flex flex-col gap-4">
-                            {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
-                                <MoodIcon mood={item.key} className="size-9 shrink-0" />
-                                <div className="min-w-0 flex-1"><div className="mb-1.5 flex items-center justify-between text-xs"><span className="font-medium">{item.label}</span><span className="text-muted-foreground">{logs ? Math.round(item.value / logs * 100) : 0}% <span className="ml-1 text-[10px]">({item.value})</span></span></div>
-                                    <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ backgroundColor: item.color, width: `${logs ? item.value / logs * 100 : 0}%` }} /></div>
-                                </div>
-                            </div>)}
-                        </div>
-                    </div>
                 </section>
+                </div>
 
                 <p className="pb-1 text-xs text-muted-foreground">Today is based on {timezone.replaceAll("_", " ")}. Temperature counts mood choice, not intensity; see Analytics for intensity.</p>
             </div>

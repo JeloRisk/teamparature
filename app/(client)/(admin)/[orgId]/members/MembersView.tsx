@@ -2,7 +2,7 @@
 
 import { invitationExpiry as expiryDate, invitationStatus as statusOf } from "@/lib/invitation-status"
 import { MembersSkeleton, TableSkeletonRows } from "@/app/components/loading/WorkspaceSkeletons"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useParams } from "next/navigation"
 import type { OrgInvitation } from "@/app/stores/orgs/useTeamStore"
 import { useOrgStore } from "@/app/stores/orgs/useTeamStore"
@@ -33,7 +33,6 @@ export default function MembersPage() {
     const [statusFilter, setStatusFilter] = useState("all")
     const [page, setPage] = useState(1)
     const [total, setTotal] = useState(0)
-    const [totalAll, setTotalAll] = useState(0)
     const [pendingCount, setPendingCount] = useState(0)
     const [listLoading, setListLoading] = useState(true)
     const [listError, setListError] = useState("")
@@ -47,6 +46,7 @@ export default function MembersPage() {
     const [inviteEmail, setInviteEmail] = useState("")
     const [inviteRole, setInviteRole] = useState<"owner" | "member">("member")
     const [inviteOpen, setInviteOpen] = useState(false)
+    const [inviteError, setInviteError] = useState("")
     const [sending, setSending] = useState(false)
 
     const role = membership?.role
@@ -75,7 +75,6 @@ export default function MembersPage() {
                 if (page > pages) { setPage(pages); return }
                 setInvitations(data.invitations)
                 setTotal(data.total)
-                setTotalAll(data.totalAll)
                 setPendingCount(data.pending)
             } catch (error) {
                 if (!controller.signal.aborted) setListError(getErrorMessage(error))
@@ -131,22 +130,35 @@ export default function MembersPage() {
             (memberStatus === "removed" ? m.isActive === false : m.isActive !== false)
         return matchesSearch && matchesRole && matchesStatus
     })
+    const hasActiveFilters = Boolean(search) || roleFilter !== "all" ||
+        (tab === "members" ? memberStatus !== "active" : statusFilter !== "all")
+    const clearFilters = () => {
+        setSearch("")
+        setRoleFilter("all")
+        setMemberStatus("active")
+        setStatusFilter("all")
+        setPage(1)
+    }
     function getErrorMessage(err: unknown): string {
         return err instanceof Error ? err.message : String(err)
     }
-    const handleInvite = async () => {
-        if (!inviteEmail) return alert("Enter a valid email")
+    const handleInvite = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
         if (sending) return
 
+        setInviteError("")
+        setNotice("")
+        setResendError("")
         setSending(true)
         try {
             const res = await fetch(`/api/orgs/${orgId}/invite`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+                body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
             })
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || "Failed to send invite")
+            setNotice(`Invitation sent to ${inviteEmail.trim()}.`)
             setInviteOpen(false)
             setTab("invitations")
             setNow(Date.now())
@@ -157,7 +169,7 @@ export default function MembersPage() {
             setInviteEmail("")
             setInviteRole("member")
         } catch (err: unknown) {
-            alert(getErrorMessage(err))
+            setInviteError(getErrorMessage(err))
         } finally {
             setSending(false)
         }
@@ -168,20 +180,21 @@ export default function MembersPage() {
     if (!organization) return <p>No organization found</p>
 
     return (
-        <div className="w-full max-w-none space-y-6 py-2 sm:py-4">
+        <div className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
+        <div className="mx-auto max-w-7xl space-y-6 sm:space-y-7">
             {/* header */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
                 <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary dark:text-primary">{organization.name}</p>
-                    <h1 className="text-3xl font-semibold tracking-tight text-foreground dark:text-foreground">People & invitations</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Manage workspace access and keep track of your invitations.
-                    </p>
+                    <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">People & invitations</h1>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{organization.name}</p>
                 </div>
 
                 {/* invite dialog only for owners */}
                 {role === "owner" && (
-                    <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                    <Dialog open={inviteOpen} onOpenChange={(open) => {
+                        setInviteOpen(open)
+                        if (open) setInviteError("")
+                    }}>
                         <DialogTrigger asChild>
                             <Button className="rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90">
                                 <UserPlus className="mr-2 size-4" aria-hidden="true" />Invite member
@@ -196,68 +209,90 @@ export default function MembersPage() {
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-4 py-2">
-                                <div className="grid gap-2">
-                                    <Label>Email</Label>
-                                    <Input
-                                        type="email"
-                                        placeholder="jane@example.com"
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                    />
+                            <form onSubmit={handleInvite}>
+                                <div className="space-y-4 py-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="invite-email">Email address</Label>
+                                        <Input
+                                            id="invite-email"
+                                            type="email"
+                                            autoComplete="email"
+                                            placeholder="jane@example.com"
+                                            value={inviteEmail}
+                                            onChange={(e) => setInviteEmail(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="invite-role">Workspace role</Label>
+                                        <Select value={inviteRole} onValueChange={(val) => setInviteRole(val as "owner" | "member")}>
+                                            <SelectTrigger id="invite-role">
+                                                <SelectValue placeholder="Select role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="owner">Owner</SelectItem>
+                                                <SelectItem value="member">Member</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-muted-foreground">
+                                            {inviteRole === "owner"
+                                                ? "Owners can manage workspace access and invitations."
+                                                : "Members can participate in the workspace without managing access."}
+                                        </p>
+                                    </div>
+                                    {inviteError && <p id="invite-error" role="alert" className="text-sm text-destructive">{inviteError}</p>}
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label>Role</Label>
-                                    <Select value={inviteRole} onValueChange={(val) => setInviteRole(val as "owner" | "member")}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="owner">Owner</SelectItem>
-                                            <SelectItem value="member">Member</SelectItem>
-                                        </SelectContent>
-                                    </Select>
 
-                                </div>
-                            </div>
-
-                            <DialogFooter>
-                                <Button
-                                    onClick={handleInvite}
-                                    className="bg-primary hover:bg-primary text-primary-foreground"
-                                    disabled={sending}
-                                >
-                                    {sending ? "Sending..." : "Send Invite"}
-                                </Button>
-                            </DialogFooter>
+                                <DialogFooter>
+                                    <Button type="submit" className="bg-primary hover:bg-primary text-primary-foreground" disabled={sending}>
+                                        {sending ? "Sending…" : "Send invitation"}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
                         </DialogContent>
                     </Dialog>
                 )}
-            </div>
+            </header>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <section aria-label="Workspace summary" className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+                <div className="grid gap-5 sm:grid-cols-3 sm:divide-x sm:divide-border sm:gap-0">
                 {[
                     { label: "Active members", value: activeMembers.length, icon: Users, color: "bg-accent dark:bg-accent text-primary dark:text-primary" },
                     { label: "Pending invitations", value: pendingCount, icon: Mail, color: "bg-orange-50 dark:bg-[#423c30] text-orange-700 dark:text-[#e1c590]" },
                     { label: "Owners", value: activeMembers.filter(member => member.role === "owner").length, icon: ShieldCheck, color: "bg-violet-50 dark:bg-[#3c3546] text-violet-700 dark:text-[#c7b4d8]" },
-                ].map(({ label, value, icon: Icon, color }) => <div key={label} className="flex items-center gap-4 rounded-2xl border border-border dark:border-border bg-card dark:bg-card p-4">
-                    <span className={`grid size-10 place-items-center rounded-xl ${color}`}><Icon className="size-5" aria-hidden="true" /></span>
-                    <div><p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground dark:text-foreground">{value}</p></div>
+                ].map(({ label, value, icon: Icon, color }) => <div key={label} className="flex items-center gap-4 sm:px-5 sm:first:pl-0 sm:last:pr-0">
+                    <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${color}`}><Icon className="size-5" aria-hidden="true" /></span>
+                    <div><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold leading-none tracking-tight tabular-nums text-foreground">{value}</p></div>
                 </div>)}
-            </div>
+                </div>
+            </section>
 
-            <div role="tablist" aria-label="Workspace people" className="flex gap-1 rounded-xl border border-border dark:border-border bg-card dark:bg-card p-1 w-fit">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div role="tablist" aria-label="Workspace people" className="flex w-fit shrink-0 gap-1 rounded-xl border border-border bg-card p-1">
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
+                        tabIndex={tab === item ? 0 : -1}
                         aria-controls={item + "-panel"} onClick={() => setTab(item)}
+                        onKeyDown={(event) => {
+                            const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])
+                            const currentIndex = tabs.indexOf(event.currentTarget)
+                            const nextIndex = event.key === "ArrowRight" ? (currentIndex + 1) % tabs.length
+                                : event.key === "ArrowLeft" ? (currentIndex - 1 + tabs.length) % tabs.length
+                                    : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1
+                            if (nextIndex < 0) return
+                            event.preventDefault()
+                            const nextTab = tabs[nextIndex]
+                            setTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
+                            nextTab.focus()
+                        }}
                         className={`rounded-lg px-4 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
-                        {item} ({item === "members" ? memberships.length : totalAll})
+                        {item}
                     </button>
                 ))}
             </div>
 
             {/* filters */}
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
                 <div className="relative w-full sm:max-w-sm">
                 <Search className="pointer-events-none absolute left-3 top-3 size-4 text-slate-400" aria-hidden="true" />
                 <Input
@@ -278,7 +313,7 @@ export default function MembersPage() {
                         <SelectItem value="member">Member</SelectItem>
                     </SelectContent>
                 </Select>
-                {tab === "members" && <Select value={memberStatus} onValueChange={setMemberStatus}>
+                {tab === "members" && <Select value={memberStatus} onValueChange={value => { setPage(1); setMemberStatus(value) }}>
                     <SelectTrigger aria-label="Filter members by access" className="w-52 rounded-xl bg-card"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="active">Active members ({activeMembers.length})</SelectItem>
@@ -297,12 +332,14 @@ export default function MembersPage() {
                     </SelectContent>
                 </Select>}
             </div>
+            </div>
 
             {notice && <p role="status" className="rounded-xl bg-accent p-3 text-sm text-accent-foreground">{notice}</p>}
             {resendError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{resendError}</p>}
 
             {tab === "invitations" ? (
                 <div role="tabpanel" id="invitations-panel" aria-labelledby="invitations-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
+                    <p className="px-4 pt-3 text-xs text-muted-foreground sm:hidden">Scroll horizontally to view all invitation details.</p>
                     <Table>
                         <TableCaption>Invitation history for {organization.name}. Invitations expire after 24 hours.</TableCaption>
                         <TableHeader><TableRow className="bg-slate-50/80 dark:bg-muted/80">
@@ -311,23 +348,29 @@ export default function MembersPage() {
                         <TableBody>
                             {!listLoading && !listError && invitations.map(invite => {
                                 const status = invitationStatus(invite)
+                                const cooldownSeconds = Math.ceil(Math.max(0, new Date(invite.lastSentAt ?? invite.createdAt).getTime() + 60000 - now) / 1000)
                                 return <TableRow key={invite._id}>
                                     <TableCell>{invite.email}</TableCell>
                                     <TableCell className="capitalize">{invite.role}</TableCell>
                                     <TableCell className="whitespace-nowrap">{new Date(invite.createdAt).toLocaleString()}</TableCell>
                                     <TableCell className="whitespace-nowrap">{new Date(invitationExpiry(invite)).toLocaleString()}</TableCell>
                                     <TableCell><Badge variant="outline" className={status === "Accepted" ? "border-emerald-200 dark:border-[#43605a] bg-emerald-50 dark:bg-[#2e3c3b] text-emerald-800 dark:text-[#a6c9bf]" : (status === "Expired" || status === "Cancelled") ? "border-border dark:border-border bg-muted dark:bg-muted text-slate-700 dark:text-muted-foreground" : "border-amber-200 dark:border-[#66543b] bg-amber-50 dark:bg-[#423c30] text-amber-800 dark:text-[#e1c590]"}>{status}</Badge></TableCell>
-                                    <TableCell><div className="flex items-center gap-2">
-                                        {(status === "Pending" || status === "Expired") && <Button variant="outline" size="sm"
-                                            disabled={resending !== null || now - new Date(invite.lastSentAt ?? invite.createdAt).getTime() < 60000}
-                                            title="Resend with a fresh 24-hour link. Wait at least one minute between sends."
-                                            onClick={() => resend(invite)}>{resending === invite._id ? "Sending…" : "Resend"}</Button>}
+                                    <TableCell><div className="flex flex-wrap items-center gap-2">
+                                        {(status === "Pending" || status === "Expired") && <>
+                                            <Button variant="outline" size="sm"
+                                                disabled={resending !== null || cooldownSeconds > 0}
+                                                onClick={() => resend(invite)}>{resending === invite._id ? "Sending…" : "Resend"}</Button>
+                                            {cooldownSeconds > 0 && <span className="text-xs text-muted-foreground">Available in {cooldownSeconds}s</span>}
+                                        </>}
                                         {status === "Pending" && <WorkspaceAction orgId={orgId} action="cancel_invitation" id={invite._id} label="Cancel invitation" description={`Cancel the invitation to ${invite.email}? Its link will stop working.`} />}</div></TableCell>
                                 </TableRow>
                             })}
                             {listLoading && <TableSkeletonRows columns={6} label="Loading invitations" />}
                             {listError && <TableRow><TableCell colSpan={6} className="py-8 text-center"><p role="alert">{listError}</p><Button variant="outline" size="sm" className="mt-2" onClick={() => setRevision(value => value + 1)}>Retry</Button></TableCell></TableRow>}
-                            {!listLoading && !listError && !invitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">No invitations found.</TableCell></TableRow>}
+                            {!listLoading && !listError && !invitations.length && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground dark:text-muted-foreground">
+                                <p>{hasActiveFilters ? "No invitations match these filters." : "No invitations found."}</p>
+                                {hasActiveFilters && <Button variant="link" size="sm" className="mt-1" onClick={clearFilters}>Clear filters</Button>}
+                            </TableCell></TableRow>}
                         </TableBody>
                     </Table>
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm">
@@ -342,6 +385,30 @@ export default function MembersPage() {
             ) : (
             /* members table */
             <div role="tabpanel" id="members-panel" aria-labelledby="members-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
+                <div className="divide-y divide-border md:hidden">
+                    {filteredMembers.map((m) => (
+                        <div key={m._id} className="flex min-w-0 items-start justify-between gap-3 p-4">
+                            <div className="min-w-0 space-y-1">
+                                <p className="truncate font-medium">{m.user ? `${m.user.firstName} ${m.user.lastName}` : "Account unavailable"}</p>
+                                <p className="break-all text-sm text-muted-foreground">{m.user?.email ?? "—"}</p>
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                    <Badge variant="outline" className="capitalize">{m.role}</Badge>
+                                    <Badge variant="outline" className={m.isActive === false ? "border-border bg-muted text-muted-foreground" : "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"}>
+                                        {m.isActive === false ? "Removed" : "Active"}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <div className="shrink-0">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : null}</div>
+                        </div>
+                    ))}
+                    {filteredMembers.length === 0 && (
+                        <div className="p-5 text-center text-sm text-muted-foreground">
+                            <p>{memberStatus === "removed" ? "No removed members match these filters." : "No members match these filters."}</p>
+                            {hasActiveFilters && <Button variant="link" size="sm" className="mt-1" onClick={clearFilters}>Clear filters</Button>}
+                        </div>
+                    )}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                     <TableCaption className="text-sm text-muted-foreground">
                         Members in{" "}
@@ -388,13 +455,16 @@ export default function MembersPage() {
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center text-muted-foreground italic py-6">
                                     {memberStatus === "removed" ? "No removed members match these filters." : "No members match these filters."}
+                                    {hasActiveFilters && <div><Button variant="link" size="sm" className="mt-1 not-italic" onClick={clearFilters}>Clear filters</Button></div>}
                                 </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
+                </div>
             </div>
             )}
+        </div>
         </div>
     )
 }

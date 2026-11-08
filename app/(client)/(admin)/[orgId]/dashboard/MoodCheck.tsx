@@ -78,7 +78,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                         Today’s check-in
                     </p> */}
 
-                    <h2 className={compact ? "mt-1 text-lg font-semibold tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
+                    <h2 className={compact ? "mt-1 text-lg font-semibold leading-6 tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
                         How are you feeling?
                     </h2>
                     {compact && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
@@ -92,7 +92,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
 
                 {summary?.checkedInToday ? (
                     <div className="flex h-11 items-center rounded-xl bg-accent/40 px-4 text-sm">
-                        <p className="font-semibold">You’ve checked in today</p>
+                        <p className="font-medium">You’ve checked in today</p>
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
@@ -104,7 +104,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                                     aria-label={`Check in as ${label}`}
                                     className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-transparent px-1 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
                                     <MoodIcon mood={value} className="size-9 sm:size-10" />
-                                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground sm:text-xs">{label}</span>
+                                    <span className="text-xs font-medium leading-4 text-foreground">{label}</span>
                                 </button>
                             ))}
                         </div>

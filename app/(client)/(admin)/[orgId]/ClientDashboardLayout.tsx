@@ -38,7 +38,15 @@ import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { organization, role } = useWorkspace()
     const pathname = usePathname()
+    const section = pathname?.split("/").at(-1) ?? ""
     const isAnalytics = pathname?.split("/").at(-1) === "analytics" && role === "owner"
+    const breadcrumbLabel = ({
+        activity: "Activity",
+        analytics: "Analytics",
+        members: "Members",
+        "mood-overview": "Mood overview",
+        settings: "Settings",
+    } as Record<string, string>)[section] ?? "Dashboard"
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
 
@@ -53,6 +61,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-card dark:bg-card px-4 md:px-10">
                     <button
                         onClick={toggleSidebar}
+                        aria-label="Toggle navigation menu"
                         className="p-2 hover:bg-muted dark:hover:bg-muted rounded"
                     >
                         <Menu className="h-5 w-5" />
@@ -62,7 +71,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbPage className="line-clamp-1">
-                                    {isAnalytics ? "Analytics" : "Dashboard"}
+                                    {breadcrumbLabel}
                                 </BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
