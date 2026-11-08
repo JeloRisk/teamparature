@@ -51,10 +51,67 @@ const MOOD_COLORS: Record<MoodType, string> = {
 }
 
 //
+type TrendBucket = {
+    key: string
+    label: string
+    range: string
+    total: number
+    rankSum: number
+    avg: number | null
+    rangeStart: string
+    rangeEnd: string
+} & Record<MoodType, number>
+
+function aggregateTrend(series: Array<{ dateKey: string; day: string; total: number; rankSum: number; avg?: number | null } & Record<MoodType, number>>, days: number) {
+    const granularity = days <= 30 ? "day" : days <= 120 ? "week" : "month"
+    const buckets = new Map<string, TrendBucket>()
+    const dateLabel = (key: string) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${key}T00:00:00Z`))
+
+    for (const item of series) {
+        const date = new Date(`${item.dateKey}T00:00:00Z`)
+        let key = item.dateKey
+        if (granularity === "week") {
+            date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7))
+            key = date.toISOString().slice(0, 10)
+        } else if (granularity === "month") {
+            key = `${item.dateKey.slice(0, 7)}-01`
+        }
+        const bucket = buckets.get(key) ?? {
+            key,
+            label: granularity === "day" ? item.day : granularity === "month"
+                ? new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${key}T00:00:00Z`))
+                : dateLabel(key),
+            range: "",
+            total: 0,
+            rankSum: 0,
+            avg: null,
+            happy: 0,
+            neutral: 0,
+            sad: 0,
+            stressed: 0,
+            excited: 0,
+            rangeStart: item.dateKey,
+            rangeEnd: item.dateKey,
+        } as TrendBucket
+        bucket.total += item.total
+        bucket.rankSum += item.rankSum
+        for (const mood of Object.keys(MOOD_COLORS) as MoodType[]) bucket[mood] += item[mood]
+        bucket.rangeStart = bucket.rangeStart < item.dateKey ? bucket.rangeStart : item.dateKey
+        bucket.rangeEnd = bucket.rangeEnd > item.dateKey ? bucket.rangeEnd : item.dateKey
+        bucket.avg = bucket.total ? bucket.rankSum / bucket.total : null
+        bucket.range = bucket.rangeStart === bucket.rangeEnd
+            ? dateLabel(bucket.rangeStart)
+            : `${dateLabel(bucket.rangeStart)} – ${dateLabel(bucket.rangeEnd)}`
+        buckets.set(key, bucket)
+    }
+
+    return { granularity, data: [...buckets.values()] }
+}
+
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { analytics, loading, error, orgId: loadedOrgId, fetchAnalytics } = useMoodAnalyticsStore()
+    const { analytics, loading, error, orgId: loadedOrgId, fetchAnalytics, selectedRange } = useMoodAnalyticsStore()
     if (error && !analytics.periodStart) return <div role="alert" className="rounded-xl border border-border p-4">
         <p>{error}</p><button className="mt-2 text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button>
     </div>
@@ -92,6 +149,8 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const participationRate = analytics.activeMembers
         ? Math.round(analytics.participants * 100 / analytics.activeMembers)
         : 0
+    const trend = aggregateTrend(analytics.detailedSeries, analytics.periodDays)
+    const trendUnit = trend.granularity === "day" ? "daily" : trend.granularity === "week" ? "weekly" : "monthly"
     const leadingCount = Math.max(...Object.values(moodCounts))
     const leadingMoods = analytics.totalLogs
         ? (Object.entries(moodCounts) as [MoodType, number][])
@@ -101,29 +160,30 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const leadingLabel = leadingMoods.map(mood => mood.charAt(0).toUpperCase() + mood.slice(1)).join(" and ")
     const leadingShare = analytics.totalLogs ? Math.round(leadingCount * 100 / analytics.totalLogs) : 0
     const volumeDirection = checkInChange > 0 ? "more" : checkInChange < 0 ? "fewer" : "the same number of"
+    const dateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: analytics.timezone })
+    const currentRange = `${dateFormat.format(new Date(analytics.periodStart))} – ${dateFormat.format(new Date(new Date(analytics.periodEnd).getTime() - 1))}`
+    const previousRange = `${dateFormat.format(new Date(analytics.previousPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.previousPeriodEnd).getTime() - 1))}`
+    const weekdayRange = `${dateFormat.format(new Date(analytics.weekdayPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.weekdayPeriodEnd).getTime() - 1))}`
 
 
     //
     // --- Render ---
     //
     return (
-        <div className="space-y-6" aria-busy={loading}>
+        <div className="analytics-page space-y-6" aria-busy={loading}>
             {loading && <p role="status" className="text-xs text-muted-foreground">Updating analytics…</p>}
             {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
+
+
             {/* Section Header */}
             <div className="rounded-xl p-4 bg-gradient-to-r dark:bg-none from-sky-50 via-white to-orange-50 border border-border dark:border-border">
                 <div className="flex items-center gap-2">
                     <Snowflake className="w-5 h-5 text-sky-500" />
                     <h3 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-muted-foreground">
-                        Team mood · Last 14 days
+                        Team mood · Selected period ({analytics.periodDays} days)
                     </h3>
                     <Flame className="w-5 h-5 text-orange-500 ml-auto" />
                 </div>
-            </div>
-
-            <div className="space-y-1 text-sm text-muted-foreground">
-                <p>{new Date(analytics.periodStart).toLocaleDateString(undefined, { timeZone: analytics.timezone })} – {new Date(new Date(analytics.periodEnd).getTime() - 1).toLocaleDateString(undefined, { timeZone: analytics.timezone })} · {analytics.timezone}</p>
-                <p>Temperature is the share of check-ins marked Happy or Excited. The dashboard shows today; these totals cover 14 days. Intensity measures how strongly a feeling is experienced, from 1 to 5.</p>
             </div>
 
             {/* KPI Row */}
@@ -137,7 +197,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 />
 
                 <KpiCard
-                    title="Check-ins · 14 days"
+                    title={`Check-ins · ${analytics.periodDays} days`}
                     value={analytics.totalLogs}
                     sub={`${analytics.participants} of ${analytics.activeMembers} active members · ${participationRate}% participation`}
                     glow="from-slate-50 to-slate-50"
@@ -164,7 +224,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
                 <div>
                     <h3 className="text-lg font-semibold tracking-tight">Team insights</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Patterns in the last 14 days, with response counts for context.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Current period: {currentRange} · Compared with {previousRange} ({analytics.timezone}).</p>
                 </div>
                 {analytics.totalLogs === 0 ? (
                     <p className="mt-5 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">There are no check-ins in this period yet. Insights will appear as the team checks in.</p>
@@ -183,7 +243,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                             <p className="mt-1 text-xs text-muted-foreground">
                                 {temperatureChange === null
                                     ? `${analytics.totalLogs} check-ins now; ${analytics.previousTotalLogs} in the prior period`
-                                    : `${gaugeValue}% now vs ${analytics.previousTemperature}% in the prior 14 days`}
+                                    : `${gaugeValue}% now vs ${analytics.previousTemperature}% in the previous period`}
                             </p>
                         </div>
                         <div className="rounded-xl bg-muted/40 p-4">
@@ -202,7 +262,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             {/* Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Gauge */}
-                <ChartCard title="Team temperature · 14 days">
+                <ChartCard title="Team temperature">
                     <ResponsiveContainer width="100%" height="100%">
                         <RadialBarChart
                             cx="50%"
@@ -251,7 +311,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </ChartCard>
 
                 {/* Pie */}
-                <ChartCard title="Mood distribution · 14 days">
+                <ChartCard title={`Mood distribution · ${analytics.periodDays} days`}>
                     {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
@@ -273,12 +333,12 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </ChartCard>
             </div>
 
-            <ChartCard title="Daily check-ins by mood · 14 days">
+            <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}>
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analytics.detailedSeries} barSize={22}>
-                        <XAxis dataKey="day" stroke="var(--muted-foreground)" />
+                    <BarChart data={trend.data} barSize={22}>
+                        <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
                         <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
-                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
+                        <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                         {(Object.keys(MOOD_COLORS) as MoodType[]).map((mood, index, moods) => (
                             <Bar key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} radius={index === moods.length - 1 ? [5, 5, 0, 0] : 0} />
                         ))}
@@ -286,8 +346,8 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard title="Mood patterns by weekday · 90 days">
-                <p className="mb-4 text-xs text-muted-foreground">Check-in counts for each mood, grouped by the day of the week in {analytics.timezone}. Hover a cell to see its count.</p>
+            <ChartCard title="Mood patterns by weekday">
+                <p className="mb-4 text-xs text-muted-foreground">{weekdayRange} · Check-in counts by weekday in {analytics.timezone}. Hover a cell to see its count.</p>
                 <div className="grid grid-cols-[5.25rem_repeat(7,minmax(2.25rem,1fr))] gap-1.5 sm:gap-2" role="table" aria-label="Mood check-ins by weekday over the last 90 days">
                     <div role="columnheader" className="pb-2" />
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
@@ -309,18 +369,18 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </div>
             </ChartCard>
 
-            <ChartCard title="Daily intensity · 14 days">
+            <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} intensity`}>
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={analytics.detailedSeries}>
-                        <XAxis dataKey="day" stroke="var(--muted-foreground)" />
+                    <LineChart data={trend.data}>
+                        <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
                         <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} stroke="var(--muted-foreground)" />
-                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} />
-                        <Line type="monotone" dataKey="avg" name="Average intensity (1–5)" connectNulls={false} stroke="var(--primary)" strokeWidth={2} />
+                        <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} />
+                        <Line type="linear" dataKey="avg" name="Average intensity (1–5)" connectNulls={false} stroke="var(--primary)" strokeWidth={2} />
                     </LineChart>
                 </ResponsiveContainer>
             </ChartCard>
 
-            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} timezone={analytics.timezone} />
+            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} timezone={analytics.timezone} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
         </div>
     )
 }

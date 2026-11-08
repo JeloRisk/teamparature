@@ -19,7 +19,7 @@ export default function KpiCard({ title, value, sub, glow, icon }: KpiCardProps)
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">{title}</p>
                         <p className="mt-2 text-2xl font-semibold text-slate-800 dark:text-foreground">{value}</p>
-                        {sub && <p className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground">{sub}</p>}
+                        {sub && <p className="mt-1 text-sm font-medium text-muted-foreground">{sub}</p>}
                     </div>
                     <div className={`ml-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br dark:bg-none ${glow}`}>
                         {icon}

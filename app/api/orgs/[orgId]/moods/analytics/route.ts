@@ -29,15 +29,53 @@ export async function GET(
 
     const organization = new Types.ObjectId(orgId)
     const timezone = await getWorkspaceTimezone(orgId)
-    const boundaries = workspaceDayBoundaries(timezone, 13)
-    const previousBoundaries = workspaceDayBoundaries(timezone, 27)
-    const weekdayBoundaries = workspaceDayBoundaries(timezone, 89)
+    const params = new URL(req.url).searchParams
+    const fromParam = params.get("from")
+    const toParam = params.get("to")
+    const allowedDays = [7, 14, 30, 90]
+    const requestedDays = Number(params.get("days") ?? 14)
+    const today = formatInTimeZone(new Date(), timezone, "yyyy-MM-dd")
+    const shiftDate = (value: string, offset: number) => {
+        const date = new Date(`${value}T00:00:00Z`)
+        date.setUTCDate(date.getUTCDate() + offset)
+        return date.toISOString().slice(0, 10)
+    }
+    const validDate = (value: string | null): value is string => {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+        const date = new Date(`${value}T00:00:00Z`)
+        return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+    }
+    let rangeStart: string
+    let rangeEnd: string
+    if (fromParam || toParam) {
+        if (!validDate(fromParam) || !validDate(toParam) || fromParam > toParam || toParam > today)
+            return NextResponse.json({ error: "Choose a valid date range up to today." }, { status: 400 })
+        rangeStart = fromParam
+        rangeEnd = toParam
+    } else {
+        if (!allowedDays.includes(requestedDays))
+            return NextResponse.json({ error: "Choose 7, 14, 30, or 90 days." }, { status: 400 })
+        rangeStart = shiftDate(today, 1 - requestedDays)
+        rangeEnd = today
+    }
+    const periodDays = Math.round((Date.parse(`${rangeEnd}T00:00:00Z`) - Date.parse(`${rangeStart}T00:00:00Z`)) / 86400000) + 1
+    if (periodDays > 1826)
+        return NextResponse.json({ error: "Date ranges can be up to five years." }, { status: 400 })
+    const boundaries = Array.from({ length: periodDays + 1 }, (_, index) => fromZonedTime(`${shiftDate(rangeStart, index)}T00:00:00`, timezone))
+    const previousStart = shiftDate(rangeStart, -periodDays)
+    const previousBoundaries = [fromZonedTime(`${previousStart}T00:00:00`, timezone), boundaries[0]]
+    const weekdayBoundaries = boundaries
     const activeMemberships = await Membership.find({ organization, isActive: true }).select("user").lean()
     const activeUserIds = activeMemberships.map(membership => membership.user)
-    const year = Number(formatInTimeZone(new Date(), timezone, "yyyy"))
+    const currentYear = Number(formatInTimeZone(new Date(), timezone, "yyyy"))
+    const requestedYear = Number(params.get("year") ?? currentYear)
+    if (!Number.isInteger(requestedYear) || requestedYear < 2000 || requestedYear > currentYear)
+        return NextResponse.json({ error: `Choose a year from 2000 to ${currentYear}.` }, { status: 400 })
+    const year = requestedYear
+    const heatmapAsOfDate = year === currentYear ? today : `${year}-12-31`
     const [[period], daily, [previousPeriod], weekdayMoodRows, heatmap] = await Promise.all([
         Mood.aggregate([
-            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[14] } } },
+            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[periodDays] } } },
             { $facet: {
                 moods: [
                     { $group: {
@@ -52,13 +90,14 @@ export async function GET(
             } },
         ]),
         Mood.aggregate([
-            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[14] } } },
+            { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[periodDays] } } },
             { $bucket: {
                 groupBy: "$date",
                 boundaries,
                 output: {
                     total: { $sum: 1 },
                     avg: { $avg: "$rank" },
+                    rankSum: { $sum: "$rank" },
                     happy: { $sum: { $cond: [{ $eq: ["$mood", "happy"] }, 1, 0] } },
                     excited: { $sum: { $cond: [{ $eq: ["$mood", "excited"] }, 1, 0] } },
                     neutral: { $sum: { $cond: [{ $eq: ["$mood", "neutral"] }, 1, 0] } },
@@ -76,7 +115,7 @@ export async function GET(
             } },
         ]),
         Mood.aggregate([
-            { $match: { organization, date: { $gte: weekdayBoundaries[0], $lt: weekdayBoundaries[90] } } },
+            { $match: { organization, date: { $gte: weekdayBoundaries[0], $lt: weekdayBoundaries[periodDays] } } },
             { $project: { mood: 1, weekday: { $dayOfWeek: { date: "$date", timezone } } } },
             { $group: { _id: { weekday: "$weekday", mood: "$mood" }, count: { $sum: 1 } } },
         ]),
@@ -136,14 +175,16 @@ export async function GET(
         ]))
         return { weekday, counts, total: Object.values(counts).reduce((sum, count) => sum + count, 0) }
     })
-    const detailedSeries = boundaries.slice(0, 14).map(date => {
+    const detailedSeries = boundaries.slice(0, periodDays).map(date => {
         const row = daily.find(row => row._id.getTime() === date.getTime())
         const happy = row?.happy ?? 0
         const excited = row?.excited ?? 0
         const sad = row?.sad ?? 0
         const stressed = row?.stressed ?? 0
         return {
+            dateKey: formatInTimeZone(date, timezone, "yyyy-MM-dd"),
             day: date.toLocaleDateString("en-US", { month: "short", day: "2-digit", timeZone: timezone }),
+            rankSum: row?.rankSum ?? 0,
             avg: row ? Number(row.avg.toFixed(2)) : null,
             total: row?.total ?? 0,
             happy, excited, sad, stressed,
@@ -170,7 +211,14 @@ export async function GET(
     return NextResponse.json({
         timezone,
         periodStart: boundaries[0].toISOString(),
-        periodEnd: boundaries[14].toISOString(),
+        periodEnd: boundaries[periodDays].toISOString(),
+        previousPeriodStart: previousBoundaries[0].toISOString(),
+        previousPeriodEnd: boundaries[0].toISOString(),
+        weekdayPeriodStart: boundaries[0].toISOString(),
+        weekdayPeriodEnd: boundaries[periodDays].toISOString(),
+        periodDays,
+        asOfDate: today,
+        heatmapAsOfDate,
         orgTemperature,
         avgRank: avgRank === null ? null : Number(avgRank.toFixed(2)),
         totalLogs,

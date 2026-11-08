@@ -1,4 +1,5 @@
 import { ReactNode } from "react"
+import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
 import { Types } from "mongoose"
 import { Organization } from "@/models/Organization"
@@ -14,6 +15,8 @@ interface OrgLayoutProps {
 
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     const { orgId } = await params
+    const cookieStore = await cookies()
+    const sidebarDefaultOpen = cookieStore.get("sidebar_state")?.value !== "false"
 
     const membership = await getWorkspaceMembership(orgId)
     if (!membership) return notFound()
@@ -35,7 +38,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     }
 
     return (
-        <ClientDashboardLayout workspace={workspace}>
+        <ClientDashboardLayout workspace={workspace} sidebarDefaultOpen={sidebarDefaultOpen}>
             {children}
         </ClientDashboardLayout>
     )

@@ -135,3 +135,20 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-ambient { animation: none; }
 }
+
+.analytics-page {
+  --muted-foreground: #46516e;
+}
+
+.analytics-page .text-muted-foreground {
+  font-weight: 500;
+}
+
+.analytics-page .recharts-cartesian-axis-tick-value,
+.analytics-page .recharts-legend-item-text {
+  font-weight: 500;
+}
+
+.dark .analytics-page {
+  --muted-foreground: #b5bfdc;
+}

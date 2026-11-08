@@ -15,6 +15,8 @@ import {
 import { AppSidebar } from "@/app/components/AppSidebar"
 import ThemeToggle from "@/app/components/ThemeToggle"
 import { Menu } from "lucide-react"
+import { usePathname } from "next/navigation"
+import AnalyticsRangePicker from "./analytics/AnalyticsRangePicker"
 
 interface Workspace {
     organization: { _id: string; name: string; slug: string }
@@ -35,6 +37,8 @@ import { useEffect } from "react"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { organization, role } = useWorkspace()
+    const pathname = usePathname()
+    const isAnalytics = pathname?.split("/").at(-1) === "analytics" && role === "owner"
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
 
@@ -58,12 +62,15 @@ function DashboardContent({ children }: { children: ReactNode }) {
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbPage className="line-clamp-1">
-                                    Dashboard
+                                    {isAnalytics ? "Analytics" : "Dashboard"}
                                 </BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
-                    <div className="ml-auto"><ThemeToggle /></div>
+                    <div className="ml-auto flex items-center gap-2">
+                        {isAnalytics && <AnalyticsRangePicker orgId={organization._id} />}
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 <main className="flex flex-1 flex-col p-4 md:px-10">{children}</main>
@@ -72,10 +79,10 @@ function DashboardContent({ children }: { children: ReactNode }) {
     )
 }
 
-export default function ClientDashboardLayout({ children, workspace }: { children: ReactNode; workspace: Workspace }) {
+export default function ClientDashboardLayout({ children, workspace, sidebarDefaultOpen }: { children: ReactNode; workspace: Workspace; sidebarDefaultOpen: boolean }) {
     return (
         <WorkspaceContext.Provider value={workspace}>
-            <SidebarProvider>
+            <SidebarProvider defaultOpen={sidebarDefaultOpen}>
                 <DashboardContent>{children}</DashboardContent>
             </SidebarProvider>
         </WorkspaceContext.Provider>

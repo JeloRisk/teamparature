@@ -9,11 +9,11 @@ import ChartCard2 from "./components/analytics/ChartCard2";
 import { leadingMoods, heatmapMoods, type HeatmapCell, type HeatmapMood } from "@/lib/mood-heatmap";
 
 const moodColors: Record<HeatmapMood, string> = {
-    happy: "#e9bb85",
-    excited: "#e8a4bb",
-    neutral: "#bfc5d6",
-    sad: "#b7a4dc",
-    stressed: "#ead082",
+    happy: "#fb923c",
+    excited: "#f97316",
+    neutral: "#a3a3a3",
+    sad: "#60a5fa",
+    stressed: "#3b82f6",
 };
 
 const moodToNumber: Record<HeatmapMood, number> = {
@@ -31,16 +31,22 @@ interface HeatmapDataPoint {
     total: number;
     range: string;
     applicable: boolean;
+    future: boolean;
 }
 
-function groupByMonthAndWeek(cells: HeatmapCell[], year: number) {
+function groupByMonthAndWeek(cells: HeatmapCell[], year: number, asOfDate: string) {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return Array.from({ length: 5 }, (_, index) => ({
         name: `Week ${index + 1}`,
         data: months.map((month, monthIndex): HeatmapDataPoint => {
             const first = index * 7 + 1;
             const last = Math.min(first + 6, new Date(year, monthIndex + 1, 0).getDate());
-            const applicable = first <= last;
+            const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`
+            const firstKey = `${monthKey}-${String(first).padStart(2, "0")}`
+            const exists = first <= last
+            const future = exists && firstKey > asOfDate
+            const applicable = exists && !future
+            const rangeLast = applicable && asOfDate.startsWith(monthKey) ? Math.min(last, Number(asOfDate.slice(-2))) : last
             const cell = cells.find(cell => cell.month === monthIndex + 1 && cell.week === index + 1);
             const leaders = leadingMoods(cell?.counts ?? {});
             return {
@@ -49,19 +55,20 @@ function groupByMonthAndWeek(cells: HeatmapCell[], year: number) {
                 leaders,
                 counts: cell?.counts ?? {},
                 total: cell?.total ?? 0,
-                range: applicable ? `${format(new Date(year, monthIndex, first), "MMM d")} – ${format(new Date(year, monthIndex, last), "MMM d, yyyy")}` : `${month} ${year}`,
+                range: !exists ? `${month} has no Week ${index + 1}` : `${format(new Date(year, monthIndex, first), "MMM d")} – ${format(new Date(year, monthIndex, applicable ? rangeLast : last), "MMM d, yyyy")}`,
                 applicable,
+                future,
             };
         }),
     }));
 }
 
-export default function MoodHeatmapApex({ moods, year, timezone }: { moods: HeatmapCell[]; year: number; timezone: string }) {
+export default function MoodHeatmapApex({ moods, year, timezone, asOfDate, latestYear, onYearChange }: { moods: HeatmapCell[]; year: number; timezone: string; asOfDate: string; latestYear: number; onYearChange: (year: number) => void }) {
     const { resolvedTheme } = useTheme();
     const dark = resolvedTheme === "dark";
     const empty = dark ? "#29314b" : "#edf0fa";
-    const label = dark ? "#a9b2d0" : "#626d91";
-    const series = groupByMonthAndWeek(moods, year);
+    const label = dark ? "#a9b2d0" : "#46516e";
+    const series = groupByMonthAndWeek(moods, year, asOfDate);
 
     const options: ApexCharts.ApexOptions = {
         chart: { type: "heatmap", toolbar: { show: false }, background: "transparent", foreColor: label },
@@ -76,7 +83,7 @@ export default function MoodHeatmapApex({ moods, year, timezone }: { moods: Heat
                 enableShades: false,
                 radius: 5,
                 colorScale: {
-                    ranges: [{ from: -1, to: -1, color: dark ? "#1e2438" : "#fcfcff", name: "Not applicable" }, { from: 6, to: 6, color: dark ? "#8894bf" : "#bec8ed", name: "Tied moods" }, { from: 0, to: 0, color: empty, name: "No entry" }, ...Object.entries(moodColors).map(([mood, color]) => {
+                    ranges: [{ from: -1, to: -1, color: dark ? "#343b56" : "#e1e6f2", name: "Not yet occurred" }, { from: 6, to: 6, color: dark ? "#8894bf" : "#bec8ed", name: "Tied moods" }, { from: 0, to: 0, color: empty, name: "No entry" }, ...Object.entries(moodColors).map(([mood, color]) => {
                         const val = moodToNumber[mood as HeatmapMood];
                         return {
                             from: val,
@@ -93,7 +100,9 @@ export default function MoodHeatmapApex({ moods, year, timezone }: { moods: Heat
                 const point = w.config.series[seriesIndex].data[dataPointIndex] as HeatmapDataPoint;
                 const heading = `<strong>${point.range}</strong>`;
                 const wrap = (content: string) => `<div style="max-width:260px;padding:12px;background:var(--popover);color:var(--popover-foreground);line-height:1.7">${content}</div>`;
-                if (!point.applicable) return wrap(`${heading}<br/>This month has no days in Week 5.`);
+                if (!point.applicable) return wrap(point.future
+                    ? `${heading}<br/>Not yet reached. Year-to-date data is available through ${asOfDate}.`
+                    : `${heading}<br/>This month has no days in that week.`);
                 if (!point.total) return wrap(`${heading}<br/>No check-ins recorded.`);
                 const title = point.leaders.length > 1 ? "Tied most common moods" : "Most common mood";
                 const leaders = point.leaders.map(mood => mood.charAt(0).toUpperCase() + mood.slice(1)).join(", ");
@@ -107,18 +116,27 @@ export default function MoodHeatmapApex({ moods, year, timezone }: { moods: Heat
             categories: series[0].data.map((d) => d.x),
             axisBorder: { show: false },
             axisTicks: { show: false },
-            labels: { style: { colors: label } },
+            labels: { style: { colors: label, fontSize: "12px", fontWeight: 500 } },
         },
-        yaxis: { labels: { style: { colors: [label] } } },
+        yaxis: { labels: { style: { colors: [label], fontSize: "12px", fontWeight: 500 } } },
     };
 
     return (
         <ChartCard2 title="Team Emotional Heatmap">
-            <p className="mb-3 text-xs text-muted-foreground">{year} · {timezone} · Each cell shows the most common mood across all check-ins. Week 1 covers days 1–7; Week 5 covers the remaining days.</p>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">{year === latestYear ? "Calendar year to date" : "Calendar year"} · {year} through {asOfDate} · {timezone}. Each cell shows the most common mood that week.</p>
+                <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    Year
+                    <select aria-label="Heatmap year" value={year} onChange={event => onYearChange(Number(event.target.value))} className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                        {Array.from({ length: latestYear - 1999 }, (_, index) => latestYear - index).map(optionYear => <option key={optionYear} value={optionYear}>{optionYear}</option>)}
+                    </select>
+                </label>
+            </div>
             <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                 {Object.entries(moodColors).map(([mood, color]) => <li key={mood} className="flex items-center gap-2 capitalize"><span className="size-3 rounded-sm" style={{ backgroundColor: color }} />{mood}</li>)}
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#8894bf" : "#bec8ed" }} />Tied moods</li>
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: empty }} />No entry</li>
+                <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#343b56" : "#e1e6f2" }} />Not yet occurred</li>
             </ul>
             <div className="w-full min-w-0 overflow-hidden">
             <ReactApexChart
