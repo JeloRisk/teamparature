@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/app/components/ui/button";
 import gsap from "gsap";
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from "lucide-react";
 
@@ -99,10 +100,10 @@ export default function LandingPage() {
     <main className="landing-page bg-blue-50 text-gray-900 [color-scheme:light] min-h-screen flex flex-col font-sans relative overflow-hidden">
         <header className="fixed inset-x-0 top-0 z-50 border-b border-blue-100/80 bg-white/90 px-5 py-3 shadow-sm backdrop-blur-xl sm:px-8 lg:px-16">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <a href="/" aria-label="Teamparature home" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-blue-700">
+            <Link href="/" aria-label="Teamparature home" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-blue-700">
               <Image src="/logo.png" alt="" width={34} height={34} />
               Teamparature
-            </a>
+            </Link>
             <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
               <a href="#features" className="transition-colors hover:text-blue-600">Features</a>
               <a href="#how-it-works" className="transition-colors hover:text-blue-600">How it works</a>
@@ -251,9 +252,9 @@ export default function LandingPage() {
 
       <footer className="border-t border-blue-100 bg-white px-6 py-8 md:px-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 sm:flex-row">
-          <a href="/" className="flex items-center gap-2 font-semibold text-blue-700">
+          <Link href="/" className="flex items-center gap-2 font-semibold text-blue-700">
             <Image src="/logo.png" alt="" width={28} height={28} />Teamparature
-          </a>
+          </Link>
           <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
             <a href="#features" className="hover:text-blue-600">Features</a>
             <a href="#how-it-works" className="hover:text-blue-600">How it works</a>
