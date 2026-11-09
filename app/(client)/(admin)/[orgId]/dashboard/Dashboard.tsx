@@ -66,7 +66,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
 
                 {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
 
-                <div className="grid gap-4 md:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.65fr)]">
+                <div className="grid gap-4 lg:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.65fr)]">
                     <section className={panel}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>

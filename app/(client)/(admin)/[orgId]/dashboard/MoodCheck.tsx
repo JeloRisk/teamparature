@@ -65,7 +65,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     }
 
     return (
-        <div className={compact ? "flex h-full flex-col justify-between gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
+        <div className={compact ? "flex flex-col gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
 
             {/* glow effects */}
             <div className={`${compact ? "hidden" : ""} absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl`} />
@@ -79,9 +79,9 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     </p> */}
 
                     <h2 className={compact ? "mt-1 text-lg font-semibold leading-6 tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
-                        How are you feeling?
+                        {compact && summary?.checkedInToday ? "You’re all set for today." : "How are you feeling?"}
                     </h2>
-                    {compact && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
+                    {compact && !summary?.checkedInToday && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
                 </div>
 
                 {!compact && <MoodIcon mood="happy" className="size-11" />}
@@ -91,8 +91,8 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             <div className={compact ? "w-full" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div className="flex h-11 items-center rounded-xl bg-accent/40 px-4 text-sm">
-                        <p className="font-medium">You’ve checked in today</p>
+                    <div role="status" className="flex min-h-11 items-center rounded-xl bg-accent/40 px-4 py-2 text-sm">
+                        <p className="font-medium">Your check-in is saved. See you tomorrow.</p>
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">

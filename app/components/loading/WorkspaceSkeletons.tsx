@@ -75,11 +75,35 @@ export function TableSkeletonRows({ columns = 5, rows = 6, label = "Loading reco
 }
 
 export function MembersSkeleton() {
-    return <div role="status" aria-label="Loading workspace people" className="max-w-6xl space-y-6 py-4">
-        <Heading />
-        <div className="grid gap-3 sm:grid-cols-3">{Array.from({ length: 3 }, (_, i) => <div key={i} className={`${card} flex items-center gap-4`}><Skeleton className="size-10 rounded-xl" /><div className="space-y-2"><Skeleton className="h-3 w-28" /><Skeleton className="h-7 w-12" /></div></div>)}</div>
-        <div className="flex gap-3"><Skeleton className="h-10 w-56 rounded-xl" /><Skeleton className="h-10 w-36 rounded-xl" /></div>
-        <div className={`${card} space-y-5`}>{Array.from({ length: 6 }, (_, i) => <div key={i} className="flex items-center gap-5 border-b border-border pb-4"><Skeleton className="size-10 shrink-0 rounded-xl" /><Skeleton className="h-3 w-1/3" /><Skeleton className="ml-auto h-6 w-20 rounded-full" /></div>)}</div>
+    return <div role="status" aria-label="Loading workspace people" className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
+        <div className="mx-auto max-w-7xl space-y-6 sm:space-y-7">
+            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+                <div className="space-y-2"><Skeleton className="h-7 w-32" /><Skeleton className="h-3 w-40 max-w-full" /></div>
+                <Skeleton className="h-11 w-36 rounded-xl" />
+            </header>
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex w-fit gap-1 rounded-xl border border-border bg-card p-1">
+                    <Skeleton className="h-11 w-24 rounded-lg" />
+                    <Skeleton className="h-11 w-40 rounded-lg" />
+                </div>
+                <div className="grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:flex xl:items-center xl:justify-end">
+                    <Skeleton className="col-span-1 h-11 w-full min-[420px]:col-span-2 xl:col-span-1 xl:w-72" />
+                    <Skeleton className="h-11 w-full xl:w-40" />
+                    <Skeleton className="h-11 w-full xl:w-52" />
+                </div>
+            </div>
+            <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                {Array.from({ length: 5 }, (_, i) => <div key={i} aria-hidden="true" className="flex items-center gap-3 px-3 py-4">
+                    <Skeleton className="size-10 shrink-0 rounded-xl" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-40 max-w-full" />
+                        <Skeleton className="h-3 w-52 max-w-full" />
+                        <div className="flex gap-2"><Skeleton className="h-6 w-16 rounded-full" /><Skeleton className="h-6 w-16 rounded-full" /></div>
+                    </div>
+                    <Skeleton className="size-11 shrink-0 rounded-lg" />
+                </div>)}
+            </div>
+        </div>
     </div>
 }
 
