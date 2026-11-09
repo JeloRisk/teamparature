@@ -4,12 +4,10 @@
 import { AnalyticsSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import MoodHeatmap from "./MoodHeatmap"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
+import { useWorkspace } from "../ClientDashboardLayout"
 
 import {
     ResponsiveContainer,
-    RadialBarChart,
-    RadialBar,
-    PolarAngleAxis,
     PieChart,
     Pie,
     Cell,
@@ -21,7 +19,6 @@ import {
     BarChart,
     Bar,
 } from "recharts"
-import { Flame, Snowflake } from "lucide-react"
 import KpiCard from "./components/analytics/KpiCard"
 import ChartCard from "./components/analytics/ChartCard"
 
@@ -111,6 +108,7 @@ function aggregateTrend(series: Array<{ dateKey: string; day: string; total: num
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
+    const { organization } = useWorkspace()
     const { analytics, loading, error, orgId: loadedOrgId, fetchAnalytics, selectedRange } = useMoodAnalyticsStore()
     if (error && !analytics.periodStart) return <div role="alert" className="rounded-xl border border-border p-4">
         <p>{error}</p><button className="mt-2 text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button>
@@ -136,22 +134,16 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
         }))
         .filter((d) => d.value > 0)
 
-    // Gauge Data (Org Temperature)
     const gaugeValue = analytics.orgTemperature
-    const gaugeData = [{ name: "Org Temperature", value: gaugeValue ?? 0 }]
 
 
 
-    const temperatureChange = gaugeValue !== null && analytics.previousTemperature !== null
-        ? gaugeValue - analytics.previousTemperature
-        : null
     const participationRate = analytics.activeMembers
         ? Math.round(analytics.participants * 100 / analytics.activeMembers)
         : 0
     const trend = aggregateTrend(analytics.detailedSeries, analytics.periodDays)
     const trendUnit = trend.granularity === "day" ? "daily" : trend.granularity === "week" ? "weekly" : "monthly"
     const dateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: analytics.timezone })
-    const previousRange = `${dateFormat.format(new Date(analytics.previousPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.previousPeriodEnd).getTime() - 1))}`
     const weekdayRange = `${dateFormat.format(new Date(analytics.weekdayPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.weekdayPeriodEnd).getTime() - 1))}`
 
 
@@ -159,24 +151,21 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     // --- Render ---
     //
     return (
-        <div className="analytics-page space-y-6" aria-busy={loading}>
+        <div className="analytics-page min-w-0 space-y-6" aria-busy={loading}>
             {loading && <p role="status" className="text-xs text-muted-foreground">Updating analytics…</p>}
             {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
 
 
-            {/* Section Header */}
-            <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
+            {/* Page heading follows the dashboard title hierarchy. */}
+            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
                 <div>
-                    <div className="flex items-center gap-2">
-                        <Snowflake className="h-4 w-4 text-sky-600 dark:text-sky-400" aria-hidden="true" />
-                        <h2 className="text-xl font-semibold tracking-tight text-foreground">Team mood</h2>
-                        <Flame className="h-4 w-4 text-orange-600 dark:text-orange-400" aria-hidden="true" />
-                    </div>
+                    <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Team mood</h1>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{organization.name}</p>
                 </div>
-            </div>
+            </header>
 
             {/* Summary metrics */}
-            <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:gap-x-8 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 xl:grid-cols-4">
                 <KpiCard
                     title="Team temperature"
                     value={gaugeValue === null ? "—" : `${gaugeValue}%`}
@@ -202,125 +191,58 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 />
             </div>
 
-            <section className="border-y border-border py-4">
-                <div>
-                    <h3 className="text-base font-semibold tracking-tight">Period comparison</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Previous period: {previousRange} · {analytics.timezone}</p>
-                </div>
-                {analytics.totalLogs === 0 ? (
-                    <p className="mt-4 text-sm text-muted-foreground">No check-ins in this period yet. Comparisons will appear as the team checks in.</p>
-                ) : (
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2 sm:gap-8">
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Team temperature</p>
-                            <p className="mt-1 text-base font-semibold">
-                                {temperatureChange === null ? "No prior baseline" : temperatureChange === 0 ? "No observed change" : `Observed difference: ${Math.abs(temperatureChange)} points ${temperatureChange > 0 ? "higher" : "lower"}`}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {temperatureChange === null
-                                    ? `${analytics.totalLogs} check-ins now · ${analytics.previousTotalLogs} in the prior period`
-                                    : `${gaugeValue}% now vs ${analytics.previousTemperature}% in the previous period`}
-                            </p>
+            {/* Mood distribution and volume share a row for a clearer first read. */}
+            <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+                <ChartCard title={`Mood distribution · ${analytics.periodDays} days`}>
+                    {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
+                        <div className="grid h-full min-w-0 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,0.85fr)] sm:grid-rows-1 sm:gap-4">
+                            <div className="min-h-0 min-w-0">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            innerRadius="54%"
+                                            outerRadius="78%"
+                                            paddingAngle={3}
+                                        >
+                                            {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <ul className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:flex-col sm:justify-center sm:gap-2" aria-label="Check-in counts by mood">
+                                {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => (
+                                    <li key={mood} className="flex min-w-0 items-center gap-2 text-xs capitalize text-muted-foreground">
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: MOOD_COLORS[mood] }} aria-hidden="true" />
+                                        <span className="min-w-0 flex-1 truncate">{mood}</span>
+                                        <span className="tabular-nums text-foreground">{moodCounts[mood]}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Check-in volume</p>
-                            <p className="mt-1 text-base font-semibold tabular-nums">{analytics.totalLogs} now · {analytics.previousTotalLogs} prior</p>
-                        </div>
-                    </div>
-                )}
-                <p className="mt-4 text-xs leading-5 text-muted-foreground">Based on voluntary team check-ins. These patterns describe what people reported, not why they feel that way.</p>
-            </section>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Gauge */}
-                <ChartCard title="Team temperature">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RadialBarChart
-                            cx="50%"
-                            cy="50%"
-                            innerRadius="60%"
-                            outerRadius="100%"
-                            barSize={22}
-                            data={gaugeData}
-                            startAngle={180}
-                            endAngle={0}
-                        >
-                            <defs>
-                                <linearGradient id="gaugeFireIce" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0%" stopColor={ICE.blue} />
-                                    <stop offset="100%" stopColor={FIRE.ember} />
-                                </linearGradient>
-                            </defs>
-                            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                            <RadialBar
-                                background
-                                dataKey="value"
-                                cornerRadius={12}
-                                fill="url(#gaugeFireIce)"
-                            />
-                            <text
-                                x="50%"
-                                y="55%"
-                                textAnchor="middle"
-                                fontSize={24}
-                                fontWeight={600}
-                                fill="var(--foreground)"
-                            >
-                                {gaugeValue === null ? "No check-ins" : `${gaugeValue}%`}
-                            </text>
-                            <text
-                                x="50%"
-                                y="70%"
-                                textAnchor="middle"
-                                fontSize={12}
-                                fill="var(--muted-foreground)"
-                            >
-                                Happy or Excited check-ins
-                            </text>
-                        </RadialBarChart>
-                    </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
-                {/* Pie */}
-                <ChartCard title={`Mood distribution · ${analytics.periodDays} days`}>
-                    {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={pieData}
-                                dataKey="value"
-                                nameKey="name"
-                                innerRadius={70}
-                                outerRadius={110}
-                                paddingAngle={3}
-                                label={(d) => `${d.name} (${d.value})`}
-                            >
-                                {pieData.map((d, i) => (
-                                    <Cell key={i} fill={d.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
-                        </PieChart>
-                    </ResponsiveContainer>}
+                <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={trend.data} barSize={22}>
+                            <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
+                            <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
+                            <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
+                            {(Object.keys(MOOD_COLORS) as MoodType[]).map((mood, index, moods) => (
+                                <Bar key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} radius={index === moods.length - 1 ? [5, 5, 0, 0] : 0} />
+                            ))}
+                        </BarChart>
+                    </ResponsiveContainer>
                 </ChartCard>
             </div>
 
-            <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trend.data} barSize={22}>
-                        <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
-                        <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
-                        <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
-                        {(Object.keys(MOOD_COLORS) as MoodType[]).map((mood, index, moods) => (
-                            <Bar key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} radius={index === moods.length - 1 ? [5, 5, 0, 0] : 0} />
-                        ))}
-                    </BarChart>
-                </ResponsiveContainer>
-            </ChartCard>
-
             <ChartCard title="Mood patterns by weekday">
                 <p className="mb-4 text-xs text-muted-foreground">{weekdayRange} · Check-in counts by weekday in {analytics.timezone}. Hover a cell to see its count.</p>
-                <div className="grid grid-cols-[5.25rem_repeat(7,minmax(2.25rem,1fr))] gap-1.5 sm:gap-2" role="table" aria-label="Mood check-ins by weekday over the last 90 days">
+                <div className="grid min-w-0 grid-cols-[3rem_repeat(7,minmax(0,1fr))] gap-0.5 sm:grid-cols-[4rem_repeat(7,minmax(1.5rem,1fr))] sm:gap-1.5" role="table" aria-label="Mood check-ins by weekday over the last 90 days">
                     <div role="columnheader" className="pb-2" />
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
                         <div key={day} role="columnheader" className="pb-2 text-center text-[10px] font-medium text-muted-foreground sm:text-xs">

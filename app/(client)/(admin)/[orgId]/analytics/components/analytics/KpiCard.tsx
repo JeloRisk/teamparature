@@ -1,3 +1,5 @@
+import { Card } from "@/app/components/ui/card"
+
 interface KpiCardProps {
     title: string;
     value: string | number;
@@ -6,10 +8,10 @@ interface KpiCardProps {
 
 export default function KpiCard({ title, value, sub }: KpiCardProps) {
     return (
-        <div className="min-w-0">
+        <Card className="h-full min-w-0 gap-0 rounded-2xl border-border p-4 sm:p-5">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-foreground">{value}</p>
-            {sub && <p className="mt-1.5 max-w-[28ch] text-sm leading-5 text-muted-foreground">{sub}</p>}
-        </div>
+            <p className="mt-3 text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground">{value}</p>
+            {sub && <p className="mt-3 max-w-[28ch] text-sm leading-5 text-muted-foreground">{sub}</p>}
+        </Card>
     );
 }
