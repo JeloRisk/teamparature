@@ -120,7 +120,7 @@ export default function MembersPage() {
     }
     const getMemberName = (user?: { firstName?: string; lastName?: string; email?: string } | null) => {
         if (!user) return "Account unavailable"
-        const nameParts = [user.firstName, user.lastName].filter(Boolean)
+        const nameParts = [user.firstName, user.lastName].filter((part): part is string => Boolean(part))
         const name = nameParts.join(" ").trim()
         const emailName = Boolean(user.email) && nameParts.every(part => part.toLowerCase() === user.email?.toLowerCase())
         return name && name.toLowerCase() !== user.email?.toLowerCase() && !emailName ? name : "Name not provided"

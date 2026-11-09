@@ -4,13 +4,14 @@
 import { AnalyticsSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import MoodHeatmap from "./MoodHeatmap"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
-import { useWorkspace } from "../ClientDashboardLayout"
 
 import {
     ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
+    RadarChart,
+    Radar,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
     LineChart,
     Line,
     XAxis,
@@ -18,9 +19,11 @@ import {
     Tooltip,
     BarChart,
     Bar,
+    CartesianGrid,
 } from "recharts"
 import KpiCard from "./components/analytics/KpiCard"
 import ChartCard from "./components/analytics/ChartCard"
+import { ChevronDown } from "lucide-react"
 
 //
 // --- Constants ---
@@ -34,6 +37,7 @@ const ICE = {
     blue: "#3b82f6",
     ice: "#60a5fa",
     frost: "#93c5fd",
+    purple: "#8b5cf6",
 }
 const ASH = "#a3a3a3"
 
@@ -44,7 +48,7 @@ const MOOD_COLORS: Record<MoodType, string> = {
     excited: FIRE.ember,
     neutral: ASH,
     sad: ICE.ice,
-    stressed: ICE.blue,
+    stressed: ICE.purple,
 }
 
 //
@@ -108,7 +112,6 @@ function aggregateTrend(series: Array<{ dateKey: string; day: string; total: num
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
-    const { organization } = useWorkspace()
     const { analytics, loading, error, orgId: loadedOrgId, fetchAnalytics, selectedRange } = useMoodAnalyticsStore()
     if (error && !analytics.periodStart) return <div role="alert" className="rounded-xl border border-border p-4">
         <p>{error}</p><button className="mt-2 text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button>
@@ -125,14 +128,17 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
         stressed: 0,
     }
 
-    // Pie Data
-    const pieData = (Object.entries(moodCounts) as [MoodType, number][])
-        .map(([mood, value]) => ({
-            name: mood,
-            value,
+    const radarData = (Object.keys(MOOD_COLORS) as MoodType[])
+        .map(mood => ({
+            name: mood.charAt(0).toUpperCase() + mood.slice(1),
+            value: moodCounts[mood],
             color: MOOD_COLORS[mood],
         }))
-        .filter((d) => d.value > 0)
+    const highestMoodCount = Math.max(0, ...radarData.map(item => item.value))
+    const firstTopMood = radarData.find(item => item.value === highestMoodCount)
+    const radarColor = highestMoodCount > 0 && firstTopMood
+        ? MOOD_COLORS[firstTopMood.name.toLowerCase() as MoodType]
+        : "var(--primary)"
 
     const gaugeValue = analytics.orgTemperature
 
@@ -151,7 +157,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     // --- Render ---
     //
     return (
-        <div className="analytics-page min-w-0 space-y-6" aria-busy={loading}>
+        <div className="analytics-page min-w-0 space-y-4" aria-busy={loading}>
             {loading && <p role="status" className="text-xs text-muted-foreground">Updating analytics…</p>}
             {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
 
@@ -160,7 +166,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
                 <div>
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Team mood</h1>
-                    <p className="mt-1.5 text-sm text-muted-foreground">{organization.name}</p>
                 </div>
             </header>
 
@@ -169,7 +174,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 <KpiCard
                     title="Team temperature"
                     value={gaugeValue === null ? "—" : `${gaugeValue}%`}
-                    sub={`${analytics.positive} positive check-ins of ${analytics.totalLogs}`}
+                    sub={`${analytics.positive} of ${analytics.totalLogs} check-ins were Happy or Excited`}
                 />
 
                 <KpiCard
@@ -179,9 +184,9 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 />
 
                 <KpiCard
-                    title="Intensity variation (σ)"
+                    title="Intensity variation"
                     value={analytics.volatility ?? "—"}
-                    sub="Daily average intensity · at least 2 days with responses"
+                    sub="Across days with check-ins"
                 />
 
                 <KpiCard
@@ -192,66 +197,63 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             </div>
 
             {/* Mood distribution and volume share a row for a clearer first read. */}
-            <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-                <ChartCard title={`Mood distribution · ${analytics.periodDays} days`}>
+            <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                <ChartCard title="Mood distribution" contentClassName="h-auto">
                     {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
-                        <div className="grid h-full min-w-0 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,0.85fr)] sm:grid-rows-1 sm:gap-4">
-                            <div className="min-h-0 min-w-0">
+                        <div className="h-[23rem] min-w-0">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={pieData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            innerRadius="54%"
-                                            outerRadius="78%"
-                                            paddingAngle={3}
-                                        >
-                                            {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
-                                    </PieChart>
+                                    <RadarChart accessibilityLayer data={radarData} outerRadius="76%" margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                                        <PolarGrid stroke="var(--border)" />
+                                        <PolarAngleAxis dataKey="name" tick={{ fill: "var(--foreground)", fontSize: 12 }} tickLine={false} />
+                                        <PolarRadiusAxis domain={[0, Math.max(4, ...radarData.map(item => item.value))]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} allowDecimals={false} axisLine={false} angle={90} />
+                                    <Radar isAnimationActive={false} name="Check-ins" dataKey="value" stroke={radarColor} fill={radarColor} fillOpacity={0.24} strokeWidth={2} dot={{ r: 3, fill: radarColor, strokeWidth: 0 }} />
+                                        <Tooltip cursor={false} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
+                                    </RadarChart>
                                 </ResponsiveContainer>
-                            </div>
-                            <ul className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:flex-col sm:justify-center sm:gap-2" aria-label="Check-in counts by mood">
-                                {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => (
-                                    <li key={mood} className="flex min-w-0 items-center gap-2 text-xs capitalize text-muted-foreground">
-                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: MOOD_COLORS[mood] }} aria-hidden="true" />
-                                        <span className="min-w-0 flex-1 truncate">{mood}</span>
-                                        <span className="tabular-nums text-foreground">{moodCounts[mood]}</span>
-                                    </li>
-                                ))}
-                            </ul>
                         </div>
                     )}
                 </ChartCard>
 
-                <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}>
+                <ChartCard
+                    title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}
+                    action={<ul aria-label="Mood legend" className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+                        {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => <li key={mood} className="flex items-center gap-1.5 capitalize"><span aria-hidden="true" className="size-2 rounded-full" style={{ backgroundColor: MOOD_COLORS[mood] }} />{mood}</li>)}
+                    </ul>}
+                    contentClassName="h-[23rem]"
+                >
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={trend.data} barSize={22}>
-                            <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
-                            <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
+                            <CartesianGrid vertical={false} stroke="var(--border)" />
+                            <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={24} tickLine={false} axisLine={false} tickMargin={10} fontSize={12} stroke="var(--muted-foreground)" />
+                            <YAxis width={28} allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                             <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)", borderRadius: 12 }} labelStyle={{ color: "var(--popover-foreground)" }} />
                             {(Object.keys(MOOD_COLORS) as MoodType[]).map((mood, index, moods) => (
-                                <Bar key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} radius={index === moods.length - 1 ? [5, 5, 0, 0] : 0} />
+                                <Bar isAnimationActive={false} key={mood} dataKey={mood} name={mood.charAt(0).toUpperCase() + mood.slice(1)} stackId="moods" fill={MOOD_COLORS[mood]} shape={(props: unknown) => {
+                                    const rect = props as { x: number; y: number; width: number; height: number; fill: string; payload?: Record<string, number> }
+                                    const topMood = [...moods].reverse().find(key => (rect.payload?.[key] ?? 0) > 0)
+                                    const radius = topMood === mood ? Math.min(5, rect.width / 2, rect.height / 2) : 0
+                                    const right = rect.x + rect.width
+                                    const bottom = rect.y + rect.height
+                                    const path = `M ${rect.x + radius} ${rect.y} H ${right - radius} Q ${right} ${rect.y} ${right} ${rect.y + radius} V ${bottom} H ${rect.x} V ${rect.y + radius} Q ${rect.x} ${rect.y} ${rect.x + radius} ${rect.y} Z`
+                                    return <path d={path} fill={rect.fill} />
+                                }} />
                             ))}
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartCard>
             </div>
 
-            <ChartCard title="Mood patterns by weekday">
-                <p className="mb-4 text-xs text-muted-foreground">{weekdayRange} · Check-in counts by weekday in {analytics.timezone}. Hover a cell to see its count.</p>
-                <div className="grid min-w-0 grid-cols-[3rem_repeat(7,minmax(0,1fr))] gap-0.5 sm:grid-cols-[4rem_repeat(7,minmax(1.5rem,1fr))] sm:gap-1.5" role="table" aria-label="Mood check-ins by weekday over the last 90 days">
+            <ChartCard title="Mood patterns by weekday" contentClassName="h-auto">
+                <div className="grid min-w-0 grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] gap-1 sm:grid-cols-[4.5rem_repeat(7,minmax(1.5rem,1fr))] sm:gap-2" role="table" aria-label={`Mood check-in counts by weekday, ${weekdayRange}`}>
                     <div role="columnheader" className="pb-2" />
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
-                        <div key={day} role="columnheader" className="pb-2 text-center text-[10px] font-medium text-muted-foreground sm:text-xs">
+                        <div key={day} role="columnheader" className="pb-2 text-center text-[11px] font-medium text-muted-foreground sm:text-xs">
                             {day}<span className="mt-0.5 block text-[9px] font-normal sm:text-[10px]">{analytics.weekdayMoods[index]?.total ?? 0}</span>
                         </div>
                     ))}
                     {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => (
                         <div key={mood} className="contents" role="row">
-                            <div role="rowheader" className="flex items-center text-[10px] capitalize text-muted-foreground sm:text-xs">{mood}</div>
+                            <div role="rowheader" className="flex items-center text-[11px] capitalize text-muted-foreground sm:text-xs">{mood}</div>
                             {analytics.weekdayMoods.map(day => {
                                 const count = day.counts[mood] ?? 0
                                 const maxCount = Math.max(1, ...analytics.weekdayMoods.flatMap(item => Object.values(item.counts)))
@@ -266,10 +268,11 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} intensity`}>
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trend.data}>
-                        <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={14} stroke="var(--muted-foreground)" />
-                        <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} stroke="var(--muted-foreground)" />
+                        <CartesianGrid vertical={false} stroke="var(--border)" />
+                        <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={24} tickLine={false} axisLine={false} tickMargin={10} fontSize={12} stroke="var(--muted-foreground)" />
+                        <YAxis width={28} domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                         <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} />
-                        <Line type="linear" dataKey="avg" name="Average intensity (1–5)" connectNulls={false} stroke="var(--primary)" strokeWidth={2} />
+                        <Line isAnimationActive={false} type="linear" dataKey="avg" name="Average intensity (1–5)" connectNulls={false} stroke="var(--primary)" strokeWidth={2} dot={{ r: 4, fill: "var(--card)", strokeWidth: 2 }} activeDot={{ r: 6 }} />
                     </LineChart>
                 </ResponsiveContainer>
             </ChartCard>

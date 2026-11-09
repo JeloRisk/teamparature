@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarDays, Check } from "lucide-react"
+import { CalendarDays, Check, ChevronDown } from "lucide-react"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
 
 function dateInZone(value: string, timezone: string) {
@@ -41,13 +41,14 @@ export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
             }
             setCustomOpen(false)
             fetchAnalytics(orgId, true, { ...selectedRange, days: Number(value), from: undefined, to: undefined })
-        }} className="h-10 max-w-36 rounded-xl border border-border bg-background px-3 text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-w-44">
+        }} className="h-10 max-w-36 appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-w-44">
             <option value="7">Last 7 days</option>
             <option value="14">Last 14 days</option>
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>
             <option value="custom">Custom dates</option>
         </select>
+        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         {currentRange && <span className="ml-2 hidden text-xs font-medium text-muted-foreground xl:inline">{currentRange}</span>}
 
         {customOpen && <div className="absolute right-0 top-full z-[60] mt-2 w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xl">

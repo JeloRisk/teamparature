@@ -70,14 +70,6 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         setPage(1)
     }
 
-    function clearFilters() {
-        setSearch("")
-        setStart("")
-        setEnd("")
-        setAction("all")
-        setPage(1)
-    }
-
     const columns: { key: SortColumn; label: string }[] = [
         { key: "actorName", label: "Who" },
         { key: "action", label: "Activity" },

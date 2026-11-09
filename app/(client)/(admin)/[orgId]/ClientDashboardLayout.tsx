@@ -57,7 +57,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
     return (
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
-            <SidebarInset>
+            <SidebarInset className="min-w-0">
                 <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-card dark:bg-card px-4 md:px-10">
                     <button
                         onClick={toggleSidebar}
@@ -82,7 +82,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     </div>
                 </header>
 
-                <main className="flex flex-1 flex-col p-4 md:px-10">{children}</main>
+                <main className="flex min-w-0 flex-1 flex-col p-4 md:px-10">{children}</main>
             </SidebarInset>
         </>
     )

@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic"
 
 import { useTheme } from "next-themes";
+import { ChevronDown } from "lucide-react";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 import { format } from "date-fns";
 import ChartCard2 from "./components/analytics/ChartCard2";
@@ -13,7 +14,7 @@ const moodColors: Record<HeatmapMood, string> = {
     excited: "#f97316",
     neutral: "#a3a3a3",
     sad: "#60a5fa",
-    stressed: "#3b82f6",
+    stressed: "#8b5cf6",
 };
 
 const moodToNumber: Record<HeatmapMood, number> = {
@@ -63,7 +64,7 @@ function groupByMonthAndWeek(cells: HeatmapCell[], year: number, asOfDate: strin
     }));
 }
 
-export default function MoodHeatmapApex({ moods, year, timezone, asOfDate, latestYear, onYearChange }: { moods: HeatmapCell[]; year: number; timezone: string; asOfDate: string; latestYear: number; onYearChange: (year: number) => void }) {
+export default function MoodHeatmapApex({ moods, year, asOfDate, latestYear, onYearChange }: { moods: HeatmapCell[]; year: number; timezone: string; asOfDate: string; latestYear: number; onYearChange: (year: number) => void }) {
     const { resolvedTheme } = useTheme();
     const dark = resolvedTheme === "dark";
     const empty = dark ? "#29314b" : "#edf0fa";
@@ -122,15 +123,14 @@ export default function MoodHeatmapApex({ moods, year, timezone, asOfDate, lates
     };
 
     return (
-        <ChartCard2 title="Team Emotional Heatmap">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                    Year
-                    <select aria-label="Heatmap year" value={year} onChange={event => onYearChange(Number(event.target.value))} className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                        {Array.from({ length: latestYear - 1999 }, (_, index) => latestYear - index).map(optionYear => <option key={optionYear} value={optionYear}>{optionYear}</option>)}
-                    </select>
-                </label>
+        <ChartCard2 title="Team Emotional Heatmap" action={
+            <div className="relative">
+                <select aria-label="Heatmap year" value={year} onChange={event => onYearChange(Number(event.target.value))} className="h-9 appearance-none rounded-lg border border-border bg-background pl-3 pr-10 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                    {Array.from({ length: latestYear - 1999 }, (_, index) => latestYear - index).map(optionYear => <option key={optionYear} value={optionYear}>{optionYear}</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             </div>
+        }>
             <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                 {Object.entries(moodColors).map(([mood, color]) => <li key={mood} className="flex items-center gap-2 capitalize"><span className="size-3 rounded-sm" style={{ backgroundColor: color }} />{mood}</li>)}
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#8894bf" : "#bec8ed" }} />Tied moods</li>
