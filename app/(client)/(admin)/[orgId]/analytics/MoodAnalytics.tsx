@@ -21,7 +21,7 @@ import {
     BarChart,
     Bar,
 } from "recharts"
-import { Flame, Snowflake, Activity, Users } from "lucide-react"
+import { Flame, Snowflake } from "lucide-react"
 import KpiCard from "./components/analytics/KpiCard"
 import ChartCard from "./components/analytics/ChartCard"
 
@@ -145,23 +145,12 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const temperatureChange = gaugeValue !== null && analytics.previousTemperature !== null
         ? gaugeValue - analytics.previousTemperature
         : null
-    const checkInChange = analytics.totalLogs - analytics.previousTotalLogs
     const participationRate = analytics.activeMembers
         ? Math.round(analytics.participants * 100 / analytics.activeMembers)
         : 0
     const trend = aggregateTrend(analytics.detailedSeries, analytics.periodDays)
     const trendUnit = trend.granularity === "day" ? "daily" : trend.granularity === "week" ? "weekly" : "monthly"
-    const leadingCount = Math.max(...Object.values(moodCounts))
-    const leadingMoods = analytics.totalLogs
-        ? (Object.entries(moodCounts) as [MoodType, number][])
-            .filter(([, count]) => count === leadingCount)
-            .map(([mood]) => mood)
-        : []
-    const leadingLabel = leadingMoods.map(mood => mood.charAt(0).toUpperCase() + mood.slice(1)).join(" and ")
-    const leadingShare = analytics.totalLogs ? Math.round(leadingCount * 100 / analytics.totalLogs) : 0
-    const volumeDirection = checkInChange > 0 ? "more" : checkInChange < 0 ? "fewer" : "the same number of"
     const dateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: analytics.timezone })
-    const currentRange = `${dateFormat.format(new Date(analytics.periodStart))} – ${dateFormat.format(new Date(new Date(analytics.periodEnd).getTime() - 1))}`
     const previousRange = `${dateFormat.format(new Date(analytics.previousPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.previousPeriodEnd).getTime() - 1))}`
     const weekdayRange = `${dateFormat.format(new Date(analytics.weekdayPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.weekdayPeriodEnd).getTime() - 1))}`
 
@@ -176,87 +165,70 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
 
             {/* Section Header */}
-            <div className="rounded-xl p-4 bg-gradient-to-r dark:bg-none from-sky-50 via-white to-orange-50 border border-border dark:border-border">
-                <div className="flex items-center gap-2">
-                    <Snowflake className="w-5 h-5 text-sky-500" />
-                    <h3 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-muted-foreground">
-                        Team mood · Selected period ({analytics.periodDays} days)
-                    </h3>
-                    <Flame className="w-5 h-5 text-orange-500 ml-auto" />
+            <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <Snowflake className="h-4 w-4 text-sky-600 dark:text-sky-400" aria-hidden="true" />
+                        <h2 className="text-xl font-semibold tracking-tight text-foreground">Team mood</h2>
+                        <Flame className="h-4 w-4 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+                    </div>
                 </div>
             </div>
 
-            {/* KPI Row */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {/* Summary metrics */}
+            <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:gap-x-8 xl:grid-cols-4">
                 <KpiCard
                     title="Team temperature"
-                    value={gaugeValue === null ? "—" : `${gaugeValue === null ? "No check-ins" : `${gaugeValue}%`}`}
-                    sub={`${analytics.positive} Happy or Excited out of ${analytics.totalLogs} check-ins`}
-                    glow="from-orange-50 to-sky-50"
-                    icon={<Activity className="w-5 h-5 text-orange-600 dark:text-[#e1c590]" />}
+                    value={gaugeValue === null ? "—" : `${gaugeValue}%`}
+                    sub={`${analytics.positive} positive check-ins of ${analytics.totalLogs}`}
                 />
 
                 <KpiCard
-                    title={`Check-ins · ${analytics.periodDays} days`}
+                    title="Check-ins"
                     value={analytics.totalLogs}
                     sub={`${analytics.participants} of ${analytics.activeMembers} active members · ${participationRate}% participation`}
-                    glow="from-slate-50 to-slate-50"
-                    icon={<Users className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />}
                 />
 
                 <KpiCard
                     title="Intensity variation (σ)"
                     value={analytics.volatility ?? "—"}
                     sub="Daily average intensity · at least 2 days with responses"
-                    glow="from-sky-50 to-orange-50"
-                    icon={<Snowflake className="w-5 h-5 text-sky-600" />}
                 />
 
                 <KpiCard
                     title="Average intensity"
                     value={avgRank === null ? "—" : `${avgRank.toFixed(2)} / 5`}
                     sub="Strength of feeling across all mood types"
-                    glow="from-orange-50 to-sky-50"
-                    icon={<Flame className="w-5 h-5 text-orange-600 dark:text-[#e1c590]" />}
                 />
             </div>
 
-            <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <section className="border-y border-border py-4">
                 <div>
-                    <h3 className="text-lg font-semibold tracking-tight">Team insights</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Current period: {currentRange} · Compared with {previousRange} ({analytics.timezone}).</p>
+                    <h3 className="text-base font-semibold tracking-tight">Period comparison</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Previous period: {previousRange} · {analytics.timezone}</p>
                 </div>
                 {analytics.totalLogs === 0 ? (
-                    <p className="mt-5 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">There are no check-ins in this period yet. Insights will appear as the team checks in.</p>
+                    <p className="mt-4 text-sm text-muted-foreground">No check-ins in this period yet. Comparisons will appear as the team checks in.</p>
                 ) : (
-                    <div className="mt-5 grid gap-3 md:grid-cols-3">
-                        <div className="rounded-xl bg-muted/40 p-4">
-                            <p className="text-xs font-medium text-muted-foreground">Most selected mood</p>
-                            <p className="mt-2 text-lg font-semibold">{leadingLabel}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">{leadingCount} of {analytics.totalLogs} check-ins · {leadingShare}%</p>
-                        </div>
-                        <div className="rounded-xl bg-muted/40 p-4">
-                            <p className="text-xs font-medium text-muted-foreground">Team temperature</p>
-                            <p className="mt-2 text-lg font-semibold">
-                                {temperatureChange === null ? "Not enough comparison data" : temperatureChange === 0 ? "Holding steady" : `${Math.abs(temperatureChange)} points ${temperatureChange > 0 ? "higher" : "lower"}`}
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2 sm:gap-8">
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Team temperature</p>
+                            <p className="mt-1 text-base font-semibold">
+                                {temperatureChange === null ? "No prior baseline" : temperatureChange === 0 ? "No observed change" : `Observed difference: ${Math.abs(temperatureChange)} points ${temperatureChange > 0 ? "higher" : "lower"}`}
                             </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p className="mt-1 text-sm text-muted-foreground">
                                 {temperatureChange === null
-                                    ? `${analytics.totalLogs} check-ins now; ${analytics.previousTotalLogs} in the prior period`
+                                    ? `${analytics.totalLogs} check-ins now · ${analytics.previousTotalLogs} in the prior period`
                                     : `${gaugeValue}% now vs ${analytics.previousTemperature}% in the previous period`}
                             </p>
                         </div>
-                        <div className="rounded-xl bg-muted/40 p-4">
-                            <p className="text-xs font-medium text-muted-foreground">Participation</p>
-                            <p className="mt-2 text-lg font-semibold">{analytics.participants} of {analytics.activeMembers} active members</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                {analytics.activeMembers ? `${participationRate}% checked in · ` : "No active members · "}
-                                {checkInChange === 0 ? "same check-in volume as the prior period" : `${Math.abs(checkInChange)} ${volumeDirection} check-ins than the prior period`}
-                            </p>
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Check-in volume</p>
+                            <p className="mt-1 text-base font-semibold tabular-nums">{analytics.totalLogs} now · {analytics.previousTotalLogs} prior</p>
                         </div>
                     </div>
                 )}
-                <p className="mt-4 text-xs text-muted-foreground">These are team-level patterns from voluntary check-ins. They show what people reported, not why they feel that way.</p>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">Based on voluntary team check-ins. These patterns describe what people reported, not why they feel that way.</p>
             </section>
 
             {/* Charts */}
