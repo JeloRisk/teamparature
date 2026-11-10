@@ -10,18 +10,30 @@ const colors: Record<MoodName, [string, string]> = {
     excited: ["#ffe3f0", "#e6abc9"],
 }
 
-export default function MoodIcon({ mood, className = "size-10" }: { mood: MoodName; className?: string }) {
+const mobileColors: Record<MoodName, string> = {
+    happy: "#f4d47a",
+    neutral: "#c0c0c5",
+    sad: "#f19b9f",
+    stressed: "#a783e7",
+    excited: "#5acfa8",
+}
+
+export default function MoodIcon({ mood, className = "size-10", variant = "default" }: { mood: MoodName; className?: string; variant?: "default" | "mobile" }) {
     const id = useId()
     const [light, dark] = colors[mood]
     return (
         <svg viewBox="0 0 64 64" className={className} fill="none" aria-hidden="true" focusable="false">
-            <defs>
-                <radialGradient id={id} cx="0.35" cy="0.25" r="0.9">
-                    <stop stopColor={light} /><stop offset="1" stopColor={dark} />
-                </radialGradient>
-            </defs>
-            <circle cx="32" cy="33" r="25" fill={`url(#${id})`} />
-            <ellipse cx="23" cy="15" rx="11" ry="4" fill="white" opacity=".2" transform="rotate(-20 23 15)" />
+            {variant === "mobile" ? (
+                <rect x="6" y="7" width="52" height="52" rx="17" fill={mobileColors[mood]} />
+            ) : <>
+                <defs>
+                    <radialGradient id={id} cx="0.35" cy="0.25" r="0.9">
+                        <stop stopColor={light} /><stop offset="1" stopColor={dark} />
+                    </radialGradient>
+                </defs>
+                <circle cx="32" cy="33" r="25" fill={`url(#${id})`} />
+                <ellipse cx="23" cy="15" rx="11" ry="4" fill="white" opacity=".2" transform="rotate(-20 23 15)" />
+            </>}
             {(mood === "happy" || mood === "excited") && <>
                 <ellipse cx="17" cy="38" rx="4" ry="2.7" fill="#db8993" opacity=".5" />
                 <ellipse cx="47" cy="38" rx="4" ry="2.7" fill="#db8993" opacity=".5" />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Titan_One } from "next/font/google";
+import { Geist, Geist_Mono, Nunito, Titan_One } from "next/font/google";
 import "./globals.css";
 
 import "nprogress/nprogress.css";
@@ -16,6 +16,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const dashboardHeading = Nunito({
+  variable: "--font-dashboard-heading",
+  subsets: ["latin"],
+  weight: "700",
 });
 
 const titanOne = Titan_One({
@@ -38,7 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${titanOne.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${dashboardHeading.variable} ${titanOne.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning={true}>

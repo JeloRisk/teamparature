@@ -113,6 +113,74 @@
   --sidebar-ring: #a7b2ff;
 }
 
+.dashboard-reference-theme {
+  --background: #ffffff;
+  background-color: #ffffff;
+  --foreground: #19171a;
+  --card: #ffffff;
+  --card-foreground: #19171a;
+  --popover: #ffffff;
+  --popover-foreground: #19171a;
+  --primary: #593752;
+  --primary-foreground: #ffffff;
+  --secondary: #f0e8f0;
+  --secondary-foreground: #493246;
+  --muted: #f2eff2;
+  --muted-foreground: #6d646d;
+  --accent: #f4eaf3;
+  --accent-foreground: #493246;
+  --border: #e7dfe7;
+  --input: #d7cbd7;
+  --ring: #754b70;
+  --chart-1: #f4d47a;
+  --chart-2: #c0c0c5;
+  --chart-3: #f19b9f;
+  --chart-4: #a783e7;
+  --chart-5: #5acfa8;
+  --mood-happy: #f4d47a;
+  --mood-happy-soft: #fff8df;
+  --mood-neutral: #c0c0c5;
+  --mood-neutral-soft: #f4f3f5;
+  --mood-sad: #f19b9f;
+  --mood-sad-soft: #fff0f0;
+  --mood-stressed: #a783e7;
+  --mood-stressed-soft: #f4efff;
+  --mood-excited: #5acfa8;
+  --mood-excited-soft: #eafaf4;
+}
+
+.dashboard-reference-theme :is(h1, h2, h3) {
+  font-family: var(--font-dashboard-heading), var(--font-geist-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dark .dashboard-reference-theme {
+  --background: #211a21;
+  background-color: #211a21;
+  --foreground: #f7f1f7;
+  --card: #2b232c;
+  --card-foreground: #f7f1f7;
+  --popover: #332937;
+  --popover-foreground: #f7f1f7;
+  --primary: #e6d1e4;
+  --primary-foreground: #261d27;
+  --secondary: #392f3b;
+  --secondary-foreground: #f1e5f1;
+  --muted: #342a36;
+  --muted-foreground: #c1b2c2;
+  --accent: #413146;
+  --accent-foreground: #f4e9f4;
+  --border: #493b4a;
+  --input: #5b4a5d;
+  --ring: #d8b9d8;
+  --mood-happy-soft: #554521;
+  --mood-neutral-soft: #3b393e;
+  --mood-sad-soft: #512d33;
+  --mood-stressed-soft: #3e2d56;
+  --mood-excited-soft: #24473c;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

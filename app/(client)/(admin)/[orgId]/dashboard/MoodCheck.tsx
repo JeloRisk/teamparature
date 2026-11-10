@@ -25,12 +25,12 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     const [rank, setRank] = useState(3)
     const [note, setNote] = useState("")
 
-    const quickMoods: { value: AllowedMood; label: string }[] = [
-        { value: "happy", label: "Happy" },
-        { value: "neutral", label: "Neutral" },
-        { value: "sad", label: "Sad" },
-        { value: "stressed", label: "Stressed" },
-        { value: "excited", label: "Excited" },
+    const quickMoods: { value: AllowedMood; label: string; color: string; surface: string }[] = [
+        { value: "happy", label: "Happy", color: "var(--mood-happy)", surface: "var(--mood-happy-soft)" },
+        { value: "excited", label: "Excited", color: "var(--mood-excited)", surface: "var(--mood-excited-soft)" },
+        { value: "neutral", label: "Neutral", color: "var(--mood-neutral)", surface: "var(--mood-neutral-soft)" },
+        { value: "sad", label: "Sad", color: "var(--mood-sad)", surface: "var(--mood-sad-soft)" },
+        { value: "stressed", label: "Stressed", color: "var(--mood-stressed)", surface: "var(--mood-stressed-soft)" },
     ]
 
     const handleQuickSubmit = async (selectedMood: AllowedMood) => {
@@ -98,12 +98,13 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     <div className="space-y-3">
                         <p className="text-xs text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
                         <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-5" role="group" aria-label="Choose your mood">
-                            {quickMoods.map(({ value, label }, index) => (
+                            {quickMoods.map(({ value, label, color, surface }, index) => (
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className={`group col-span-2 flex min-h-[4.5rem] min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent px-1.5 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}>
-                                    <MoodIcon mood={value} className="size-9 sm:size-10" />
+                                    className={`group col-span-2 flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1.5 py-2 transition-[filter,transform] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}
+                                    style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
+                                    <MoodIcon mood={value} variant="mobile" className="size-11 sm:size-12" />
                                     <span className="text-xs font-medium leading-4 text-foreground">{label}</span>
                                 </button>
                             ))}
