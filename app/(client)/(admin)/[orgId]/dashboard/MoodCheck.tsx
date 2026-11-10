@@ -97,12 +97,12 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                 ) : compact ? (
                     <div className="space-y-3">
                         <p className="text-xs text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
-                        <div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Choose your mood">
-                            {quickMoods.map(({ value, label }) => (
+                        <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-5" role="group" aria-label="Choose your mood">
+                            {quickMoods.map(({ value, label }, index) => (
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-transparent px-1 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
+                                    className={`group col-span-2 flex min-h-[4.5rem] min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent px-1.5 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}>
                                     <MoodIcon mood={value} className="size-9 sm:size-10" />
                                     <span className="text-xs font-medium leading-4 text-foreground">{label}</span>
                                 </button>

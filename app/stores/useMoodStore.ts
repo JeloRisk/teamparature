@@ -9,6 +9,7 @@ interface Summary {
     timezone?: string
     trend?: Trend[]
     participantsToday?: number
+    participantsThisWeek?: number
 }
 
 interface MoodState {

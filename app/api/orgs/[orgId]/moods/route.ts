@@ -35,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         return NextResponse.json({ checkedInToday: Boolean(await checkIn), timezone })
     }
 
-    const [checkedIn, counts, participants] = await Promise.all([
+    const [checkedIn, counts, participantsToday, activeMemberIds, weeklyParticipantIds] = await Promise.all([
         checkIn,
         Mood.aggregate([
             { $match: { organization, date: { $gte: days[0], $lt: days[7] } } },
@@ -52,7 +52,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
             } },
         ]),
         Mood.distinct("user", { organization, date: { $gte: today, $lt: days[7] } }),
+        Membership.distinct("user", { organization, isActive: true }),
+        Mood.distinct("user", { organization, date: { $gte: days[0], $lt: days[7] } }),
     ])
+
+    const activeMemberIdsSet = new Set(activeMemberIds.map((id) => String(id)))
+    const participantsThisWeek = weeklyParticipantIds.filter((id) => activeMemberIdsSet.has(String(id))).length
 
     const trend = days.slice(0, 7).map((date) => {
         const count = counts.find((entry) => entry._id.getTime() === date.getTime())
@@ -66,5 +71,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         }
     })
 
-    return NextResponse.json({ checkedInToday: Boolean(checkedIn), trend, participantsToday: participants.length, timezone })
+    return NextResponse.json({
+        checkedInToday: Boolean(checkedIn),
+        trend,
+        participantsToday: participantsToday.length,
+        participantsThisWeek,
+        timezone,
+    })
 }

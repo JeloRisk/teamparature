@@ -60,13 +60,14 @@ function DashboardContent({ children }: { children: ReactNode }) {
             <SidebarInset className="min-w-0">
                 <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b bg-card dark:bg-card px-4 md:px-10">
                     <button
+                        type="button"
                         onClick={toggleSidebar}
                         aria-label="Toggle navigation menu"
-                        className="p-2 hover:bg-muted dark:hover:bg-muted rounded"
+                        className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted dark:hover:bg-muted"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
-                    <div className="h-4 w-px bg-black" />
+                    <div className="h-4 w-px shrink-0 bg-border" />
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
