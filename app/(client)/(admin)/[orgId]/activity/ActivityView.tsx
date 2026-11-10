@@ -76,11 +76,17 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         { key: "targetLabel", label: "Member / target" },
         { key: "createdAt", label: "When" },
     ]
+    const columnWidths: Record<SortColumn, string> = {
+        actorName: "w-[19%]",
+        action: "w-[21%]",
+        targetLabel: "w-[27%]",
+        createdAt: "w-[17%]",
+    }
     function sortableHeader(column: typeof columns[number]) {
         const active = sort === column.key
         const Icon = active ? order === "asc" ? ArrowUp : ArrowDown : ArrowUpDown
         const nextOrder = active ? (order === "asc" ? "descending" : "ascending") : column.key === "createdAt" ? "descending" : "ascending"
-        return <TableHead key={column.key} aria-sort={active ? order === "asc" ? "ascending" : "descending" : "none"}>
+        return <TableHead key={column.key} className={columnWidths[column.key]} aria-sort={active ? order === "asc" ? "ascending" : "descending" : "none"}>
             <button type="button" onClick={() => changeSort(column.key)}
                 className={`group -ml-2 flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                 aria-label={`Sort by ${column.label}, ${nextOrder}`}>
@@ -94,6 +100,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
             <div>
                 <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
+                <p className="mt-1.5 text-sm text-muted-foreground">A record of invitations, membership changes, and workspace updates.</p>
             </div>
             <Button variant="outline" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Refresh</Button>
         </header>
@@ -119,11 +126,11 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                 <div className="min-w-0 space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-10 w-full min-w-0 rounded-xl bg-background" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
             </div>
             </div>
-            <p className="px-4 pt-3 text-xs text-muted-foreground sm:hidden">Scroll horizontally to view all activity details.</p>
-            <Table>
+            <p className="px-4 pt-3 text-xs text-muted-foreground lg:hidden">On narrow screens, scroll the table horizontally to view all activity details.</p>
+            <Table aria-label="Workspace activity history" className="w-full min-w-[40rem] table-fixed">
                 <TableHeader><TableRow className="bg-muted/40">
                     {columns.slice(0, 3).map(sortableHeader)}
-                    <TableHead className="text-xs font-semibold text-muted-foreground">Details</TableHead>
+                    <TableHead className="w-[16%] text-xs font-semibold text-muted-foreground">Details</TableHead>
                     {sortableHeader(columns[3])}
                 </TableRow></TableHeader>
                 <TableBody>
@@ -131,17 +138,22 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                     : error ? <TableRow><TableCell colSpan={5} className="py-10 text-center"><p role="alert">{error}</p><Button variant="outline" className="mt-3" onClick={() => setRevision(value => value + 1)}>Retry</Button></TableCell></TableRow>
                     : entries.length ? entries.map(entry => <TableRow key={entry._id}>
                         <TableCell className="font-medium">{entry.actorName}</TableCell>
-                        <TableCell className="whitespace-nowrap">{activityActions[entry.action]}</TableCell>
-                        <TableCell className="max-w-64 break-words">{entry.targetLabel}</TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-normal break-words leading-snug">{activityActions[entry.action]}</TableCell>
+                        <TableCell className="max-w-64 whitespace-normal break-words leading-snug">{entry.targetLabel}</TableCell>
+                        <TableCell className="whitespace-normal">
                             {entry.outcome === "failed" ? <Badge variant="outline" className="border-red-200 text-red-700 dark:text-red-300">Email delivery failed</Badge>
                             : entry.outcome === "pending" ? <Badge variant="outline">Delivery pending</Badge>
                             : entry.action === "role_changed" || entry.action === "member_restored" ? <span className="text-xs capitalize text-muted-foreground">{entry.previousRole} → {entry.newRole}</span>
                             : <Badge variant="secondary">Completed</Badge>}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{new Date(entry.createdAt).toLocaleString(undefined, { timeZone: timezone, dateStyle: "medium", timeStyle: "short" })}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                            <time dateTime={entry.createdAt} title={new Date(entry.createdAt).toLocaleString(undefined, { timeZone: timezone, dateStyle: "full", timeStyle: "short" })} className="whitespace-nowrap">
+                                {new Date(entry.createdAt).toLocaleDateString(undefined, { timeZone: timezone, month: "short", day: "numeric", year: "numeric" })}
+                                <span className="mt-0.5 block font-medium text-foreground/80">{new Date(entry.createdAt).toLocaleTimeString(undefined, { timeZone: timezone, hour: "numeric", minute: "2-digit" })}</span>
+                            </time>
+                        </TableCell>
                     </TableRow>)
-                    : <TableRow><TableCell colSpan={5} className="py-12 text-center"><History className="mx-auto mb-3 size-7 text-muted-foreground" /><p className="font-medium">No matching activity</p><p className="mt-1 text-sm text-muted-foreground">Try changing your filters. Only actions recorded since Activity History was enabled are available.</p></TableCell></TableRow>}
+                    : <TableRow><TableCell colSpan={5} className="py-12 text-center"><History className="mx-auto mb-3 size-7 text-muted-foreground" /><p className="font-medium">{search || action !== "all" || start || end ? "No matching activity" : "No activity recorded yet"}</p><p className="mt-1 text-sm text-muted-foreground">{search || action !== "all" || start || end ? "Try clearing a filter or broadening the date range." : "Only actions recorded since Activity History was enabled are available."}</p></TableCell></TableRow>}
                 </TableBody>
             </Table>
             <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm">
