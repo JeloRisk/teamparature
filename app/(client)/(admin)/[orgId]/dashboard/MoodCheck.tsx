@@ -79,7 +79,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                         Today’s check-in
                     </p> */}
 
-                    <h2 className={compact ? "mt-1 text-lg font-semibold leading-6 tracking-tight" : "mt-1 text-xl font-semibold leading-tight"}>
+                    <h2 className={compact ? "mt-1 text-xl font-semibold leading-6 tracking-tight sm:text-lg" : "mt-1 text-xl font-semibold leading-tight"}>
                         {compact && summary?.checkedInToday ? "You’re all set for today." : "How are you feeling?"}
                     </h2>
                     {compact && !summary?.checkedInToday && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
@@ -97,13 +97,13 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                             <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />
                         </span>
                         {compact ? <div className="min-w-0">
-                            <p className="font-semibold leading-5">You’re all set for today.</p>
-                            <p className="text-xs leading-4 text-muted-foreground">Check-in saved. See you tomorrow.</p>
+                            <p className="text-base font-semibold leading-5">You’re all set for today.</p>
+                            <p className="text-sm leading-5 text-muted-foreground">Check-in saved. See you tomorrow.</p>
                         </div> : <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>}
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
-                        <p className="text-xs text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
+                        <p className="text-sm leading-5 text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
                         <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-5" role="group" aria-label="Choose your mood">
                             {quickMoods.map(({ value, label, color, surface }, index) => (
                                 <button key={value} type="button" disabled={submitting}
@@ -112,12 +112,12 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                                     className={`group col-span-2 flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1.5 py-2 transition-[filter,transform] hover:brightness-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}
                                     style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
                                     <MoodIcon mood={value} variant="mobile" className="size-11 sm:size-12" />
-                                    <span className="text-xs font-medium leading-4 text-foreground">{label}</span>
+                                    <span className="text-sm font-medium leading-5 text-foreground">{label}</span>
                                 </button>
                             ))}
                         </div>
-                        {submitting && <p className="text-center text-xs text-muted-foreground" role="status">Saving your check-in…</p>}
-                        {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
+                        {submitting && <p className="text-center text-sm text-muted-foreground" role="status">Saving your check-in…</p>}
+                        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                     </div>
                 ) : (
 <Dialog open={open} onOpenChange={setOpen}>

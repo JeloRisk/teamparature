@@ -4,7 +4,7 @@ import { DashboardSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays } from "lucide-react"
+import { ArrowUpRight, CalendarDays } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { BarProps } from "recharts"
 import type { BarRectangleItem } from "recharts/types/cartesian/Bar"
@@ -68,13 +68,24 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
             <div className="mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
                 <header className="flex flex-wrap items-start justify-between gap-3 pb-4 sm:items-end sm:gap-4 sm:pb-5">
                     <div className="min-w-0">
-                        <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Team mood</h1>
+                        <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-3xl">
+                            <span className="sm:hidden">Welcome back</span>
+                            <span className="hidden sm:inline">Team mood</span>
+                        </h1>
                         <p className="mt-1.5 hidden break-words text-sm text-muted-foreground sm:block">Workspace <span aria-hidden="true">·</span> <span className="font-medium text-foreground">{organization.name}</span></p>
+                        {now && <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground sm:hidden">
+                            <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
+                            {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}
+                        </p>}
                     </div>
-                    {now && <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-base font-medium tabular-nums text-foreground">
+                    <div aria-hidden="true" className="relative mt-1 h-[4.75rem] w-[5.5rem] shrink-0 sm:hidden">
+                        <MoodIcon mood="happy" variant="mobile" className="absolute left-0 top-3 size-10 -rotate-12" />
+                        <MoodIcon mood="excited" variant="mobile" className="absolute right-1 top-0 size-12 rotate-6" />
+                        <MoodIcon mood="stressed" variant="mobile" className="absolute bottom-0 right-0 size-10 rotate-12" />
+                    </div>
+                    {now && <div className="hidden min-h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-base font-medium tabular-nums text-foreground sm:flex">
                         <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                        <span className="sm:hidden">{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}</span>
-                        <span className="hidden sm:inline">{now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}</span>
+                        {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}
                     </div>}
                 </header>
 
@@ -87,26 +98,27 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     <section className={panel} aria-labelledby="today-pulse-heading">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h2 id="today-pulse-heading" className="text-lg font-semibold leading-6 tracking-tight">Team pulse</h2>
-                            <span className="text-xs text-muted-foreground">{logs} {logs === 1 ? "check-in" : "check-ins"} today</span>
+                            <span className="hidden text-xs text-muted-foreground sm:inline">{logs} {logs === 1 ? "check-in" : "check-ins"} today</span>
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-0 sm:divide-x sm:divide-border md:mt-6 md:gap-6">
                             <div className="min-w-0 sm:pr-4 md:pr-6">
                                 <h3 className="text-sm font-semibold text-foreground">Team temperature</h3>
-                                <p className="mt-2 text-3xl font-semibold leading-none tracking-tight tabular-nums text-primary sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
-                                <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
+                                <p className="mt-2 text-4xl font-semibold leading-none tracking-tight tabular-nums text-primary">{temperature === null ? "—" : `${temperature}%`}</p>
+                                <p className="mt-2 hidden text-sm leading-5 text-muted-foreground sm:block">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
+                                <p className="mt-2 text-sm leading-5 text-muted-foreground sm:hidden">{logs ? "Happy or Excited" : "No check-ins yet"}</p>
 
                             </div>
                             <div className="min-w-0 border-l border-border pl-3 sm:border-0 sm:pl-4 md:pl-6">
                                 <h3 className="text-sm font-semibold text-foreground">Participation</h3>
                                 <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                    <strong className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-primary sm:text-4xl">{participants}</strong>
-                                    <span className="text-xs leading-5 text-muted-foreground sm:text-sm">of {members} active members</span>
+                                    <strong className="text-4xl font-semibold leading-none tracking-tight tabular-nums text-primary">{participants}</strong>
+                                    <span className="text-sm leading-5 text-muted-foreground">of {members} active members</span>
                                 </p>
                                 <div className="mt-3 hidden sm:block">
                                     <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
                                         <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
                                     </div>
-                                    <p className="mt-3 text-xs text-muted-foreground">{participation}% of active members checked in</p>
+                                    <p className="mt-3 text-sm text-muted-foreground">{participation}% of active members checked in</p>
                                 </div>
                             </div>
                         </div>
@@ -114,18 +126,16 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                             <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
                                 <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
                             </div>
-                            <p className="mt-2 text-xs text-muted-foreground">{participation}% checked in</p>
                         </div>
                         <div className="mt-4 border-t border-border pt-4 sm:hidden">
                             <div className="flex items-baseline justify-between gap-2">
-                                <h3 className="text-sm font-semibold">Mood mix</h3>
-                                <span className="text-xs text-muted-foreground">{logs ? `From ${logs} ${logs === 1 ? "check-in" : "check-ins"}` : "No check-ins yet"}</span>
+                                <h3 className="text-base font-semibold">Mood mix</h3>
                             </div>
                             {logs > 0 ? <ul className="mt-3 flex flex-wrap gap-2" aria-label={`Today's moods from ${logs} check-ins`}>
                                 {distribution.filter(item => item.value > 0).map(item => <li key={item.key} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-muted/70 py-1 pl-1.5 pr-3 text-sm">
                                     <MoodIcon mood={item.key} variant="mobile" className="size-7 shrink-0" />
                                     <span className="font-medium">{item.label}</span>
-                                    <span className="text-xs tabular-nums text-muted-foreground">{item.value}</span>
+                                    <span className="text-[0.8125rem] tabular-nums text-muted-foreground">{item.value}</span>
                                 </li>)}
                             </ul> : <p className="mt-2 text-sm text-muted-foreground">Mood check-ins will appear here.</p>}
                         </div>
@@ -163,10 +173,13 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                         <div className="mb-4 sm:mb-5">
                             <div className="flex items-center justify-between gap-3">
                                 <h2 className="text-lg font-semibold leading-6 tracking-tight">This week</h2>
-                                <Link href={`/${organization._id}/analytics`} className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">Explore analytics</Link>
+                                <Link href={`/${organization._id}/analytics`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
+                                    See full analytics
+                                    <ArrowUpRight className="size-4" aria-hidden="true" />
+                                </Link>
                             </div>
                             <div>
-                                <p className="mt-1.5 text-xs text-muted-foreground sm:text-sm">{weeklyParticipationText}</p>
+                                <p className="mt-1.5 text-sm text-muted-foreground">{weeklyParticipationText}</p>
                             </div>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-60 sm:p-0" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
