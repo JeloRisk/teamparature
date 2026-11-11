@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Nunito, Titan_One } from "next/font/google";
 import "./globals.css";
 
 import "nprogress/nprogress.css";
 import TopProgressBarClientWrapper from "./components/TopProgressBarClientWrapper";
+import PwaServiceWorker from "./components/PwaServiceWorker";
 
 import { ReactNode } from "react";
 import { Provider } from "./provider";
@@ -33,11 +34,25 @@ const titanOne = Titan_One({
 // Site metadata
 export const metadata: Metadata = {
   title: "Teamparature – Team Mood Tracking",
+  applicationName: "Teamparature",
+  manifest: "/site.webmanifest",
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.ico",
     apple: "/logo.png",
   },
+  appleWebApp: {
+    capable: true,
+    title: "Teamparature",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -50,6 +65,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="font-sans antialiased" suppressHydrationWarning={true}>
         <Provider>
           <AuthSync />
+          <PwaServiceWorker />
           <TopProgressBarClientWrapper />
           {children}
         </Provider>

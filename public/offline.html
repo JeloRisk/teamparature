@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Offline · Teamparature</title>
+  <style>
+    :root { color-scheme: light; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #202442; background: #fff; }
+    * { box-sizing: border-box; }
+    body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: 24px; }
+    main { width: min(100%, 360px); text-align: center; }
+    .mark { width: 56px; height: 56px; margin: 0 auto 20px; display: grid; place-items: center; border-radius: 16px; color: #4f5ed9; background: #e4e9ff; }
+    h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.025em; }
+    p { margin: 10px 0 22px; color: #626d91; font-size: 15px; line-height: 1.55; }
+    button { min-height: 44px; padding: 0 20px; border: 0; border-radius: 12px; color: #fff; background: #4f5ed9; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #a7b2ff; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="mark" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3.5 7.7 8.5 4.4 8.5-4.4M12 12v8.5"/><path d="M8 5l9 4.5"/></svg>
+    </span>
+    <h1>You’re offline</h1>
+    <p>Reconnect to see the latest team check-ins and workspace updates.</p>
+    <button type="button" onclick="window.location.reload()">Try again</button>
+  </main>
+</body>
+</html>

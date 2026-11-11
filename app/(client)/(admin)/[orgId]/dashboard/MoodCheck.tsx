@@ -1,6 +1,7 @@
 "use client"
 
 import MoodIcon from "@/app/components/MoodIcon"
+import { Check } from "lucide-react"
 import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
 
@@ -65,14 +66,14 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     }
 
     return (
-        <div className={compact ? "flex flex-col gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
+        <div className={compact ? "flex flex-col gap-4 sm:gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
 
             {/* glow effects */}
             <div className={`${compact ? "hidden" : ""} absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl`} />
             {!compact && <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />}
 
             {/* HEADER */}
-            <div className="relative flex items-start justify-between gap-4">
+            {!(compact && summary?.checkedInToday) && <div className="relative flex items-start justify-between gap-4">
                 <div>
                     {/* <p className="text-xs font-medium text-primary">
                         Today’s check-in
@@ -85,14 +86,20 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                 </div>
 
                 {!compact && <MoodIcon mood="happy" className="size-11" />}
-            </div>
+            </div>}
 
             {/* CONTENT */}
             <div className={compact ? "w-full" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div role="status" className="flex min-h-11 items-center rounded-xl bg-accent/40 px-4 py-2 text-sm">
-                        <p className="font-medium">Your check-in is saved. See you tomorrow.</p>
+                    <div role="status" className={`flex items-center gap-3 text-sm text-foreground ${compact ? "min-h-12" : "min-h-14 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3"}`}>
+                        <span className={`flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mood-excited)_18%,var(--card))] text-[var(--mood-excited)] ${compact ? "size-8" : "size-9"}`}>
+                            <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />
+                        </span>
+                        {compact ? <div className="min-w-0">
+                            <p className="font-semibold leading-5">You’re all set for today.</p>
+                            <p className="text-xs leading-4 text-muted-foreground">Check-in saved. See you tomorrow.</p>
+                        </div> : <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>}
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
@@ -102,7 +109,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className={`group col-span-2 flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1.5 py-2 transition-[filter,transform] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}
+                                    className={`group col-span-2 flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1.5 py-2 transition-[filter,transform] hover:brightness-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}
                                     style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
                                     <MoodIcon mood={value} variant="mobile" className="size-11 sm:size-12" />
                                     <span className="text-xs font-medium leading-4 text-foreground">{label}</span>

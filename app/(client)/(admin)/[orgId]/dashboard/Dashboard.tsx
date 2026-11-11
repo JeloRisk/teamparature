@@ -43,6 +43,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const distribution = moodOptions.map(item => ({ ...item, value: today?.[item.key] ?? 0 }))
     const logs = distribution.reduce((sum, item) => sum + item.value, 0)
     const checkInsThisWeek = trend.reduce((sum, day) => sum + moodOptions.reduce((daySum, item) => daySum + day[item.key], 0), 0)
+    const activeWeeklyMoods = moodOptions.filter(item => trend.some(day => day[item.key] > 0))
     const positiveCheckIns = (today?.happy ?? 0) + (today?.excited ?? 0)
     const members = ownerCount + memberCount
     const participants = summary?.participantsToday ?? 0
@@ -68,7 +69,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                 <header className="flex flex-wrap items-start justify-between gap-3 pb-4 sm:items-end sm:gap-4 sm:pb-5">
                     <div className="min-w-0">
                         <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Team mood</h1>
-                        <p className="mt-1.5 break-words text-sm text-muted-foreground">Workspace <span aria-hidden="true">·</span> <span className="font-medium text-foreground">{organization.name}</span></p>
+                        <p className="mt-1.5 hidden break-words text-sm text-muted-foreground sm:block">Workspace <span aria-hidden="true">·</span> <span className="font-medium text-foreground">{organization.name}</span></p>
                     </div>
                     {now && <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-base font-medium tabular-nums text-foreground">
                         <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
@@ -85,36 +86,70 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </section>
                     <section className={panel} aria-labelledby="today-pulse-heading">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h2 id="today-pulse-heading" className="text-lg font-semibold leading-6 tracking-tight">Today</h2>
-                            <span className="text-xs text-muted-foreground">{logs} {logs === 1 ? "check-in" : "check-ins"}</span>
+                            <h2 id="today-pulse-heading" className="text-lg font-semibold leading-6 tracking-tight">Team pulse</h2>
+                            <span className="text-xs text-muted-foreground">{logs} {logs === 1 ? "check-in" : "check-ins"} today</span>
                         </div>
-                        <div className="mt-4 grid gap-4 min-[380px]:grid-cols-2 min-[380px]:gap-0 min-[380px]:divide-x min-[380px]:divide-border md:mt-6 md:gap-6">
-                            <div className="min-w-0 min-[380px]:pr-4 md:pr-6">
+                        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-0 sm:divide-x sm:divide-border md:mt-6 md:gap-6">
+                            <div className="min-w-0 sm:pr-4 md:pr-6">
                                 <h3 className="text-sm font-semibold text-foreground">Team temperature</h3>
-                                <p className="mt-2 text-4xl font-semibold leading-none tracking-tight tabular-nums">{temperature === null ? "—" : `${temperature}%`}</p>
-                                <p className="mt-2 text-sm text-muted-foreground">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
+                                <p className="mt-2 text-3xl font-semibold leading-none tracking-tight tabular-nums text-primary sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
+                                <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
 
                             </div>
-                            <div className="min-w-0 min-[380px]:pl-4 md:pl-6">
+                            <div className="min-w-0 border-l border-border pl-3 sm:border-0 sm:pl-4 md:pl-6">
                                 <h3 className="text-sm font-semibold text-foreground">Participation</h3>
                                 <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                    <strong className="text-4xl font-semibold leading-none tracking-tight tabular-nums">{participants}</strong>
-                                    <span className="text-sm text-muted-foreground">of {members} active members checked in</span>
+                                    <strong className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-primary sm:text-4xl">{participants}</strong>
+                                    <span className="text-xs leading-5 text-muted-foreground sm:text-sm">of {members} active members</span>
                                 </p>
-                                <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
-                                    <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
+                                <div className="mt-3 hidden sm:block">
+                                    <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
+                                        <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
+                                    </div>
+                                    <p className="mt-3 text-xs text-muted-foreground">{participation}% of active members checked in</p>
                                 </div>
-                                <p className="mt-3 text-xs text-muted-foreground">{participation}% of active members</p>
                             </div>
+                        </div>
+                        <div className="mt-4 sm:hidden">
+                            <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
+                                <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground">{participation}% checked in</p>
+                        </div>
+                        <div className="mt-4 border-t border-border pt-4 sm:hidden">
+                            <div className="flex items-baseline justify-between gap-2">
+                                <h3 className="text-sm font-semibold">Mood mix</h3>
+                                <span className="text-xs text-muted-foreground">{logs ? `From ${logs} ${logs === 1 ? "check-in" : "check-ins"}` : "No check-ins yet"}</span>
+                            </div>
+                            {logs > 0 ? <ul className="mt-3 flex flex-wrap gap-2" aria-label={`Today's moods from ${logs} check-ins`}>
+                                {distribution.filter(item => item.value > 0).map(item => <li key={item.key} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-muted/70 py-1 pl-1.5 pr-3 text-sm">
+                                    <MoodIcon mood={item.key} variant="mobile" className="size-7 shrink-0" />
+                                    <span className="font-medium">{item.label}</span>
+                                    <span className="text-xs tabular-nums text-muted-foreground">{item.value}</span>
+                                </li>)}
+                            </ul> : <p className="mt-2 text-sm text-muted-foreground">Mood check-ins will appear here.</p>}
                         </div>
                     </section>
                 </div>
 
                 <div className="grid min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.7fr)]">
-                    <section className={`${panel} min-w-0`}>
+                    <section className={`${panel} hidden min-w-0 sm:block`}>
                         <h2 className="text-lg font-semibold leading-6 tracking-tight">Today&apos;s mood mix</h2>
                         <p className="mt-1 text-sm leading-5 text-muted-foreground">{logs ? "Percent of today’s check-ins" : "No responses yet"}</p>
-                        <div className="mt-4 flex flex-col gap-4 sm:mt-5">
+                        <div className="mt-4 sm:hidden">
+                            <div className="flex h-3 overflow-hidden rounded-full bg-muted" role="img" aria-label={logs ? `Mood mix from ${logs} check-ins` : "No mood check-ins today"}>
+                                {distribution.filter(item => item.value > 0).map(item => <span key={item.key} className="h-full min-w-1" style={{ backgroundColor: item.color, width: `${item.value / logs * 100}%` }} />)}
+                            </div>
+                            <ul className="mt-2 divide-y divide-border/70">
+                                {distribution.map(item => <li key={item.key} className="flex min-h-11 items-center gap-2.5 py-1.5">
+                                    <MoodIcon mood={item.key} variant="mobile" className="size-8 shrink-0" />
+                                    <span className="min-w-0 flex-1 text-sm font-medium">{item.label}</span>
+                                    <span className="tabular-nums text-sm font-medium">{logs ? Math.round(item.value / logs * 100) : 0}%</span>
+                                    <span className="w-6 text-right text-xs tabular-nums text-muted-foreground">{item.value}</span>
+                                </li>)}
+                            </ul>
+                        </div>
+                        <div className="mt-4 hidden flex-col gap-4 sm:mt-5 sm:flex">
                             {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
                                 <MoodIcon mood={item.key} variant="mobile" className="size-9 shrink-0" />
                                 <div className="min-w-0 flex-1"><div className="mb-1.5 flex items-center justify-between gap-2 text-sm"><span className="font-medium">{item.label}</span><span className="tabular-nums text-muted-foreground">{logs ? Math.round(item.value / logs * 100) : 0}% <span className="ml-1 text-xs">({item.value})</span></span></div>
@@ -134,8 +169,8 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                 <p className="mt-1.5 text-xs text-muted-foreground sm:text-sm">{weeklyParticipationText}</p>
                             </div>
                         </div>
-                        {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 sm:h-60" role="img" aria-label="Stacked bar chart showing daily check-in counts for each mood over seven days">
-                            <ResponsiveContainer width="100%" height="100%"><BarChart data={trend} margin={{ top: 10, right: 40, bottom: 0, left: 0 }} barCategoryGap="28%">
+                        {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-60 sm:p-0" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
+                            <ResponsiveContainer width="100%" height="100%"><BarChart data={trend} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
                                 <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
                                 <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={10} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
                                 <YAxis domain={[0, (dataMax: number) => Math.max(1, dataMax)]} allowDecimals={false} tickLine={false} axisLine={false} width={28} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
@@ -146,7 +181,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                     dataKey={item.key}
                                     stackId="moods"
                                     fill={item.color}
-                                    maxBarSize={48}
+                                    maxBarSize={40}
                                     shape={(props: BarProps) => {
                                         const rect = props as unknown as BarRectangleItem
                                         const day = trend[Number(props.index)]
@@ -163,7 +198,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                 />)}
                             </BarChart></ResponsiveContainer>
                         </div> : <div className="flex h-60 items-center justify-center text-center text-sm text-muted-foreground">Check-ins will appear here as your team logs a mood.</div>}
-                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 border-t border-border pt-3 sm:mt-4 sm:gap-x-5 sm:pt-4">{moodOptions.map(item => <span key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}</div>
+                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 border-t border-border pt-3 sm:mt-4 sm:gap-x-5 sm:pt-4">{activeWeeklyMoods.map(item => <span key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}</div>
                     </div>
 
                 </section>
