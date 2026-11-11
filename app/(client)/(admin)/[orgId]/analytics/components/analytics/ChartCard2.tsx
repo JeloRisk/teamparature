@@ -10,7 +10,7 @@ interface ChartCardProps {
 
 export default function ChartCard2({ title, action, children }: ChartCardProps) {
     return (
-        <Card className="rounded-2xl bg-card dark:bg-card border border-border dark:border-border shadow-sm relative">
+        <Card className="relative rounded-2xl border border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <CardTitle className="text-lg font-semibold">{title}</CardTitle>
                 {action}

@@ -222,8 +222,12 @@
   .auth-ambient { animation: none; }
 }
 
-.analytics-page {
-  --muted-foreground: #46516e;
+.analytics-page [data-slot="card"] {
+  box-shadow: none;
+}
+
+.dashboard-reference-theme .analytics-page :is([data-slot="card-title"], .analytics-kpi-value) {
+  font-family: var(--font-dashboard-heading), var(--font-geist-sans), sans-serif;
 }
 
 .analytics-page .text-muted-foreground {
@@ -235,6 +239,3 @@
   font-weight: 500;
 }
 
-.dark .analytics-page {
-  --muted-foreground: #b5bfdc;
-}

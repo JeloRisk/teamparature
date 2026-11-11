@@ -10,11 +10,11 @@ import ChartCard2 from "./components/analytics/ChartCard2";
 import { leadingMoods, heatmapMoods, type HeatmapCell, type HeatmapMood } from "@/lib/mood-heatmap";
 
 const moodColors: Record<HeatmapMood, string> = {
-    happy: "#fb923c",
-    excited: "#f97316",
-    neutral: "#a3a3a3",
-    sad: "#60a5fa",
-    stressed: "#8b5cf6",
+    happy: "#f4d47a",
+    excited: "#5acfa8",
+    neutral: "#c0c0c5",
+    sad: "#f19b9f",
+    stressed: "#a783e7",
 };
 
 const moodToNumber: Record<HeatmapMood, number> = {
@@ -67,15 +67,15 @@ function groupByMonthAndWeek(cells: HeatmapCell[], year: number, asOfDate: strin
 export default function MoodHeatmapApex({ moods, year, asOfDate, latestYear, onYearChange }: { moods: HeatmapCell[]; year: number; timezone: string; asOfDate: string; latestYear: number; onYearChange: (year: number) => void }) {
     const { resolvedTheme } = useTheme();
     const dark = resolvedTheme === "dark";
-    const empty = dark ? "#29314b" : "#edf0fa";
-    const label = dark ? "#a9b2d0" : "#46516e";
+    const empty = dark ? "#342a36" : "#f2eff2";
+    const label = dark ? "#c1b2c2" : "#6d646d";
     const series = groupByMonthAndWeek(moods, year, asOfDate);
 
     const options: ApexCharts.ApexOptions = {
         chart: { type: "heatmap", toolbar: { show: false }, background: "transparent", foreColor: label },
         theme: { mode: dark ? "dark" : "light" },
         legend: { show: false },
-        stroke: { width: 3, colors: [dark ? "#1e2438" : "#fcfcff"] },
+        stroke: { width: 3, colors: [dark ? "#2b232c" : "#ffffff"] },
         grid: { show: false },
         dataLabels: { enabled: false },
         colors: [empty],

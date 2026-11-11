@@ -27,27 +27,14 @@ import ChartCard from "./components/analytics/ChartCard"
 //
 // --- Constants ---
 //
-const FIRE = {
-    red: "#ef4444",
-    ember: "#f97316",
-    glow: "#fb923c",
-}
-const ICE = {
-    blue: "#3b82f6",
-    ice: "#60a5fa",
-    frost: "#93c5fd",
-    purple: "#8b5cf6",
-}
-const ASH = "#a3a3a3"
-
 type MoodType = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
 const MOOD_COLORS: Record<MoodType, string> = {
-    happy: FIRE.glow,
-    excited: FIRE.ember,
-    neutral: ASH,
-    sad: ICE.ice,
-    stressed: ICE.purple,
+    happy: "var(--mood-happy)",
+    excited: "var(--mood-excited)",
+    neutral: "var(--mood-neutral)",
+    sad: "var(--mood-sad)",
+    stressed: "var(--mood-stressed)",
 }
 
 //
@@ -162,7 +149,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
 
             {/* Page heading follows the dashboard title hierarchy. */}
-            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+            <header className="flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
                 <div>
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Team mood</h1>
                 </div>
