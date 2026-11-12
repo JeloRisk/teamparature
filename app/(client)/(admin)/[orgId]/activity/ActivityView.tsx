@@ -139,9 +139,9 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         </TableHead>
     }
 
-    return <div className="dashboard-reference-theme -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
-    <div className="mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
-        <header className="flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
+    return <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+    <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
+        <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
             <div>
                 <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
                 <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">A record of invitations, membership changes, and workspace updates.</p>
@@ -211,7 +211,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                         {group.entries.map(entry => <article key={entry._id} className="space-y-2 px-4 py-4">
                             <div className="flex min-w-0 items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <p className="break-words text-sm font-semibold leading-5 text-foreground"><ActionLabel action={entry.action} /></p>
+                                    <p className="break-words text-base font-semibold leading-6 text-foreground"><ActionLabel action={entry.action} /></p>
                                     <p className="mt-1.5 break-all rounded-lg bg-secondary/50 px-2.5 py-1.5 text-sm leading-5 text-foreground">{entry.targetLabel}</p>
                                 </div>
                                 <OutcomeBadge outcome={entry.outcome} />

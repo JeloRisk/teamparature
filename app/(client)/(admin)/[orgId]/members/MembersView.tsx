@@ -189,10 +189,10 @@ export default function MembersPage() {
     if (!organization) return <p>No organization found</p>
 
     return (
-        <div className="-m-4 flex-1 bg-background px-4 py-6 md:-mx-10 md:px-10 sm:py-8">
-        <div className="mx-auto max-w-7xl space-y-6 sm:space-y-7">
+        <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 md:-mx-10 md:px-10 sm:py-8">
+        <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-5 sm:space-y-7">
             {/* header */}
-            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+            <header className="mobile-page-header flex flex-wrap items-center justify-between gap-3 pb-1 sm:border-b sm:border-border sm:pb-5">
                 <div>
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">People</h1>
                     <p className="mt-1.5 text-sm text-muted-foreground">{organization.name}</p>
@@ -205,11 +205,11 @@ export default function MembersPage() {
                         if (open) setInviteError("")
                     }}>
                         <DialogTrigger asChild>
-                            <Button className="min-h-11 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90">
+                            <Button className="min-h-11 w-full rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90 sm:w-auto">
                                 <UserPlus className="mr-2 size-4" aria-hidden="true" />Invite member
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-h-[85dvh] overflow-y-auto rounded-2xl">
                             <DialogHeader>
                                 <DialogTitle>Invite a new member</DialogTitle>
                                 <DialogDescription>
@@ -235,7 +235,7 @@ export default function MembersPage() {
                                     <div className="grid gap-2">
                                         <Label htmlFor="invite-role">Workspace role</Label>
                                         <Select value={inviteRole} onValueChange={(val) => setInviteRole(val as "owner" | "member")}>
-                                            <SelectTrigger id="invite-role">
+                                            <SelectTrigger id="invite-role" className="min-h-11 w-full">
                                                 <SelectValue placeholder="Select role" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -253,7 +253,7 @@ export default function MembersPage() {
                                 </div>
 
                                 <DialogFooter>
-                                    <Button type="submit" className="bg-primary hover:bg-primary text-primary-foreground" disabled={sending}>
+                                    <Button type="submit" className="min-h-11 w-full sm:w-auto bg-primary hover:bg-primary text-primary-foreground" disabled={sending}>
                                         {sending ? "Sending…" : "Send invitation"}
                                     </Button>
                                 </DialogFooter>
@@ -264,7 +264,7 @@ export default function MembersPage() {
             </header>
 
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div role="tablist" aria-label="Workspace people" className="flex w-fit shrink-0 gap-1 rounded-xl border border-border bg-card p-1">
+            <div role="tablist" aria-label="Workspace people" className="grid w-full grid-cols-2 shrink-0 gap-1 rounded-2xl border border-border bg-card p-1 sm:flex sm:w-fit">
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         tabIndex={tab === item ? 0 : -1}
@@ -281,25 +281,26 @@ export default function MembersPage() {
                             setTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
                             nextTab.focus()
                         }}
-                        className={`min-h-11 rounded-lg px-4 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
+                        className={`min-h-11 min-w-0 whitespace-nowrap rounded-lg px-2 py-2 text-sm sm:px-4 font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
                         <span>{item}</span>
-                        {item === "invitations" && <span className={`ml-2 text-xs tabular-nums ${tab === item ? "text-accent-foreground/75" : "text-muted-foreground"}`}>{pendingCount} pending</span>}
+                        {item === "invitations" && <span className={`ml-2 text-xs tabular-nums ${tab === item ? "text-accent-foreground/75" : "text-muted-foreground"}`}>{pendingCount}<span className="hidden sm:inline"> pending</span></span>}
                     </button>
                 ))}
             </div>
 
             {/* filters */}
-            <div className="grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:flex xl:items-center xl:justify-end">
-                <div className="relative col-span-1 w-full min-[420px]:col-span-2 xl:col-span-1 xl:max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-3 size-4 text-slate-400" aria-hidden="true" />
+            <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:gap-3 xl:flex xl:items-center xl:justify-end">
+                <div className="relative col-span-2 w-full xl:col-span-1 xl:max-w-sm">
+                <Search className="pointer-events-none absolute left-3 top-3.5 left-3 size-4 text-muted-foreground" aria-hidden="true" />
                 <Input
                     aria-label="Search members and invitations"
                     placeholder={tab === "members" ? "Search name or email…" : "Search invitation email…"}
                     value={search}
                     onChange={(e) => { setPage(1); setSearch(e.target.value) }}
-                    className="min-h-11 rounded-xl border-border dark:border-border bg-card dark:bg-card pl-9 focus-visible:ring-ring/25"
+                    className="min-h-11 rounded-xl border-border dark:border-border bg-card dark:bg-card pl-10 text-base sm:text-sm focus-visible:ring-ring/25"
                 />
                 </div>
+                <details className="group col-span-2 min-w-0 sm:contents"><summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-xl border border-border px-4 text-sm font-medium sm:hidden">Filters<span className="text-muted-foreground">{hasActiveFilters ? "Applied" : "Role & access"}</span></summary><div className="mt-3 hidden grid-cols-1 gap-3 group-open:grid sm:mt-0 sm:contents">
                 <Select value={roleFilter} onValueChange={value => { setPage(1); setRoleFilter(value) }}>
                     <SelectTrigger className="min-h-11 w-full rounded-xl border-border bg-card focus:ring-ring/25 xl:w-40">
                         <SelectValue placeholder="Filter by role" />
@@ -328,6 +329,8 @@ export default function MembersPage() {
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                 </Select>}
+                </div></details>
+
             </div>
             </div>
 
@@ -429,23 +432,23 @@ export default function MembersPage() {
             <div role="tabpanel" id="members-panel" aria-labelledby="members-tab" className="rounded-2xl border border-border dark:border-border bg-card dark:bg-card overflow-hidden">
                 <div className="divide-y divide-border lg:hidden">
                     {filteredMembers.map((m) => (
-                        <div key={m._id} className="flex min-w-0 items-center justify-between gap-3 px-3 py-4">
-                            <div className="flex min-w-0 items-start gap-3">
-                                <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-xs font-semibold text-accent-foreground">
+                        <div key={m._id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1 px-4 py-4">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                                     {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
                                 </div>
-                                <div className="min-w-0 space-y-1">
-                                    <p className="truncate font-medium">{getMemberName(m.user)}</p>
-                                    <p className="break-all text-sm text-muted-foreground">{m.user?.email ?? "—"}</p>
-                                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                                        <Badge variant="outline" className="capitalize">{m.role}</Badge>
+                                <div className="min-w-0">
+                                    <p className="break-words text-base font-semibold leading-6">{getMemberName(m.user)}</p><p className="mt-0.5 text-sm leading-5 text-muted-foreground [overflow-wrap:anywhere]">{m.user?.email ?? "—"}</p>
+                                </div>
+                            </div>
+                            <div className={m.isActive === false ? "col-span-2 row-start-4 justify-self-start" : "col-start-2 row-start-1 shrink-0"}>{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : null}</div>
+                            
+                                    <div className="col-span-2 flex flex-wrap items-center gap-2 pl-[52px]">
+                                        <Badge variant="outline" className={`capitalize ${m.role === "owner" ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200" : "border-border bg-accent text-accent-foreground"}`}>{m.role}</Badge>
                                         <Badge variant="outline" className={m.isActive === false ? "border-border bg-muted text-muted-foreground" : "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"}>
                                             {m.isActive === false ? "Removed" : "Active"}
                                         </Badge>
                                     </div>
-                                </div>
-                            </div>
-                            <div className="shrink-0">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : null}</div>
                         </div>
                     ))}
                     {filteredMembers.length === 0 && (
@@ -472,7 +475,7 @@ export default function MembersPage() {
                                 <TableRow key={m._id} className="hover:bg-accent/50 dark:hover:bg-[#303740]/50 transition">
                                     <TableCell>
                                         <div className="flex min-w-0 items-center gap-3">
-                                            <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-xs font-semibold text-accent-foreground">
+                                            <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                                                 {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
                                             </div>
                                             <span className="min-w-0 truncate font-medium">

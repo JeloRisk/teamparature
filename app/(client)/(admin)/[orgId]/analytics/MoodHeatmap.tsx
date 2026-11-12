@@ -6,6 +6,8 @@ import { ChevronDown } from "lucide-react";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 import { format } from "date-fns";
 import ChartCard2 from "./components/analytics/ChartCard2";
+import MoodIcon from "@/app/components/MoodIcon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 
 import { leadingMoods, heatmapMoods, type HeatmapCell, type HeatmapMood } from "@/lib/mood-heatmap";
 
@@ -123,7 +125,7 @@ export default function MoodHeatmapApex({ moods, year, asOfDate, latestYear, onY
     };
 
     return (
-        <ChartCard2 title="Team Emotional Heatmap" action={
+        <ChartCard2 title="Emotion heatmap" action={
             <div className="relative">
                 <select aria-label="Heatmap year" value={year} onChange={event => onYearChange(Number(event.target.value))} className="h-9 appearance-none rounded-lg border border-border bg-background pl-3 pr-10 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                     {Array.from({ length: latestYear - 1999 }, (_, index) => latestYear - index).map(optionYear => <option key={optionYear} value={optionYear}>{optionYear}</option>)}
@@ -134,16 +136,53 @@ export default function MoodHeatmapApex({ moods, year, asOfDate, latestYear, onY
             <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                 {Object.entries(moodColors).map(([mood, color]) => <li key={mood} className="flex items-center gap-2 capitalize"><span className="size-3 rounded-sm" style={{ backgroundColor: color }} />{mood}</li>)}
                 <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#8894bf" : "#bec8ed" }} />Tied moods</li>
-                <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: empty }} />No entry</li>
-                <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: dark ? "#343b56" : "#e1e6f2" }} />Not yet occurred</li>
             </ul>
-            <div className="w-full min-w-0 overflow-hidden">
-            <ReactApexChart
-                options={options}
-                series={series}
-                type="heatmap"
-                height={350}
-            />
+            <div className="w-full min-w-0" role="region" aria-label="Yearly mood heatmap">
+            <div className="w-full min-w-0 space-y-2">
+            <div className="grid grid-cols-[2rem_repeat(12,minmax(0,1fr))] gap-x-0.5 text-center text-[9px] font-medium leading-4 text-muted-foreground sm:grid-cols-[3.5rem_repeat(12,minmax(0,1fr))] sm:gap-x-1.5 sm:text-xs">
+                    <span />{series[0].data.map(point => <span key={point.x}>{point.x}</span>)}
+                </div>
+                {series.map((week, weekIndex) => <div key={week.name} className="grid grid-cols-[2rem_repeat(12,minmax(0,1fr))] items-center gap-x-0.5 sm:grid-cols-[3.5rem_repeat(12,minmax(0,1fr))] sm:gap-x-1.5">
+                    <span className="whitespace-nowrap text-[9px] text-muted-foreground sm:text-xs">
+                        <span aria-hidden="true" className="sm:hidden">W{weekIndex + 1}</span>
+                        <span className="hidden sm:inline">{week.name}</span>
+                        <span className="sr-only sm:hidden">{week.name}</span>
+                    </span>
+                    {week.data.map((point, monthIndex) => {
+                        const mood = point.leaders[0];
+                        const displayMoods: HeatmapMood[] = point.leaders.length > 1 ? ["neutral"] : point.leaders;
+                        const bg = !point.applicable ? (point.future ? (dark ? "#343b56" : "#e1e6f2") : "transparent")
+                            : !point.total ? empty
+                                : moodColors[displayMoods[0] ?? "neutral"];
+                        const label = !point.applicable ? (point.future ? "Not yet occurred" : "No days in this week")
+                            : !point.total ? "No check-ins" : point.leaders.length > 1
+                                ? `Tied moods: ${point.leaders.join(", ")}` : `${mood} was most common`;
+                        const breakdown = heatmapMoods.map(name => `${name}: ${point.counts[name] ?? 0}`).join(", ");
+                        return <Tooltip key={`${weekIndex}-${monthIndex}`}>
+                            <TooltipTrigger asChild>
+                                <div tabIndex={0} role="img" aria-label={`${point.range}. ${label}${point.total ? `, ${point.total} check-ins` : ""}`} className="group relative z-0 grid aspect-square min-w-0 cursor-pointer place-items-center rounded-md transition-[transform,box-shadow] duration-150 ease-out hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" style={{ backgroundColor: bg }}>
+                                    {point.total > 0 && <div className="flex items-center justify-center">
+                                        {displayMoods.map(topMood => <MoodIcon key={topMood} mood={topMood} className="h-auto w-[82%] max-w-14" variant="mobile" />)}
+                                    </div>}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" sideOffset={8} className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
+                                <p className="text-xs font-medium text-muted-foreground">{point.range}</p>
+                                <div className="mt-2 flex items-center gap-2">
+                                    {point.total > 0 && <MoodIcon mood={displayMoods[0] ?? "neutral"} className="size-9 shrink-0" variant="mobile" />}
+                                    <div className="min-w-0">
+                                        <p className="font-semibold capitalize">{label}</p>
+                                        <p className="text-xs text-muted-foreground">{point.total ? `${point.total} check-ins` : "No check-ins"}</p>
+                                    </div>
+                                </div>
+                                {point.total > 0 && <div className="mt-3 grid grid-cols-5 gap-1 border-t border-border pt-2">
+                                    {heatmapMoods.map(name => <div key={name} className="flex flex-col items-center gap-1 text-[10px] capitalize text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: moodColors[name] }} />{point.counts[name] ?? 0}</div>)}
+                                </div>}
+                            </TooltipContent>
+                        </Tooltip>;
+                    })}
+                </div>)}
+            </div>
             </div>
         </ChartCard2>
     );

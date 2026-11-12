@@ -64,9 +64,9 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     if (!summary && !error) return <DashboardSkeleton />
 
     return (
-        <div className="dashboard-reference-theme -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
-            <div className="mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
-                <header className="flex flex-wrap items-start justify-between gap-3 pb-4 sm:items-end sm:gap-4 sm:pb-5">
+        <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+            <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
+                <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 pb-4 sm:items-end sm:gap-4 sm:pb-5">
                     <div className="min-w-0">
                         <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-3xl">
                             <span className="sm:hidden">Welcome back</span>

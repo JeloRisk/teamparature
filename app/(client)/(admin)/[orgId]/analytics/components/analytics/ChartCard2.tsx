@@ -11,8 +11,8 @@ interface ChartCardProps {
 export default function ChartCard2({ title, action, children }: ChartCardProps) {
     return (
         <Card className="relative rounded-2xl border border-border bg-card">
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-                <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
+                <CardTitle className="min-w-0 text-[15px] font-semibold leading-5 tracking-tight sm:text-lg">{title}</CardTitle>
                 {action}
             </CardHeader>
             <CardContent>

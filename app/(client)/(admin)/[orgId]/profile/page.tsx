@@ -23,9 +23,9 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="dashboard-reference-theme -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
-            <div className="mx-auto min-w-0 max-w-3xl space-y-4 sm:space-y-5">
-                <header className="pb-2">
+        <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+            <div className="mobile-page-content mx-auto min-w-0 max-w-3xl space-y-4 sm:space-y-5">
+                <header className="mobile-page-header pb-2">
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Profile</h1>
                     <p className="mt-1.5 text-sm text-muted-foreground">Your account and workspaces</p>
                 </header>

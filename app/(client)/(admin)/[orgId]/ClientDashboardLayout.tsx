@@ -16,7 +16,7 @@ import {
 } from "@/app/components/ui/breadcrumb"
 import { AppSidebar } from "@/app/components/AppSidebar"
 import ThemeToggle from "@/app/components/ThemeToggle"
-import { BarChart3, Building2, Check, ChevronDown, History, LayoutDashboard, Menu, UserRound, Users } from "lucide-react"
+import { BarChart3, Building2, Check, ChevronDown, History, LayoutDashboard, Menu, Users } from "lucide-react"
 import { usePathname } from "next/navigation"
 import AnalyticsRangePicker from "./analytics/AnalyticsRangePicker"
 import {
@@ -135,9 +135,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
     const mobileOwnerNavigation = [
         { label: "Home", href: `/${organization._id}`, icon: LayoutDashboard },
         { label: "Members", href: `/${organization._id}/members`, icon: Users },
-        { label: "Activity", href: `/${organization._id}/activity`, icon: History },
         { label: "Analytics", href: `/${organization._id}/analytics`, icon: BarChart3 },
-        { label: "Profile", href: `/${organization._id}/profile`, icon: UserRound },
+        { label: "Activity", href: `/${organization._id}/activity`, icon: History },
     ]
 
     useEffect(() => {
@@ -171,7 +170,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                         </Breadcrumb>
                     </div>
                     <div className="ml-auto flex items-center gap-2">
-                        {isAnalytics && <AnalyticsRangePicker orgId={organization._id} />}
+                        {isAnalytics && <div className="hidden md:block"><AnalyticsRangePicker orgId={organization._id} /></div>}
                         <ThemeToggle />
                     </div>
                 </header>
@@ -181,15 +180,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 </main>
             </SidebarInset>
             {role === "owner" && <nav aria-label="Owner navigation" className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
-                <div className="mx-auto grid min-h-14 w-full max-w-sm grid-cols-5 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-200 dark:bg-white">
+                <div className="mx-auto grid min-h-14 w-full max-w-sm grid-cols-4 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-200 dark:bg-white">
                     {mobileOwnerNavigation.map(({ label, href, icon: Icon }) => {
-                        const isProfileSection = label === "Profile" && (
-                            pathname?.startsWith(`/${organization._id}/profile`) ||
-                            [
-                                `/${organization._id}/settings`,
-                            ].includes(pathname ?? "")
-                        )
-                        const isActive = pathname === href || isProfileSection
+                        const isActive = pathname === href
                         return <Link
                             key={href}
                             href={href}
