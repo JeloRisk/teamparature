@@ -1,19 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import ChartCard2 from "./components/analytics/ChartCard2";
 import MoodIcon from "@/app/components/MoodIcon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { leadingMoods, heatmapMoods, type HeatmapCell, type HeatmapDay, type HeatmapMood } from "@/lib/mood-heatmap";
-
-const moodColors: Record<HeatmapMood, string> = {
-    happy: "#f4d47a",
-    excited: "#5acfa8",
-    neutral: "#c0c0c5",
-    sad: "#f19b9f",
-    stressed: "#a783e7",
-};
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { HeatmapDetailContent, formatHeatmapRange, type HeatmapDateRange } from "./HeatmapDetailContent";
+import { moodColors } from "./heatmap-colors";
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -28,6 +23,8 @@ interface YearDataPoint {
     range: string;
     applicable: boolean;
     future: boolean;
+    startDate: string | null;
+    endDate: string | null;
 }
 
 function dateKeyToUtcDate(dateKey: string) {
@@ -71,15 +68,18 @@ function groupByMonthAndWeek(cells: HeatmapCell[], year: number, asOfDate: strin
                 range: exists ? formatDateKey(firstDateKey) + " – " + formatDateKey(lastDateKey) + ", " + year : monthNames[monthIndex] + " has no Week " + week,
                 applicable,
                 future,
+                startDate: applicable ? firstDateKey : null,
+                endDate: applicable ? lastDateKey : null,
             };
         }),
     }));
 }
 
-function MoodDayCell({ dateKey, data, asOfDate, size }: {
+function MoodDayCell({ dateKey, data, asOfDate, onSelect }: {
     dateKey: string;
     data?: HeatmapDay;
     asOfDate: string;
+    onSelect: (range: HeatmapDateRange) => void;
 }) {
     const dayNumber = dateKeyToUtcDate(dateKey).getUTCDate();
     const future = dateKey > asOfDate;
@@ -98,10 +98,10 @@ function MoodDayCell({ dateKey, data, asOfDate, size }: {
 
     return <Tooltip>
         <TooltipTrigger asChild>
-            <div tabIndex={0} role="img" aria-label={formatDateKey(dateKey, true) + ". " + label + (total ? ", " + total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 cursor-pointer place-items-center rounded-lg p-0.5 transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " + (future ? "opacity-30 border border-dashed border-border" : "")} style={{ backgroundColor: background }}>
+            <button type="button" disabled={future} onClick={() => onSelect({ start: dateKey, end: dateKey })} aria-label={formatDateKey(dateKey, true) + ". " + label + (total ? ", " + total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 place-items-center rounded-lg p-0.5 transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default " + (future ? "opacity-30 border border-dashed border-border" : "cursor-pointer")} style={{ backgroundColor: background }}>
                 <span className="absolute left-1 top-0.5 text-[9px] font-medium leading-none text-foreground/70 sm:left-1.5 sm:top-1 sm:text-[10px]">{dayNumber}</span>
                 {mood && !future && <MoodIcon mood={mood} className={"mt-2 " + iconSize} variant="mobile" />}
-            </div>
+            </button>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={8} className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
             <p className="text-xs font-medium text-muted-foreground">{formatDateKey(dateKey, true)}</p>
@@ -114,16 +114,16 @@ function MoodDayCell({ dateKey, data, asOfDate, size }: {
     </Tooltip>;
 }
 
-function YearMoodCell({ point }: { point: YearDataPoint }) {
+function YearMoodCell({ point, onSelect }: { point: YearDataPoint; onSelect: (range: HeatmapDateRange) => void }) {
     const mood = point.leaders.length > 1 ? "neutral" : point.leaders[0];
     const background = !point.applicable ? (point.future ? "var(--muted)" : "transparent") : mood ? moodColors[mood] : "var(--muted)";
     const label = !point.applicable ? (point.future ? "Not yet occurred" : "No days in this week") : !point.total ? "No check-ins" : point.leaders.length > 1 ? "Tied moods: " + point.leaders.join(", ") : mood + " was most common";
 
     return <Tooltip>
         <TooltipTrigger asChild>
-            <div tabIndex={0} role="img" aria-label={point.range + ". " + label + (point.total ? ", " + point.total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 cursor-pointer place-items-center rounded-md transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " + (point.future ? "opacity-30 border border-dashed border-border" : "")} style={{ backgroundColor: background }}>
+            <button type="button" disabled={!point.applicable || !point.startDate || !point.endDate} onClick={() => point.startDate && point.endDate && onSelect({ start: point.startDate, end: point.endDate })} aria-label={point.range + ". " + label + (point.total ? ", " + point.total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 place-items-center rounded-md transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default " + (point.future ? "opacity-30 border border-dashed border-border" : point.applicable ? "cursor-pointer" : "")} style={{ backgroundColor: background }}>
                 {mood && point.total > 0 && <MoodIcon mood={mood} className="size-5 sm:size-8" variant="mobile" />}
-            </div>
+            </button>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={8} className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
             <p className="text-xs font-medium text-muted-foreground">{point.range}</p>
@@ -145,6 +145,8 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
     onYearChange: (year: number) => void;
 }) {
     const [view, setView] = useState<HeatmapView>("year");
+    const [selectedRange, setSelectedRange] = useState<HeatmapDateRange | null>(null);
+    const [mobileRange, setMobileRange] = useState<HeatmapDateRange | null>(null);
     const [month, setMonth] = useState(() => year === latestYear ? Number(asOfDate.slice(5, 7)) - 1 : 11);
     const empty = "var(--muted)";
     const future = empty;
@@ -154,6 +156,50 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
         data: yearRows.map(row => row.data[monthIndex]),
     }));
     const dayByDate = new Map(days.map(day => [day.date, day] as const));
+
+    useEffect(() => {
+        const syncMobileDetail = () => {
+            const params = new URLSearchParams(window.location.search);
+            const start = params.get("heatmapStart");
+            const end = params.get("heatmapEnd");
+            const isMobile = window.matchMedia("(max-width: 767px)").matches;
+            setMobileRange(isMobile && start && end ? { start, end } : null);
+        };
+        window.addEventListener("popstate", syncMobileDetail);
+        syncMobileDetail();
+        return () => window.removeEventListener("popstate", syncMobileDetail);
+    }, []);
+
+    useEffect(() => {
+        if (!mobileRange) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = previousOverflow; };
+    }, [mobileRange]);
+
+    const selectRange = (range: HeatmapDateRange) => {
+        if (window.matchMedia("(max-width: 767px)").matches) {
+            const params = new URLSearchParams(window.location.search);
+            params.set("heatmapStart", range.start);
+            params.set("heatmapEnd", range.end);
+            window.history.pushState({ heatmapDetail: true }, "", `${window.location.pathname}?${params.toString()}`);
+            setMobileRange(range);
+        } else {
+            setSelectedRange(range);
+        }
+    };
+
+    const closeMobileDetail = () => {
+        if (window.history.state?.heatmapDetail) window.history.back();
+        else {
+            const params = new URLSearchParams(window.location.search);
+            params.delete("heatmapStart");
+            params.delete("heatmapEnd");
+            const query = params.toString();
+            window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+            setMobileRange(null);
+        }
+    };
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
     const monthLeadingDays = new Date(Date.UTC(year, month, 1)).getUTCDay();
     const monthCells: (string | null)[] = [
@@ -174,7 +220,8 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
         else if (nextMonth >= 0 && nextMonth <= 11) setMonth(nextMonth);
     };
 
-    return <ChartCard2 title="Emotion heatmap" action={
+    return <>
+    <ChartCard2 title="Emotion heatmap" action={
         <div className="relative">
             <select aria-label="Heatmap year" value={year} onChange={event => handleYearChange(Number(event.target.value))} className="h-10 min-w-24 appearance-none rounded-lg border border-border bg-background pl-3 pr-10 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                 {Array.from({ length: latestYear - 1999 }, (_, index) => latestYear - index).map(optionYear => <option key={optionYear} value={optionYear}>{optionYear}</option>)}
@@ -211,7 +258,7 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
                     {yearMonths.map(monthData => <section key={monthData.name} aria-label={monthData.name} className="min-w-0">
                         <h3 className="mb-2 text-xs font-semibold text-foreground">{monthData.name}</h3>
                         <div className="grid grid-cols-5 gap-1">
-                            {monthData.data.map(point => <YearMoodCell key={point.week} point={point} />)}
+                            {monthData.data.map(point => <YearMoodCell key={point.week} point={point} onSelect={selectRange} />)}
                         </div>
                     </section>)}
                 </div>
@@ -229,9 +276,9 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
                         const label = !point.applicable ? (point.future ? "Not yet occurred" : "No days in this week") : !point.total ? "No check-ins" : point.leaders.length > 1 ? "Tied moods: " + point.leaders.join(", ") : mood + " was most common";
                         return <Tooltip key={point.month + "-" + point.week}>
                             <TooltipTrigger asChild>
-                                <div tabIndex={0} role="img" aria-label={point.range + ". " + label + (point.total ? ", " + point.total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 cursor-pointer place-items-center rounded-md transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " + (point.future ? "opacity-30 border border-dashed border-border" : "")} style={{ backgroundColor: background }}>
+                                <button type="button" disabled={!point.applicable || !point.startDate || !point.endDate} onClick={() => point.startDate && point.endDate && selectRange({ start: point.startDate, end: point.endDate })} aria-label={point.range + ". " + label + (point.total ? ", " + point.total + " check-ins" : "")} className={"group relative z-0 grid aspect-square min-w-0 place-items-center rounded-md transition-[transform,box-shadow] duration-150 hover:z-10 hover:scale-105 hover:shadow-md hover:ring-2 hover:ring-primary/60 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default " + (point.future ? "opacity-30 border border-dashed border-border" : point.applicable ? "cursor-pointer" : "")} style={{ backgroundColor: background }}>
                                     {mood && point.total > 0 && <MoodIcon mood={mood} className="size-5 sm:size-8" variant="mobile" />}
-                                </div>
+                                </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" sideOffset={8} className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
                                 <p className="text-xs font-medium text-muted-foreground">{point.range}</p>
@@ -253,11 +300,37 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
                 </div>
                 <div className="grid grid-cols-7 gap-1 sm:gap-2">
                     {monthCells.map((dateKey, index) => dateKey
-                        ? <MoodDayCell key={dateKey} dateKey={dateKey} data={dayByDate.get(dateKey)} asOfDate={asOfDate} />
+                        ? <MoodDayCell key={dateKey} dateKey={dateKey} data={dayByDate.get(dateKey)} asOfDate={asOfDate} onSelect={selectRange} />
                         : <div key={"blank-" + index} aria-hidden="true" className="aspect-square" />)}
                 </div>
             </div>}
 
         </div>
-    </ChartCard2>;
+    </ChartCard2>
+        <Dialog open={Boolean(selectedRange)} onOpenChange={open => { if (!open) setSelectedRange(null); }}>
+            {selectedRange && <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-3xl" aria-describedby="heatmap-detail-description">
+                <DialogHeader className="px-5 pt-5 text-left sm:px-6 sm:pt-6">
+                    <DialogTitle>Emotion details</DialogTitle>
+                    <DialogDescription id="heatmap-detail-description">Check-in patterns for {formatHeatmapRange(selectedRange)}.</DialogDescription>
+                </DialogHeader>
+                <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+                    <HeatmapDetailContent start={selectedRange.start} end={selectedRange.end} days={days} />
+                </div>
+            </DialogContent>}
+        </Dialog>
+        {mobileRange && <main className="fixed inset-0 z-[100] overflow-y-auto bg-background pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[env(safe-area-inset-top)] text-foreground md:hidden">
+            <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6">
+                <header className="mb-4 flex items-center gap-3">
+                    <button type="button" onClick={closeMobileDetail} aria-label="Back to emotion heatmap" className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                        <ArrowLeft aria-hidden="true" className="size-5" />
+                    </button>
+                    <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground">Emotion heatmap</p>
+                        <h1 className="mt-1 truncate text-xl font-semibold leading-6">{formatHeatmapRange(mobileRange)}</h1>
+                    </div>
+                </header>
+                <HeatmapDetailContent start={mobileRange.start} end={mobileRange.end} days={days} />
+            </div>
+        </main>}
+        </>;
 }

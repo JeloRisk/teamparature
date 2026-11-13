@@ -326,6 +326,8 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
             </section>
 
+            <MoodHeatmap moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
+
             <ChartCard title="Mood distribution" contentClassName="h-auto">
                     {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
                         <div className="grid min-w-0 grid-cols-1 items-center gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
@@ -422,8 +424,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     ))}
                 </div>
             </ChartCard>
-
-            <MoodHeatmap moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
         </div>
     )
 }
