@@ -326,7 +326,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
             </section>
 
-            <MoodHeatmap moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
+            <MoodHeatmap orgId={orgId} timezone={analytics.timezone} moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
 
             <ChartCard title="Mood distribution" contentClassName="h-auto">
                     {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (

@@ -136,7 +136,9 @@ function YearMoodCell({ point, onSelect }: { point: YearDataPoint; onSelect: (ra
     </Tooltip>;
 }
 
-export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, onYearChange }: {
+export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDate, latestYear, onYearChange }: {
+    orgId: string;
+    timezone: string;
     moods: HeatmapCell[];
     days: HeatmapDay[];
     year: number;
@@ -308,19 +310,19 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
         </div>
     </ChartCard2>
         <Dialog open={Boolean(selectedRange)} onOpenChange={open => { if (!open) setSelectedRange(null); }}>
-            {selectedRange && <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-3xl" aria-describedby="heatmap-detail-description">
-                <DialogHeader className="px-5 pt-5 text-left sm:px-6 sm:pt-6">
-                    <DialogTitle>Emotion details</DialogTitle>
-                    <DialogDescription id="heatmap-detail-description">Check-in patterns for {formatHeatmapRange(selectedRange)}.</DialogDescription>
+            {selectedRange && <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-3xl" closeButtonClassName="top-3 right-3 size-10 rounded-xl border border-border bg-background text-foreground opacity-100 hover:bg-muted" aria-describedby="heatmap-detail-description">
+                <DialogHeader className="shrink-0 gap-1 border-b border-border/70 bg-background px-5 pt-5 pb-4 pr-16 text-left sm:px-6 sm:pt-6 sm:pb-4">
+                    <DialogTitle className="text-xl leading-6">{formatHeatmapRange(selectedRange)}</DialogTitle>
+                    <DialogDescription id="heatmap-detail-description" className="sr-only">Mood check-ins by day and mood.</DialogDescription>
                 </DialogHeader>
-                <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-                    <HeatmapDetailContent start={selectedRange.start} end={selectedRange.end} days={days} />
+                <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6">
+                    <HeatmapDetailContent orgId={orgId} timezone={timezone} start={selectedRange.start} end={selectedRange.end} days={days} />
                 </div>
             </DialogContent>}
         </Dialog>
         {mobileRange && <main className="fixed inset-0 z-[100] overflow-y-auto bg-background pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[env(safe-area-inset-top)] text-foreground md:hidden">
             <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6">
-                <header className="mb-4 flex items-center gap-3">
+                <header className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-border/70 bg-background px-4 py-3 sm:-mx-6 sm:px-6">
                     <button type="button" onClick={closeMobileDetail} aria-label="Back to emotion heatmap" className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                         <ArrowLeft aria-hidden="true" className="size-5" />
                     </button>
@@ -329,7 +331,7 @@ export default function MoodHeatmap({ moods, days, year, asOfDate, latestYear, o
                         <h1 className="mt-1 truncate text-xl font-semibold leading-6">{formatHeatmapRange(mobileRange)}</h1>
                     </div>
                 </header>
-                <HeatmapDetailContent start={mobileRange.start} end={mobileRange.end} days={days} />
+                <HeatmapDetailContent orgId={orgId} timezone={timezone} start={mobileRange.start} end={mobileRange.end} days={days} />
             </div>
         </main>}
         </>;
