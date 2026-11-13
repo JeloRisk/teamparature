@@ -423,7 +423,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                 </div>
             </ChartCard>
 
-            <MoodHeatmap moods={analytics.heatmap} year={analytics.year} timezone={analytics.timezone} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
+            <MoodHeatmap moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
         </div>
     )
 }

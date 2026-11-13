@@ -1,4 +1,4 @@
-import type { HeatmapCell } from "@/lib/mood-heatmap"
+import type { HeatmapCell, HeatmapDay } from "@/lib/mood-heatmap"
 import { create } from "zustand"
 
 interface DetailedSeriesItem {
@@ -43,6 +43,7 @@ interface MoodAnalytics {
     asOfDate: string
     heatmapAsOfDate: string
     heatmap: HeatmapCell[]
+    heatmapDays: HeatmapDay[]
     year: number
     orgTemperature: number | null
     avgRank: number | null
@@ -75,6 +76,7 @@ const defaultAnalytics: MoodAnalytics = {
     asOfDate: "",
     heatmapAsOfDate: "",
     heatmap: [],
+    heatmapDays: [],
     year: new Date().getFullYear(),
     orgTemperature: null,
     avgRank: null,

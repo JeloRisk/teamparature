@@ -1,4 +1,4 @@
-import type { HeatmapCell, HeatmapMood } from "@/lib/mood-heatmap"
+import type { HeatmapCell, HeatmapDay, HeatmapMood } from "@/lib/mood-heatmap"
 import { positiveShare } from "@/lib/mood-reporting"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
@@ -73,7 +73,7 @@ export async function GET(
         return NextResponse.json({ error: `Choose a year from 2000 to ${currentYear}.` }, { status: 400 })
     const year = requestedYear
     const heatmapAsOfDate = year === currentYear ? today : `${year}-12-31`
-    const [[period], daily, [previousPeriod], weekdayMoodRows, heatmap] = await Promise.all([
+    const [[period], daily, [previousPeriod], weekdayMoodRows, heatmap, heatmapDays] = await Promise.all([
         Mood.aggregate([
             { $match: { organization, date: { $gte: boundaries[0], $lt: boundaries[periodDays] } } },
             { $facet: {
@@ -143,6 +143,24 @@ export async function GET(
             } },
             { $project: { _id: 0, month: "$_id.month", week: "$_id.week", total: 1, counts: { $arrayToObject: "$counts" } } },
 
+        ]),
+        Mood.aggregate([
+            { $match: { organization, date: {
+                $gte: fromZonedTime(`${year}-01-01T00:00:00`, timezone),
+                $lt: fromZonedTime(`${year + 1}-01-01T00:00:00`, timezone),
+            } } },
+            { $project: {
+                mood: 1,
+                date: { $dateToString: { format: "%Y-%m-%d", date: "$date", timezone } },
+            } },
+            { $group: { _id: { date: "$date", mood: "$mood" }, count: { $sum: 1 } } },
+            { $group: {
+                _id: "$_id.date",
+                total: { $sum: "$count" },
+                counts: { $push: { k: "$_id.mood", v: "$count" } },
+            } },
+            { $project: { _id: 0, date: "$_id", total: 1, counts: { $arrayToObject: "$counts" } } },
+            { $sort: { date: 1 } },
         ]),
     ])
 
@@ -236,6 +254,7 @@ export async function GET(
         moodMetrics,
         detailedSeries,
         heatmap: heatmap as (HeatmapCell & { counts: Partial<Record<HeatmapMood, number>> })[],
+        heatmapDays: heatmapDays as (HeatmapDay & { counts: Partial<Record<HeatmapMood, number>> })[],
         year,
     })
 }
