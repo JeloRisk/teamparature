@@ -12,6 +12,7 @@ import { useMoodStore } from "@/app/stores/useMoodStore"
 import type { Role } from "@/lib/rbac"
 import MoodIcon from "@/app/components/MoodIcon"
 import MoodCheck from "./MoodCheck"
+import { activityActions, type ActivityAction } from "@/lib/activity-actions"
 
 interface DashboardProps {
     userRole: Role
@@ -30,36 +31,128 @@ const moodOptions = [
 
 const panel = "min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6"
 const tooltip = { backgroundColor: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: 14 }
+type MoodMixItem = (typeof moodOptions)[number] & { value: number }
+type MoodTrendDay = Record<(typeof moodOptions)[number]["key"], number> & { day: string }
+
+function temperatureTrendSegments(days: MoodTrendDay[]) {
+    const segments: { x: number; y: number }[][] = []
+    let current: { x: number; y: number }[] = []
+
+    days.forEach((day, index) => {
+        const total = moodOptions.reduce((sum, item) => sum + day[item.key], 0)
+        if (!total) {
+            if (current.length) segments.push(current)
+            current = []
+            return
+        }
+
+        const share = (day.happy + day.excited) / total
+        current.push({
+            x: 156 + index * (154 / Math.max(days.length - 1, 1)),
+            y: 145 - share * 112,
+        })
+    })
+
+    if (current.length) segments.push(current)
+    return segments
+}
+
+function smoothTemperaturePath(points: { x: number; y: number }[]) {
+    if (points.length < 2) return ""
+
+    let path = `M ${points[0].x} ${points[0].y}`
+    for (let index = 1; index < points.length; index++) {
+        const previous = points[index - 1]
+        const point = points[index]
+        const control = (previous.x + point.x) / 2
+        path += ` C ${control} ${previous.y} ${control} ${point.y} ${point.x} ${point.y}`
+    }
+    return path
+}
+
+interface ActivityEntry {
+    _id: string
+    actorName: string
+    action: ActivityAction
+    targetLabel: string
+    previousRole?: string
+    newRole?: string
+    outcome: "pending" | "succeeded" | "failed"
+    createdAt: string
+}
+
+function MoodMixBar({ items, total, emptyMessage }: { items: MoodMixItem[]; total: number; emptyMessage: string }) {
+    const highest = Math.max(0, ...items.map(item => item.value))
+
+    if (!total) return <p className="mt-4 rounded-xl bg-muted/60 px-3 py-2 text-sm text-muted-foreground">{emptyMessage}</p>
+
+    return <div className="mt-4">
+        <div aria-label={`Mood mix from ${total} check-ins`} role="img" className="flex h-14 items-center gap-1.5">
+            {items.map(item => <div key={item.key} title={`${item.label}: ${item.value} ${item.value === 1 ? "check-in" : "check-ins"}`} className={`flex min-w-0 items-center justify-center rounded-xl ${item.value === highest ? "h-14" : "h-12"}`} style={{ flexGrow: item.value, flexBasis: 0, backgroundColor: item.color }}>
+                <MoodIcon mood={item.key} variant="mobile" className="size-6 shrink-0 sm:size-7" />
+            </div>)}
+        </div>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2" aria-label="Mood check-in counts">
+            {items.map(item => <li key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span aria-hidden="true" className="size-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <span>{item.label}</span>
+                <span className="font-medium tabular-nums text-foreground">{item.value}</span>
+            </li>)}
+        </ul>
+    </div>
+}
 
 export default function Dashboard({ organization, ownerCount, memberCount }: DashboardProps) {
     const summary = useMoodStore(state => state.orgId === organization._id ? state.summary : null)
     const error = useMoodStore(state => state.orgId === organization._id ? state.error : null)
     const fetchSummary = useMoodStore(state => state.fetchSummary)
     const [now, setNow] = useState<Date | null>(null)
+    const [activity, setActivity] = useState<ActivityEntry[]>([])
+    const [activityLoading, setActivityLoading] = useState(true)
+    const [activityError, setActivityError] = useState("")
+    const [activityRevision, setActivityRevision] = useState(0)
     useEffect(() => { setNow(new Date()) }, [])
 
+    useEffect(() => {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 15000)
+        setActivityLoading(true)
+        setActivityError("")
+        async function loadActivity() {
+            try {
+                const response = await fetch(`/api/orgs/${organization._id}/activity?page=1&sort=newest`, { signal: controller.signal })
+                const data = await response.json()
+                if (!response.ok) throw new Error(data.error || "Could not load recent activity")
+                if (!controller.signal.aborted) setActivity((data.activities as ActivityEntry[]).slice(0, 5))
+            } catch (error) {
+                if (!controller.signal.aborted) setActivityError(error instanceof Error && error.name !== "AbortError" ? error.message : "The request timed out. Please try again.")
+            } finally {
+                clearTimeout(timeout)
+                if (!controller.signal.aborted) setActivityLoading(false)
+            }
+        }
+        void loadActivity()
+        return () => { clearTimeout(timeout); controller.abort() }
+    }, [organization._id, activityRevision])
+
     const trend = summary?.trend ?? []
-    const today = trend.at(-1)
-    const distribution = moodOptions.map(item => ({ ...item, value: today?.[item.key] ?? 0 }))
-    const logs = distribution.reduce((sum, item) => sum + item.value, 0)
-    const checkInsThisWeek = trend.reduce((sum, day) => sum + moodOptions.reduce((daySum, item) => daySum + day[item.key], 0), 0)
+    const weeklyDistribution = moodOptions.map(item => ({
+        ...item,
+        value: trend.reduce((sum, day) => sum + day[item.key], 0),
+    }))
+    const checkInsThisWeek = weeklyDistribution.reduce((sum, item) => sum + item.value, 0)
     const activeWeeklyMoods = moodOptions.filter(item => trend.some(day => day[item.key] > 0))
-    const positiveCheckIns = (today?.happy ?? 0) + (today?.excited ?? 0)
     const members = ownerCount + memberCount
-    const participants = summary?.participantsToday ?? 0
     const participantsThisWeek = summary?.participantsThisWeek ?? 0
-    const participation = members ? Math.round(participants / members * 100) : 0
-    // Temperature reflects the share of positive mood check-ins, independent of intensity.
-    const temperature = positiveShare(today?.happy ?? 0, today?.excited ?? 0, logs)
+    const happyThisWeek = weeklyDistribution.find(item => item.key === "happy")?.value ?? 0
+    const excitedThisWeek = weeklyDistribution.find(item => item.key === "excited")?.value ?? 0
+    const temperature = positiveShare(happyThisWeek, excitedThisWeek, checkInsThisWeek)
     const timezone = summary?.timezone ?? "UTC"
-    const participationText = members
-        ? `${participants} of ${members} active members checked in today`
-        : "No active members yet"
     const weeklyParticipationText = !summary
         ? "Participation unavailable"
         : members
-        ? `${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in" : "check-ins"} from ${participantsThisWeek} of ${members} active members`
-        : `${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in" : "check-ins"} · no active members`
+        ? `${participantsThisWeek} of ${members} active members checked in this week`
+        : checkInsThisWeek ? "No active members · check-in activity shown" : "No active members yet"
 
     if (!summary && !error) return <DashboardSkeleton />
 
@@ -91,83 +184,32 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
 
                 {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
 
-                <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.65fr)]">
-                    <section className={panel}>
+                <div className="grid min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
+                    <section className={`${panel} ${summary?.checkedInToday ? "xl:self-center" : ""}`}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>
-                    <section className={panel} aria-labelledby="today-pulse-heading">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h2 id="today-pulse-heading" className="text-lg font-semibold leading-6 tracking-tight">Team pulse</h2>
-                            <span className="hidden text-xs text-muted-foreground sm:inline">{logs} {logs === 1 ? "check-in" : "check-ins"} today</span>
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-0 sm:divide-x sm:divide-border md:mt-6 md:gap-6">
-                            <div className="min-w-0 sm:pr-4 md:pr-6">
-                                <h3 className="text-sm font-semibold text-foreground">Team temperature</h3>
-                                <p className="mt-2 text-4xl font-semibold leading-none tracking-tight tabular-nums text-primary">{temperature === null ? "—" : `${temperature}%`}</p>
-                                <p className="mt-2 hidden text-sm leading-5 text-muted-foreground sm:block">{logs ? `${positiveCheckIns} of ${logs} check-ins were Happy or Excited` : "No check-ins yet"}</p>
-                                <p className="mt-2 text-sm leading-5 text-muted-foreground sm:hidden">{logs ? "Happy or Excited" : "No check-ins yet"}</p>
-
-                            </div>
-                            <div className="min-w-0 border-l border-border pl-3 sm:border-0 sm:pl-4 md:pl-6">
-                                <h3 className="text-sm font-semibold text-foreground">Participation</h3>
-                                <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                    <strong className="text-4xl font-semibold leading-none tracking-tight tabular-nums text-primary">{participants}</strong>
-                                    <span className="text-sm leading-5 text-muted-foreground">of {members} active members</span>
-                                </p>
-                                <div className="mt-3 hidden sm:block">
-                                    <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
-                                        <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
-                                    </div>
-                                    <p className="mt-3 text-sm text-muted-foreground">{participation}% of active members checked in</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-4 sm:hidden">
-                            <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Members checked in today" aria-valuetext={participationText} aria-valuenow={Math.min(participation, 100)} aria-valuemin={0} aria-valuemax={100}>
-                                <div className="h-full rounded-full bg-primary/70 transition-[width] duration-300" style={{ width: `${Math.min(participation, 100)}%` }} />
-                            </div>
-                        </div>
-                        <div className="mt-4 border-t border-border pt-4 sm:hidden">
-                            <div className="flex items-baseline justify-between gap-2">
-                                <h3 className="text-base font-semibold">Mood mix</h3>
-                            </div>
-                            {logs > 0 ? <ul className="mt-3 flex flex-wrap gap-2" aria-label={`Today's moods from ${logs} check-ins`}>
-                                {distribution.filter(item => item.value > 0).map(item => <li key={item.key} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-muted/70 py-1 pl-1.5 pr-3 text-sm">
-                                    <MoodIcon mood={item.key} variant="mobile" className="size-7 shrink-0" />
-                                    <span className="font-medium">{item.label}</span>
-                                    <span className="text-[0.8125rem] tabular-nums text-muted-foreground">{item.value}</span>
-                                </li>)}
-                            </ul> : <p className="mt-2 text-sm text-muted-foreground">Mood check-ins will appear here.</p>}
+                    <section className={panel} aria-labelledby="total-checkins-heading">
+                        <h2 id="total-checkins-heading" className="text-base font-medium leading-6 text-foreground">Total check-ins</h2>
+                        <p className="mt-3 text-4xl font-semibold leading-none tracking-tight tabular-nums text-foreground">{checkInsThisWeek}</p>
+                        <p className="mt-2 text-sm leading-5 text-muted-foreground">Across 7 days</p>
+                        <MoodMixBar items={weeklyDistribution.filter(item => item.value > 0)} total={checkInsThisWeek} emptyMessage="No check-ins across the last 7 days." />
+                    </section>
+                    <section className="relative min-h-56 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.035] p-4 sm:p-6" aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
+                        {checkInsThisWeek > 0 && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
+                            {temperatureTrendSegments(trend as MoodTrendDay[]).map((segment, index) => segment.length === 1
+                                ? <circle key={index} cx={segment[0].x} cy={segment[0].y} r="3" fill="currentColor" fillOpacity="0.3" />
+                                : <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" strokeLinecap="round" />)}
+                        </svg>}
+                        <div className="relative z-10">
+                            <h2 className="text-base font-medium leading-6 text-foreground">Team Temperature</h2>
+                            <p className="mt-1 text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
+                            <p className="mt-2 text-sm leading-5 text-foreground">{temperature === null ? "No check-ins across the last 7 days." : "Generally positive mood"}</p>
+                            <p className="sr-only">Daily team temperature trend across the last seven days, based on Happy and Excited check-ins.</p>
                         </div>
                     </section>
                 </div>
 
-                <div className="grid min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.7fr)]">
-                    <section className={`${panel} hidden min-w-0 sm:block`}>
-                        <h2 className="text-lg font-semibold leading-6 tracking-tight">Today&apos;s mood mix</h2>
-                        <p className="mt-1 text-sm leading-5 text-muted-foreground">{logs ? "Percent of today’s check-ins" : "No responses yet"}</p>
-                        <div className="mt-4 sm:hidden">
-                            <div className="flex h-3 overflow-hidden rounded-full bg-muted" role="img" aria-label={logs ? `Mood mix from ${logs} check-ins` : "No mood check-ins today"}>
-                                {distribution.filter(item => item.value > 0).map(item => <span key={item.key} className="h-full min-w-1" style={{ backgroundColor: item.color, width: `${item.value / logs * 100}%` }} />)}
-                            </div>
-                            <ul className="mt-2 divide-y divide-border/70">
-                                {distribution.map(item => <li key={item.key} className="flex min-h-11 items-center gap-2.5 py-1.5">
-                                    <MoodIcon mood={item.key} variant="mobile" className="size-8 shrink-0" />
-                                    <span className="min-w-0 flex-1 text-sm font-medium">{item.label}</span>
-                                    <span className="tabular-nums text-sm font-medium">{logs ? Math.round(item.value / logs * 100) : 0}%</span>
-                                    <span className="w-6 text-right text-xs tabular-nums text-muted-foreground">{item.value}</span>
-                                </li>)}
-                            </ul>
-                        </div>
-                        <div className="mt-4 hidden flex-col gap-4 sm:mt-5 sm:flex">
-                            {distribution.map(item => <div key={item.key} className="flex items-center gap-3">
-                                <MoodIcon mood={item.key} variant="mobile" className="size-9 shrink-0" />
-                                <div className="min-w-0 flex-1"><div className="mb-1.5 flex items-center justify-between gap-2 text-sm"><span className="font-medium">{item.label}</span><span className="tabular-nums text-muted-foreground">{logs ? Math.round(item.value / logs * 100) : 0}% <span className="ml-1 text-xs">({item.value})</span></span></div>
-                                    <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ backgroundColor: item.color, width: `${logs ? item.value / logs * 100 : 0}%` }} /></div>
-                                </div>
-                            </div>)}
-                        </div>
-                    </section>
+                <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(17rem,0.8fr)]">
                 <section className={`${panel} min-w-0`}>
                     <div className="min-w-0">
                         <div className="mb-4 sm:mb-5">
@@ -182,7 +224,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                 <p className="mt-1.5 text-sm text-muted-foreground">{weeklyParticipationText}</p>
                             </div>
                         </div>
-                        {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-60 sm:p-0" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
+                        {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-64 sm:p-0 xl:h-72" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
                             <ResponsiveContainer width="100%" height="100%"><BarChart data={trend} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
                                 <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
                                 <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={10} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
@@ -215,8 +257,35 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     </div>
 
                 </section>
-                </div>
 
+                <section className={panel} aria-labelledby="recent-activity-heading">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 id="recent-activity-heading" className="text-lg font-semibold leading-6 tracking-tight">Recent activity</h2>
+                        <Link href={`/${organization._id}/activity`} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
+                            See more
+                            <ArrowUpRight className="size-4" aria-hidden="true" />
+                        </Link>
+                    </div>
+                    <div className="mt-3 border-t border-border" aria-live="polite">
+                        {activityLoading ? <p role="status" className="py-5 text-center text-sm text-muted-foreground">Loading recent activity…</p>
+                        : activityError ? <div className="py-5 text-center text-sm"><p role="alert" className="text-muted-foreground">{activityError}</p><button type="button" onClick={() => setActivityRevision(value => value + 1)} className="mt-2 font-medium text-primary underline underline-offset-4">Try again</button></div>
+                        : activity.length ? <ul className="divide-y divide-border">
+                            {activity.map(entry => <li key={entry._id} className="flex min-w-0 items-start justify-between gap-3 py-3 first:pt-3 last:pb-0">
+                                <div className="min-w-0">
+                                    <p className="break-words text-sm font-medium leading-5">{activityActions[entry.action]}</p>
+                                    <p title={`${entry.targetLabel} · ${entry.actorName}`} className="mt-0.5 truncate text-sm leading-5 text-muted-foreground">{entry.targetLabel}<span aria-hidden="true"> · </span>{entry.actorName}</p>
+                                </div>
+                                <time dateTime={entry.createdAt} title={new Date(entry.createdAt).toLocaleString(undefined, { timeZone: timezone, dateStyle: "full", timeStyle: "short" })} className="shrink-0 pt-0.5 text-xs tabular-nums text-muted-foreground">
+                                    {new Date(entry.createdAt).toLocaleDateString(undefined, { timeZone: timezone, month: "short", day: "numeric" })}
+                                </time>
+                            </li>)}
+                        </ul> : <div className="py-7 text-center">
+                            <p className="text-sm font-medium">No activity recorded yet</p>
+                            <p className="mt-1 text-sm text-muted-foreground">Workspace updates and member changes will appear here.</p>
+                        </div>}
+                    </div>
+                </section>
+                </div>
             </div>
         </div>
     )
