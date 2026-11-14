@@ -160,12 +160,6 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
     }));
     const dayByDate = new Map(days.map(day => [day.date, day] as const));
     const latestDate = detailAsOfDate;
-    useEffect(() => {
-        const detailRange = mobileRange ?? selectedRange;
-        if (!detailRange) return;
-        const detailYear = Number(detailRange.start.slice(0, 4));
-        if (detailYear !== year) onYearChange(detailYear);
-    }, [mobileRange, selectedRange, year, onYearChange]);
 
     useEffect(() => {
         const syncMobileDetail = () => {
@@ -318,12 +312,12 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
         </div>
     </ChartCard2>
         <Dialog open={Boolean(selectedRange)} onOpenChange={open => { if (!open) setSelectedRange(null); }}>
-            {selectedRange && <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-3xl" closeButtonClassName="top-3 right-3 size-10 rounded-xl border border-border bg-background text-foreground opacity-100 hover:bg-muted" aria-describedby="heatmap-detail-description">
+            {selectedRange && <DialogContent className="flex h-[90dvh] max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-3xl" closeButtonClassName="top-3 right-3 size-10 rounded-xl border border-border bg-background text-foreground opacity-100 hover:bg-muted" aria-describedby="heatmap-detail-description">
                 <DialogHeader className="shrink-0 gap-1 border-b border-border/70 bg-background px-5 pt-5 pb-4 pr-16 text-left sm:px-6 sm:pt-6 sm:pb-4">
                     <DialogTitle className="text-xl leading-6">Mood details</DialogTitle>
                     <DialogDescription id="heatmap-detail-description" className="sr-only">Mood check-ins by day and mood.</DialogDescription>
                 </DialogHeader>
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6">
                     <HeatmapDetailContent orgId={orgId} timezone={timezone} start={selectedRange.start} end={selectedRange.end} days={days} latestDate={latestDate} onRangeChange={setSelectedRange} />
                 </div>
             </DialogContent>}
