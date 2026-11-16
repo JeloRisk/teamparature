@@ -9,8 +9,6 @@ import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
 
 import {
     ResponsiveContainer,
-    LineChart,
-    Line,
     XAxis,
     YAxis,
     Tooltip,
@@ -326,7 +324,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
             </section>
 
-            <MoodHeatmap orgId={orgId} timezone={analytics.timezone} moods={analytics.heatmap} days={analytics.heatmapDays} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} detailAsOfDate={analytics.asOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
+            <MoodHeatmap orgId={orgId} timezone={analytics.timezone} moods={analytics.heatmap} days={analytics.heatmapDays} filterRange={{ start: analytics.detailedSeries[0]?.dateKey ?? analytics.asOfDate, end: analytics.detailedSeries.at(-1)?.dateKey ?? analytics.asOfDate }} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} detailAsOfDate={analytics.asOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
 
             <ChartCard title="Mood distribution" contentClassName="h-auto">
                     {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
@@ -357,16 +355,15 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     )}
             </ChartCard>
 
-            <section aria-labelledby="mood-trends-heading" className="min-w-0 space-y-3">
-                <h2 id="mood-trends-heading" className="text-lg font-semibold leading-6">Mood trends</h2>
+            <section aria-label="Mood check-ins and weekday patterns" className="min-w-0">
                 <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                 <ChartCard
                     title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} check-ins by mood`}
-                    cardClassName="pb-3"
+                    cardClassName="lg:h-[23rem]"
                     action={<ul aria-label="Mood legend" className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
                         {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => <li key={mood} className="flex items-center gap-1.5 capitalize"><span aria-hidden="true" className="size-2 rounded-full" style={{ backgroundColor: MOOD_COLORS[mood] }} />{mood}</li>)}
                     </ul>}
-                    contentClassName="h-60 sm:h-[23rem]"
+                    contentClassName="h-56 sm:h-60 lg:min-h-0 lg:flex-1"
                 >
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={trend.data} barSize={22}>
@@ -389,21 +386,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title={`${trendUnit.charAt(0).toUpperCase() + trendUnit.slice(1)} intensity`} contentClassName="h-60 sm:h-[23rem]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trend.data}>
-                            <CartesianGrid vertical={false} stroke="var(--border)" />
-                            <XAxis dataKey="label" interval="preserveStartEnd" minTickGap={24} tickLine={false} axisLine={false} tickMargin={10} fontSize={12} stroke="var(--muted-foreground)" />
-                            <YAxis width={28} domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
-                            <Tooltip labelFormatter={(_label, items) => (items?.[0]?.payload as TrendBucket | undefined)?.range ?? String(_label)} contentStyle={{ backgroundColor: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} />
-                            <Line isAnimationActive={false} type="linear" dataKey="avg" name="Average intensity (1–5)" connectNulls={false} stroke="var(--primary)" strokeWidth={2} dot={{ r: 4, fill: "var(--card)", strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </ChartCard>
-                </div>
-            </section>
-
-            <ChartCard title="Weekday patterns" contentClassName="h-auto">
+            <ChartCard title="Weekday patterns" cardClassName="lg:h-[23rem]" contentClassName="h-auto">
                 <div className="grid min-w-0 grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] gap-1 sm:grid-cols-[4.5rem_repeat(7,minmax(1.5rem,1fr))] sm:gap-2" role="table" aria-label={`Mood check-in counts by weekday, ${weekdayRange}`}>
                     <div role="columnheader" className="pb-2" />
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
@@ -424,6 +407,8 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     ))}
                 </div>
             </ChartCard>
+                </div>
+            </section>
         </div>
     )
 }

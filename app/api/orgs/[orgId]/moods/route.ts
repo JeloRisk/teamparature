@@ -76,6 +76,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         trend,
         participantsToday: participantsToday.length,
         participantsThisWeek,
+        activeMemberCount: activeMemberIdsSet.size,
         timezone,
     })
 }

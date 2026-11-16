@@ -66,7 +66,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     }
 
     return (
-        <div className={compact ? "flex flex-col gap-4 sm:gap-6" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
+        <div className={compact ? "flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
 
             {/* glow effects */}
             <div className={`${compact ? "hidden" : ""} absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl`} />
@@ -89,7 +89,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             </div>}
 
             {/* CONTENT */}
-            <div className={compact ? "w-full" : "mt-4"}>
+            <div className={compact ? "w-full min-w-0 lg:max-w-2xl lg:flex-1" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
                     <div role="status" className={`flex items-center gap-3 text-sm text-foreground ${compact ? "min-h-12" : "min-h-14 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3"}`}>
@@ -103,16 +103,15 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
-                        <p className="text-sm leading-5 text-muted-foreground">Quick check-ins use an intensity of 3 out of 5.</p>
-                        <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-5" role="group" aria-label="Choose your mood">
-                            {quickMoods.map(({ value, label, color, surface }, index) => (
+                        <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Choose your mood">
+                            {quickMoods.map(({ value, label, color, surface }) => (
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className={`group col-span-2 flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1.5 py-2 transition-[filter,transform] hover:brightness-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:col-span-1 ${index === 3 ? "col-start-2 sm:col-start-auto" : index === 4 ? "col-start-4 sm:col-start-auto" : ""}`}
+                                    className="group flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-0.5 py-2 transition-[filter,transform] hover:brightness-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:px-1.5"
                                     style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
-                                    <MoodIcon mood={value} variant="mobile" className="size-11 sm:size-12" />
-                                    <span className="text-sm font-medium leading-5 text-foreground">{label}</span>
+                                    <MoodIcon mood={value} variant="mobile" className="size-8 sm:size-10" />
+                                    <span className="text-[11px] font-medium leading-5 text-foreground sm:text-sm">{label}</span>
                                 </button>
                             ))}
                         </div>

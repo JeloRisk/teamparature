@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MoreHorizontal, ShieldCheck, UserMinus } from "lucide-react"
+import { MoreHorizontal, MoreVertical, ShieldCheck, UserMinus } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu"
 import WorkspaceAction from "../WorkspaceAction"
@@ -17,16 +17,16 @@ export default function MemberActions({ orgId, id, role, email, isActive = true 
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-11 rounded-lg text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent hover:text-primary dark:hover:text-primary">
-                    <MoreHorizontal className="size-5" aria-hidden="true" />
+                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-12 rounded-lg sm:size-11 text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent hover:text-primary dark:hover:text-primary">
+                    <MoreVertical className="size-5 lg:hidden" aria-hidden="true" /><MoreHorizontal className="hidden size-5 lg:block" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5">
-                <DropdownMenuItem className="rounded-lg py-2" onSelect={() => setAction("change_role")}>
+                <DropdownMenuItem className="min-h-12 rounded-lg py-2 text-base sm:min-h-9 sm:text-sm" onSelect={() => setAction("change_role")}>
                     <ShieldCheck className="mr-2 size-4" />{role === "owner" ? "Make member" : "Make owner"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="rounded-lg py-2 text-red-700 dark:text-[#eea09a] focus:bg-red-50 dark:focus:bg-red-950 focus:text-red-800 dark:focus:text-red-300" onSelect={() => setAction("remove_member")}>
+                <DropdownMenuItem className="min-h-12 rounded-lg py-2 text-base sm:min-h-9 sm:text-sm text-red-700 dark:text-[#eea09a] focus:bg-red-50 dark:focus:bg-red-950 focus:text-red-800 dark:focus:text-red-300" onSelect={() => setAction("remove_member")}>
                     <UserMinus className="mr-2 size-4" />Remove member
                 </DropdownMenuItem>
             </DropdownMenuContent>

@@ -10,6 +10,7 @@ interface Summary {
     trend?: Trend[]
     participantsToday?: number
     participantsThisWeek?: number
+    activeMemberCount?: number
 }
 
 interface MoodState {
