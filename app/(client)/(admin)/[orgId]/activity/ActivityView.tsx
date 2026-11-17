@@ -3,7 +3,8 @@
 import { TableSkeletonRows } from "@/app/components/loading/WorkspaceSkeletons"
 import { useEffect, useState } from "react"
 import { Input } from "@/app/components/ui/input"
-import { History, RefreshCw, Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react"
+import { History, RefreshCw, Search, ArrowUp, ArrowDown, ArrowUpDown, X, SlidersHorizontal } from "lucide-react"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet"
 import { activityActions, type ActivityAction } from "@/lib/activity-actions"
 import { Button } from "@/app/components/ui/button"
 import { Badge } from "@/app/components/ui/badge"
@@ -56,6 +57,11 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
     const [search, setSearch] = useState("")
     const [start, setStart] = useState("")
     const [end, setEnd] = useState("")
+    const [filtersOpen, setFiltersOpen] = useState(false)
+    const [draftAction, setDraftAction] = useState("all")
+    const [draftStart, setDraftStart] = useState("")
+    const [draftEnd, setDraftEnd] = useState("")
+    const filterCount = Number(action !== "all") + Number(Boolean(start)) + Number(Boolean(end))
     const [sort, setSort] = useState<SortColumn>("createdAt")
     const [order, setOrder] = useState<"asc" | "desc">("desc")
     const [page, setPage] = useState(1)
@@ -139,38 +145,57 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         </TableHead>
     }
 
-    return <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+    return <div className="dashboard-reference-theme mobile-page activity-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
     <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
         <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
             <div>
                 <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
-                <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">A record of invitations, membership changes, and workspace updates.</p>
+                <p className="mt-1.5 hidden max-w-2xl text-sm text-muted-foreground sm:block">A record of invitations, membership changes, and workspace updates.</p>
             </div>
             <Button variant="outline" className="min-h-10 rounded-xl border-border bg-card" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Refresh</Button>
         </header>
-        <section aria-label="Activity filters" className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <section aria-label="Activity filters" className="rounded-2xl border-border bg-card sm:border sm:p-5">
             <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1.5fr)_minmax(12rem,1fr)_minmax(9rem,0.8fr)_minmax(9rem,0.8fr)]">
                 <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-1">
-                    <label htmlFor="activity-search" className="block text-xs font-medium text-muted-foreground">Search activity</label>
-                    <div className="relative">
+                    <label htmlFor="activity-search" className="sr-only sm:not-sr-only sm:block sm:text-xs sm:font-medium sm:text-muted-foreground">Search activity</label>
+                    <div className="flex items-center gap-2"><div className="relative min-w-0 flex-1">
                         <Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" />
                         <Input id="activity-search" className="h-11 rounded-xl border-border bg-background pl-9 pr-9" placeholder="Person, email, or activity…" value={search} maxLength={254} onChange={event => { setSearch(event.target.value); setPage(1) }} />
                         {search && <button type="button" aria-label="Clear search" className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground hover:bg-accent" onClick={() => { setSearch(""); setPage(1) }}><X className="size-4" /></button>}
-                    </div>
+                    </div><Button variant="outline" className="h-11 shrink-0 rounded-xl px-3 text-sm sm:hidden" onClick={() => { setDraftAction(action); setDraftStart(start); setDraftEnd(end); setFiltersOpen(true) }}><SlidersHorizontal className="size-4" aria-hidden="true" />Filters{filterCount > 0 && <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{filterCount}</span>}</Button></div>
                 </div>
-                <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-1">
+                <div className="hidden min-w-0 space-y-2 sm:block md:col-span-2 xl:col-span-1">
                     <label htmlFor="activity-filter" className="block text-xs font-medium text-muted-foreground">Activity type</label>
                     <select id="activity-filter" value={action} onChange={event => { setAction(event.target.value); setPage(1) }} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
                         <option value="all">All activity</option>
                         {Object.entries(activityActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                     </select>
                 </div>
-                <div className="grid min-w-0 grid-cols-2 gap-3 md:col-span-2 xl:col-span-2">
+                <div className="hidden min-w-0 grid-cols-2 gap-3 sm:grid md:col-span-2 xl:col-span-2">
                     <div className="min-w-0 space-y-2"><label htmlFor="activity-start" className="block text-xs font-medium text-muted-foreground">From</label><Input id="activity-start" className="h-11 w-full min-w-0 rounded-xl border-border bg-background px-2.5 sm:px-3" type="date" value={start} max={end || undefined} onChange={event => { setStart(event.target.value); setPage(1) }} /></div>
                     <div className="min-w-0 space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-11 w-full min-w-0 rounded-xl border-border bg-background px-2.5 sm:px-3" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
                 </div>
             </div>
         </section>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetContent side="bottom" className="max-h-[90dvh] gap-0 rounded-t-2xl border-0 [&>button]:size-10 [&>button]:top-6 [&>button]:right-3 [&>button]:flex [&>button]:items-center [&>button]:justify-center">
+                <div aria-hidden="true" className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-muted-foreground/30" />
+                <SheetHeader className="border-b border-border pr-16"><SheetTitle className="text-lg">Activity filters</SheetTitle><SheetDescription>Choose the activity and dates to show.</SheetDescription></SheetHeader>
+                <form className="flex min-h-0 flex-1 flex-col" onSubmit={event => { event.preventDefault(); setAction(draftAction); setStart(draftStart); setEnd(draftEnd); setPage(1); setFiltersOpen(false) }}>
+                    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+                        <div className="space-y-2"><label htmlFor="mobile-activity-type" className="block text-sm font-medium">Activity type</label><select id="mobile-activity-type" value={draftAction} onChange={event => setDraftAction(event.target.value)} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-base"><option value="all">All activity</option>{Object.entries(activityActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></div>
+                        <fieldset className="min-w-0 space-y-3">
+                            <div className="grid min-w-0 grid-cols-2 gap-3">
+                                <div className="min-w-0 space-y-2"><label htmlFor="mobile-activity-from" className="block text-sm font-medium">Start date</label><Input id="mobile-activity-from" aria-describedby="activity-date-help" type="date" className="h-11 w-full min-w-0 rounded-xl px-2 text-base" value={draftStart} max={draftEnd || undefined} onChange={event => setDraftStart(event.target.value)} /></div>
+                                <div className="min-w-0 space-y-2"><label htmlFor="mobile-activity-through" className="block text-sm font-medium">End date</label><Input id="mobile-activity-through" aria-describedby="activity-date-help" type="date" className="h-11 w-full min-w-0 rounded-xl px-2 text-base" value={draftEnd} min={draftStart || undefined} onChange={event => setDraftEnd(event.target.value)} /></div>
+                            </div>
+                            {(draftStart || draftEnd) && <button type="button" className="min-h-10 rounded-lg px-2 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-ring" onClick={() => { setDraftStart(""); setDraftEnd("") }}>Clear dates</button>}
+                        </fieldset>
+                    </div>
+                    <div className="flex gap-3 border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"><Button type="button" variant="outline" className="min-h-11 flex-1 rounded-xl" onClick={() => { setDraftAction("all"); setDraftStart(""); setDraftEnd(""); setAction("all"); setStart(""); setEnd(""); setPage(1) }}>Reset</Button><Button type="submit" className="min-h-11 flex-1 rounded-xl">Apply filters</Button></div>
+                </form>
+            </SheetContent>
+        </Sheet>
         <section aria-label="Workspace activity history" className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card">
             <div className="hidden overflow-x-auto md:block">
             <Table aria-label="Workspace activity history" className="w-full min-w-[48rem] table-fixed">
@@ -208,11 +233,11 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                 : activityGroups.length ? activityGroups.map(group => <section key={group.key} aria-label={group.label} className="border-b border-border last:border-b-0">
                     <h3 className="bg-secondary/50 px-4 py-2.5 text-sm font-semibold text-secondary-foreground">{group.label}</h3>
                     <div className="divide-y divide-border">
-                        {group.entries.map(entry => <article key={entry._id} className="space-y-2 px-4 py-4">
+                        {group.entries.map(entry => <article key={entry._id} className="space-y-2 px-3 py-3 sm:px-4 sm:py-4">
                             <div className="flex min-w-0 items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <p className="break-words text-base font-semibold leading-6 text-foreground"><ActionLabel action={entry.action} /></p>
-                                    <p className="mt-1.5 break-all rounded-lg bg-secondary/50 px-2.5 py-1.5 text-sm leading-5 text-foreground">{entry.targetLabel}</p>
+                                    <p className="break-words text-sm font-semibold leading-5 text-foreground"><ActionLabel action={entry.action} /></p>
+                                    <p className="mt-0.5 break-words text-sm leading-5 text-muted-foreground [overflow-wrap:anywhere]">{entry.targetLabel}</p>
                                 </div>
                                 <OutcomeBadge outcome={entry.outcome} />
                             </div>

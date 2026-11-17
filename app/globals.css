@@ -290,6 +290,7 @@
     line-height: 1.4;
   }
 
+  .activity-page h1,
   .members-page h1 {
     font-size: 1.25rem;
   }
@@ -302,6 +303,23 @@
   .members-page input.text-base {
     font-size: 1rem;
     line-height: 1.5;
+  }
+
+  .activity-page :is(button, [data-slot="button"]) {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+  }
+
+  .activity-page footer {
+    gap: 0.75rem;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .activity-page footer > div {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
 
   .members-page :is(button, [role="button"], [role="tab"], [data-slot="button"], [role^="menuitem"]) {
