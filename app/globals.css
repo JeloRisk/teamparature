@@ -291,6 +291,7 @@
   }
 
   .activity-page h1,
+  .analytics-page h1,
   .members-page h1 {
     font-size: 1.25rem;
   }
@@ -308,6 +309,43 @@
   .activity-page :is(button, [data-slot="button"]) {
     min-height: 2.5rem;
     font-size: 0.875rem;
+  }
+
+  .analytics-page {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .analytics-page :is(h2, [data-slot="card-title"]) {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .analytics-page .text-base {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .analytics-page .text-muted-foreground {
+    font-weight: 400;
+  }
+
+  .analytics-page [data-slot="card"] {
+    gap: 1rem;
+    padding-block: 1rem;
+  }
+
+  .analytics-page :is([data-slot="card-header"], [data-slot="card-content"]) {
+    padding-inline: 0.75rem;
+  }
+
+  .analytics-page :is([data-slot="button"], select) {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+  }
+
+  .analytics-page input {
+    font-size: 1rem;
   }
 
   .activity-page footer {

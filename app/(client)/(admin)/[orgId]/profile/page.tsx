@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Building2, Check, ChevronRight, Settings, UserRoundCog } from "lucide-react"
+import { Building2, Check, ChevronRight, Settings } from "lucide-react"
 import { useWorkspace } from "../ClientDashboardLayout"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
 import { useUserStore } from "@/app/stores/useUserStore"
@@ -30,13 +30,14 @@ export default function ProfilePage() {
                     <p className="mt-1.5 text-sm text-muted-foreground">Your account and workspaces</p>
                 </header>
 
-                <section className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+                <Link href={`/${organization._id}/profile/account`} aria-label={`Account settings for ${fullName}`} className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5">
                     <span className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-base font-semibold text-accent-foreground" aria-hidden="true">{initials}</span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                         <h2 className="truncate text-base font-semibold">{fullName}</h2>
                         <p className="truncate text-sm text-muted-foreground">{user?.email ?? "Account details"}</p>
                     </div>
-                </section>
+                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </Link>
 
                 <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="workspaces-heading">
                     <div className="mb-2">
@@ -89,21 +90,6 @@ export default function ProfilePage() {
                         </Link>
                     </div>
                 </section>}
-
-                <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="personal-settings-heading">
-                    <div className="mb-2">
-                        <h2 id="personal-settings-heading" className="text-base font-semibold">Your account</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">Personal details used across your workspaces</p>
-                    </div>
-                    <Link href={`/${organization._id}/profile/account`} className="flex min-h-16 items-center gap-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><UserRoundCog className="size-4" aria-hidden="true" /></span>
-                        <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium">Account settings</span>
-                            <span className="block text-xs text-muted-foreground">Name and profile details</span>
-                        </span>
-                        <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    </Link>
-                </section>
 
                 <InstallAppCard />
             </div>

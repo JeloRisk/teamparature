@@ -147,7 +147,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
     return (
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
-            <SidebarInset className="min-w-0">
+            <SidebarInset className="dashboard-reference-theme min-w-0">
                 <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b bg-card px-4 md:h-16 md:px-10">
                     <button
                         type="button"

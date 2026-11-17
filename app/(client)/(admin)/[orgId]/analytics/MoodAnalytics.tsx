@@ -274,7 +274,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             </header>
 
             <section aria-label="Team overview" className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]">
-                <article aria-label={analytics.totalLogs ? `Team Temperature: ${gaugeValue ?? 0}%. Generally positive mood.` : "Team Temperature: no check-ins in this period"} className="relative col-span-2 min-h-36 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.045] p-4 sm:p-5 lg:col-span-1">
+                <article aria-label={analytics.totalLogs ? `Team Temperature: ${gaugeValue ?? 0}%. Generally positive mood.` : "Team Temperature: no check-ins in this period"} className="relative col-span-2 min-h-28 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.045] p-3 sm:min-h-36 sm:p-5 lg:col-span-1">
                     {temperatureWavePath && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
                         <path d={`M ${temperaturePlotStartX} 160 H 320`} fill="none" stroke="currentColor" strokeOpacity="0.08" strokeWidth="1" />
                         {temperatureAreaPath && <path d={temperatureAreaPath} fill="currentColor" fillOpacity="0.03" />}
