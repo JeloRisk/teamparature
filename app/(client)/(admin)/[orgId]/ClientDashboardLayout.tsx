@@ -16,7 +16,7 @@ import {
 } from "@/app/components/ui/breadcrumb"
 import { AppSidebar } from "@/app/components/AppSidebar"
 import ThemeToggle from "@/app/components/ThemeToggle"
-import { BarChart3, Building2, Check, ChevronDown, History, LayoutDashboard, Menu, Users } from "lucide-react"
+import { BarChart3, Building2, Check, ChevronDown, History, LayoutDashboard, Menu, UserRound, Users } from "lucide-react"
 import { usePathname } from "next/navigation"
 import AnalyticsRangePicker from "./analytics/AnalyticsRangePicker"
 import {
@@ -137,6 +137,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         { label: "Members", href: `/${organization._id}/members`, icon: Users },
         { label: "Analytics", href: `/${organization._id}/analytics`, icon: BarChart3 },
         { label: "Activity", href: `/${organization._id}/activity`, icon: History },
+        { label: "Profile", href: `/${organization._id}/profile`, icon: UserRound },
     ]
 
     useEffect(() => {
@@ -180,7 +181,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 </main>
             </SidebarInset>
             {role === "owner" && <nav aria-label="Owner navigation" className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
-                <div className="mx-auto grid min-h-14 w-full max-w-sm grid-cols-4 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-200 dark:bg-white">
+                <div className="mx-auto grid min-h-14 w-full max-w-sm grid-cols-5 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-200 dark:bg-white">
                     {mobileOwnerNavigation.map(({ label, href, icon: Icon }) => {
                         const isActive = pathname === href
                         return <Link
