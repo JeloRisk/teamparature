@@ -180,21 +180,22 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     {children}
                 </main>
             </SidebarInset>
-            {role === "owner" && <nav aria-label="Owner navigation" className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
-                <div className="mx-auto grid min-h-14 w-full max-w-sm grid-cols-5 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-200 dark:bg-white">
+            {role === "owner" && <nav aria-label="Owner navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1 md:hidden">
+                <div className="mx-auto grid w-full max-w-md grid-cols-5 items-center gap-1 text-card-foreground">
                     {mobileOwnerNavigation.map(({ label, href, icon: Icon }) => {
-                        const isActive = pathname === href
+                        const isActive = pathname === href || (href !== `/${organization._id}` && pathname?.startsWith(`${href}/`))
                         return <Link
                             key={href}
                             href={href}
                             aria-label={label}
                             title={label}
                             aria-current={isActive ? "page" : undefined}
-                            className="flex min-h-12 min-w-0 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+                            className={`group flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
-                            <span className={`grid size-10 place-items-center rounded-full transition-colors ${isActive ? "bg-[#4f5ed9] text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"}`}>
-                                <Icon className="size-5" aria-hidden="true" />
+                            <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors motion-reduce:transition-none ${isActive ? "bg-primary/15" : "group-hover:bg-muted group-active:bg-muted"}`}>
+                                <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
                             </span>
+                            <span className={`text-[11px] leading-4 ${isActive ? "font-semibold" : "font-medium"}`}>{label}</span>
                         </Link>
                     })}
                 </div>

@@ -19,7 +19,7 @@ import { Skeleton } from "@/app/components/ui/skeleton"
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/app/components/ui/dialog"
-import { UserPlus, Search, SlidersHorizontal, MoreVertical, Clock } from "lucide-react"
+import { UserPlus, Search, SlidersHorizontal, MoreVertical, Clock, X } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator } from "@/app/components/ui/dropdown-menu"
 import MemberActions from "./MemberActions"
 import WorkspaceAction from "../WorkspaceAction"
@@ -54,6 +54,24 @@ export default function MembersPage() {
     const [cancelInvitation, setCancelInvitation] = useState<OrgInvitation | null>(null)
 
     const role = membership?.role
+
+    const changeTab = (next: "members" | "invitations") => {
+        setTab(next)
+        setSearch("")
+        setRoleFilter("all")
+        setStatusFilter("all")
+        setPage(1)
+    }
+
+    useEffect(() => {
+        setTab("members")
+        setSearch("")
+        setRoleFilter("all")
+        setStatusFilter("all")
+        setPage(1)
+        setNotice("")
+        setResendError("")
+    }, [orgId])
 
     useEffect(() => {
         if (orgId) fetchOrganizationDetails(orgId)
@@ -134,8 +152,8 @@ export default function MembersPage() {
         const userName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim()
         const userEmail = m.user?.email || ""
         const matchesSearch =
-            userName.toLowerCase().includes(search.toLowerCase()) ||
-            userEmail.toLowerCase().includes(search.toLowerCase())
+            userName.toLowerCase().includes(search.trim().toLowerCase()) ||
+            userEmail.toLowerCase().includes(search.trim().toLowerCase())
         const matchesRole = roleFilter === "all" || m.role === roleFilter
         return matchesSearch && matchesRole
     })
@@ -183,7 +201,7 @@ export default function MembersPage() {
     }
 
     if (loading) return <MembersSkeleton />
-    if (error) return <p className="text-red-500">{error}</p>
+    if (error) return <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm"><p className="text-destructive">{error}</p><Button variant="outline" className="mt-3" onClick={() => fetchOrganizationDetails(orgId)}>Try again</Button></div>
     if (!organization) return <p>No organization found</p>
 
     return (
@@ -207,7 +225,7 @@ export default function MembersPage() {
                     }}>
                         <DialogTrigger asChild>
                             <Button className="min-h-11 shrink-0 rounded-xl bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90">
-                                <UserPlus className="mr-1.5 size-4" aria-hidden="true" /><span className="sm:hidden">Invite</span><span className="hidden sm:inline">Invite member</span>
+                                <UserPlus className="size-4" aria-hidden="true" /><span className="sm:hidden">Invite</span><span className="hidden sm:inline">Invite member</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-h-[85dvh] overflow-y-auto rounded-2xl">
@@ -269,7 +287,7 @@ export default function MembersPage() {
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         tabIndex={tab === item ? 0 : -1}
-                        aria-controls={item + "-panel"} onClick={() => setTab(item)}
+                        aria-controls={item + "-panel"} onClick={() => changeTab(item)}
                         onKeyDown={(event) => {
                             const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])
                             const currentIndex = tabs.indexOf(event.currentTarget)
@@ -279,12 +297,12 @@ export default function MembersPage() {
                             if (nextIndex < 0) return
                             event.preventDefault()
                             const nextTab = tabs[nextIndex]
-                            setTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
+                            changeTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
                             nextTab.focus()
                         }}
                         className={`min-h-11 min-w-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
                         <span>{item}</span>
-                        {item === "invitations" && <span className={`ml-2 text-sm sm:text-xs tabular-nums ${tab === item ? "text-accent-foreground/75" : "text-muted-foreground"}`}>{pendingCount}<span className="hidden sm:inline"> pending</span></span>}
+                        {item === "invitations" && pendingCount > 0 && <span aria-label={`${pendingCount} pending`} className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium tabular-nums text-primary">{pendingCount}</span>}
                     </button>
                 ))}
             </div>
@@ -299,8 +317,9 @@ export default function MembersPage() {
                     placeholder={tab === "members" ? "Search name or email…" : "Search invitation email…"}
                     value={search}
                     onChange={(e) => { setPage(1); setSearch(e.target.value) }}
-                    className="min-h-11 rounded-xl border-border dark:border-border bg-card dark:bg-card pl-10 text-base sm:text-sm focus-visible:ring-ring/25"
+                    className="min-h-11 rounded-xl border-border dark:border-border bg-card dark:bg-card pl-10 pr-11 text-base sm:text-sm focus-visible:ring-ring/25"
                 />
+                {search && <button type="button" aria-label="Clear search" className="absolute right-0.5 top-0.5 flex size-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring" onClick={() => { setSearch(""); setPage(1) }}><X className="size-4" aria-hidden="true" /></button>}
                 </div>
                 {tab === "invitations" && <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="outline" size="icon" aria-label={`Filter invitations: ${statusFilter}`} className={`relative size-11 shrink-0 rounded-xl sm:hidden ${statusFilter !== "all" || roleFilter !== "all" ? "border-primary text-primary" : ""}`}><SlidersHorizontal aria-hidden="true" className="size-4" />{(statusFilter !== "all" || roleFilter !== "all") && <span aria-hidden="true" className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-primary" />}</Button></DropdownMenuTrigger>
@@ -446,15 +465,15 @@ export default function MembersPage() {
             ) : (
             /* members table */
             <div role="tabpanel" id="members-panel" aria-labelledby="members-tab" className="min-w-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-border lg:bg-card">
-                <div className="space-y-2.5 lg:hidden">
+                <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card lg:hidden">
                     {filteredMembers.map((m) => (
-                        <div key={m._id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1 gap-y-2 rounded-xl border border-border bg-card px-3 py-2.5 sm:rounded-2xl sm:p-4">
+                        <div key={m._id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-3 py-2.5 sm:px-4">
                             <div className="flex min-w-0 items-center gap-3">
                                 <div aria-hidden="true" className={`grid size-10 sm:size-11 shrink-0 place-items-center rounded-full text-sm font-semibold ${m.role === "owner" ? "bg-primary/10 text-primary" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"}`}>
                                     {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="break-words text-base sm:text-sm font-semibold leading-5 [overflow-wrap:anywhere]">{getMemberName(m.user)}{m.user?._id === session?.user?.id && <span className="ml-1.5 inline-block text-sm sm:text-xs font-normal text-muted-foreground">You</span>}</p><p title={m.user?.email} className="mt-0.5 truncate text-sm sm:text-xs leading-5 text-muted-foreground">{m.user?.email ?? "Email unavailable"}</p>
+                                <div className="min-w-0 flex-1">
+                                    <p className="break-words text-sm font-semibold leading-5 [overflow-wrap:anywhere]">{getMemberName(m.user)}{m.user?._id === session?.user?.id && <span className="ml-1.5 inline-block text-xs font-normal text-muted-foreground">You</span>}</p><p title={m.user?.email} className="mt-0.5 break-words text-xs leading-[1.125rem] [overflow-wrap:anywhere] text-muted-foreground">{m.user?.email ?? "Email unavailable"}</p>
                                 </div>
                             </div>
                             <div className="flex shrink-0 items-center gap-0.5">
@@ -466,7 +485,8 @@ export default function MembersPage() {
                     ))}
                     {filteredMembers.length === 0 && (
                         <div className="p-5 text-center text-base sm:text-sm text-muted-foreground">
-                            <p>No members match these filters.</p>
+                            <p className="font-medium text-foreground">{hasActiveFilters ? "No matching members" : "No members yet"}</p>
+                            <p className="mt-1 text-xs">{search.trim() ? "Try another name or email address." : roleFilter !== "all" ? "Choose All to see everyone in this workspace." : "Members will appear here when they join."}</p>
                             {hasActiveFilters && <Button variant="link" size="sm" className="mt-1" onClick={clearFilters}>Clear filters</Button>}
                         </div>
                     )}
@@ -478,14 +498,14 @@ export default function MembersPage() {
                         <TableRow className="bg-slate-50/80 dark:bg-muted/80">
                             <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Member</TableHead>
                             <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Role</TableHead>
-                            <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Status</TableHead><TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Status</TableHead><TableHead className="pr-4 text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredMembers.map((m) => (
 
                                 <TableRow key={m._id} className="hover:bg-accent/50 dark:hover:bg-[#303740]/50 transition">
-                                    <TableCell className="max-w-sm py-4">
+                                    <TableCell className="max-w-sm py-3 pl-4">
                                         <div className="flex min-w-0 items-center gap-3">
                                             <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-base sm:text-sm font-semibold text-primary">
                                                 {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
@@ -502,7 +522,7 @@ export default function MembersPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell><Badge variant="outline" className={m.isActive === false ? "border-border bg-muted text-muted-foreground" : "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"}>{m.isActive === false ? "Removed" : "Active"}</Badge></TableCell>
-                                    <TableCell className="text-right">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : <span className="text-sm sm:text-xs text-muted-foreground">Account unavailable</span>}</TableCell>
+                                    <TableCell className="pr-4 text-right">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : <span className="text-sm sm:text-xs text-muted-foreground">Account unavailable</span>}</TableCell>
                                 </TableRow>
                             ))}
                         {filteredMembers.length === 0 && (

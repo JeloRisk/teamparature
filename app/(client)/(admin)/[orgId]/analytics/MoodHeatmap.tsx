@@ -269,7 +269,7 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
             </div>}
         </div>
 
-        <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+        <ul aria-label="Mood legend" className="mb-4 flex flex-wrap gap-x-3 gap-y-2 text-xs text-muted-foreground">
             {heatmapMoods.map(mood => <li key={mood} className="flex items-center gap-2 capitalize"><span className="size-3 rounded-sm" style={{ backgroundColor: moodColors[mood] }} />{mood}</li>)}
             <li className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ backgroundColor: "#bec8ed" }} />Tied moods</li>
         </ul>

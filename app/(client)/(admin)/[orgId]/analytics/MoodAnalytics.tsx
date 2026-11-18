@@ -309,7 +309,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     <p className="text-sm font-medium leading-5 text-foreground">Most reported mood</p>
                     <div className="mt-1 flex min-w-0 items-center gap-2">
                         {leadingMoods.length > 0 && <MoodIcon mood={(leadingMoods.length === 1 ? leadingMoods[0].mood : "neutral") as MoodName} className="size-6 shrink-0" variant="mobile" />}
-                        <p className="truncate text-2xl font-semibold leading-none tracking-tight text-foreground sm:text-3xl">
+                        <p className="min-w-0 break-words text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
                             {leadingMoods.length === 0 ? "—" : leadingMoods.length === 1 ? leadingMoods[0].name : "Tied"}
                         </p>
                     </div>
@@ -344,10 +344,10 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                             </div>
                             <ul aria-label="Mood distribution details" className="min-w-0 divide-y divide-border/70">
                                 {moodDistribution.map(item => (
-                                    <li key={item.mood} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 py-2" aria-label={`${item.name}: ${item.value} check-ins`}>
-                                        <MoodIcon mood={item.mood as MoodName} className="size-7 shrink-0" variant="mobile" />
+                                    <li key={item.mood} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5" aria-label={`${item.name}: ${item.value} check-ins, ${item.share}%`}>
+                                        <MoodIcon mood={item.mood as MoodName} className="size-6 shrink-0" variant="mobile" />
                                         <span className="min-w-0 truncate text-sm font-medium">{item.name}</span>
-                                        <span className="text-xs text-muted-foreground tabular-nums">{item.value} {item.value === 1 ? "check-in" : "check-ins"}</span>
+                                        <span className="flex items-center gap-2 text-xs tabular-nums"><span className="text-muted-foreground">{item.value} {item.value === 1 ? "check-in" : "check-ins"}</span><span className="w-9 text-right font-medium">{item.share}%</span></span>
                                     </li>
                                 ))}
                             </ul>
@@ -391,7 +391,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                     <div role="columnheader" className="pb-2" />
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
                         <div key={day} role="columnheader" className="pb-2 text-center text-[11px] font-medium text-muted-foreground sm:text-xs">
-                            {day}<span className="mt-0.5 block text-[9px] font-normal sm:text-[10px]">{analytics.weekdayMoods[index]?.total ?? 0}</span>
+                            {day}<span className="mt-0.5 block text-[11px] font-normal sm:text-xs">{analytics.weekdayMoods[index]?.total ?? 0}</span>
                         </div>
                     ))}
                     {(Object.keys(MOOD_COLORS) as MoodType[]).map(mood => (

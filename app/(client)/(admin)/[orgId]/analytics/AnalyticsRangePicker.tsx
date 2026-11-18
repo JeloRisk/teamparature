@@ -61,7 +61,8 @@ export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
         setCustomOpen(true)
     }
 
-    return <div className="relative">
+    return <div className="relative flex flex-wrap items-center gap-2">
+        <div className="relative">
         <label className="sr-only" htmlFor="analytics-period">Analytics period</label>
         <select id="analytics-period" aria-label="Analytics period" value={preset} onChange={event => {
             const value = event.target.value
@@ -79,7 +80,8 @@ export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
             <option value="custom">Custom dates</option>
         </select>
         <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        {preset === "custom" && <button type="button" onClick={openCustomRange} aria-label={currentRange ? `Edit custom date range, ${currentRange}` : "Edit custom date range"} title={currentRange ? `Edit custom date range: ${currentRange}` : "Edit custom date range"} className="ml-2 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        </div>
+        {preset === "custom" && <button type="button" onClick={openCustomRange} aria-label={currentRange ? `Edit custom date range, ${currentRange}` : "Edit custom date range"} title={currentRange ? `Edit custom date range: ${currentRange}` : "Edit custom date range"} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
             <CalendarDays aria-hidden="true" className="size-4" />
             {currentRange && <span className="hidden max-w-[15rem] truncate xl:inline">{currentRange}</span>}
         </button>}
@@ -103,13 +105,13 @@ export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
             </div>
             <p className={`mt-3 text-xs ${from && to && from > to ? "text-destructive" : "text-muted-foreground"}`}>{rangeHint}</p>
             <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setCustomOpen(false)} className="h-9 rounded-lg px-3 text-sm font-medium hover:bg-muted">Cancel</button>
+                <button type="button" onClick={() => setCustomOpen(false)} className="min-h-11 rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">Cancel</button>
                 <button type="button" disabled={!from || !to || from > to || to > endDate || rangeDays > 1826}
                     onClick={() => {
                         fetchAnalytics(orgId, true, { from, to, year: selectedRange.year })
                         setCustomOpen(false)
                     }}
-                    className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Apply</button>
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Apply</button>
             </div>
         </div>}
     </div>
