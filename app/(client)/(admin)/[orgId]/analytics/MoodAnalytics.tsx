@@ -274,7 +274,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             </header>
 
             <section aria-label="Team overview" className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]">
-                <article aria-label={analytics.totalLogs ? `Team Temperature: ${gaugeValue ?? 0}%. Generally positive mood.` : "Team Temperature: no check-ins in this period"} className="relative col-span-2 min-h-28 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.045] p-3 sm:min-h-36 sm:p-5 lg:col-span-1">
+                <article aria-label={analytics.totalLogs ? `Team Temperature: ${gaugeValue ?? 0}% of check-ins were Happy or Excited.` : "Team Temperature: no check-ins in this period"} className="relative col-span-2 min-h-28 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.045] p-3 sm:min-h-36 sm:p-5 lg:col-span-1">
                     {temperatureWavePath && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
                         <path d={`M ${temperaturePlotStartX} 160 H 320`} fill="none" stroke="currentColor" strokeOpacity="0.08" strokeWidth="1" />
                         {temperatureAreaPath && <path d={temperatureAreaPath} fill="currentColor" fillOpacity="0.03" />}
@@ -287,7 +287,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                             <p className="mt-1 text-2xl font-semibold leading-none tracking-tight text-foreground tabular-nums sm:text-3xl">
                                 {analytics.totalLogs ? `${gaugeValue ?? 0}%` : "—"}
                             </p>
-                            <p className="mt-2 text-xs leading-5 text-foreground sm:text-sm">{analytics.totalLogs ? "Generally positive mood" : "No check-ins in this period."}</p>
+                            <p className="mt-2 text-xs leading-5 text-foreground sm:text-sm">{analytics.totalLogs ? "of check-ins were Happy or Excited" : "No check-ins in this period."}</p>
                         </div>
                     </div>
                     {temperatureWavePath && <span className="sr-only" role="img" aria-label={trend.granularity === "day"
@@ -324,37 +324,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
             </section>
 
-            <MoodHeatmap orgId={orgId} timezone={analytics.timezone} moods={analytics.heatmap} days={analytics.heatmapDays} filterRange={{ start: analytics.detailedSeries[0]?.dateKey ?? analytics.asOfDate, end: analytics.detailedSeries.at(-1)?.dateKey ?? analytics.asOfDate }} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} detailAsOfDate={analytics.asOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
-
-            <ChartCard title="Mood distribution" contentClassName="h-auto">
-                    {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
-                        <div className="grid min-w-0 grid-cols-1 items-center gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
-                            <div className="relative mx-auto aspect-[16/9] w-full max-w-[22rem]" role="img" aria-label={`Mood distribution across ${analytics.totalLogs} check-ins`}>
-                                <svg aria-hidden="true" className="h-full w-full" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet">
-                                    {distributionSegments.map(segment => (
-                                        <path key={segment.mood} d={segment.path} fill="none" stroke={segment.color} strokeWidth="24" strokeLinecap="round">
-                                            <title>{segment.name}: {segment.value} check-ins, {segment.share}%</title>
-                                        </path>
-                                    ))}
-                                </svg>
-                                <div className="pointer-events-none absolute inset-x-0 top-[64%] flex -translate-y-1/2 flex-col items-center justify-center gap-0.5">
-                                    <span className="text-2xl font-semibold leading-none tabular-nums">{analytics.totalLogs}</span>
-                                    <span className="text-xs text-muted-foreground">{analytics.totalLogs === 1 ? "check-in" : "check-ins"}</span>
-                                </div>
-                            </div>
-                            <ul aria-label="Mood distribution details" className="min-w-0 divide-y divide-border/70">
-                                {moodDistribution.map(item => (
-                                    <li key={item.mood} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5" aria-label={`${item.name}: ${item.value} check-ins, ${item.share}%`}>
-                                        <MoodIcon mood={item.mood as MoodName} className="size-6 shrink-0" variant="mobile" />
-                                        <span className="min-w-0 truncate text-sm font-medium">{item.name}</span>
-                                        <span className="flex items-center gap-2 text-xs tabular-nums"><span className="text-muted-foreground">{item.value} {item.value === 1 ? "check-in" : "check-ins"}</span><span className="w-9 text-right font-medium">{item.share}%</span></span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-            </ChartCard>
-
             <section aria-label="Mood check-ins and weekday patterns" className="min-w-0">
                 <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                 <ChartCard
@@ -388,7 +357,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
             <ChartCard title="Weekday patterns" cardClassName="lg:h-[23rem]" contentClassName="h-auto">
                 <div className="grid min-w-0 grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] gap-1 sm:grid-cols-[4.5rem_repeat(7,minmax(1.5rem,1fr))] sm:gap-2" role="table" aria-label={`Mood check-in counts by weekday, ${weekdayRange}`}>
-                    <div role="columnheader" className="pb-2" />
+                    <div role="columnheader" className="self-end pb-2 text-[11px] leading-tight text-muted-foreground sm:text-xs">Total check-ins</div>
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
                         <div key={day} role="columnheader" className="pb-2 text-center text-[11px] font-medium text-muted-foreground sm:text-xs">
                             {day}<span className="mt-0.5 block text-[11px] font-normal sm:text-xs">{analytics.weekdayMoods[index]?.total ?? 0}</span>
@@ -409,6 +378,37 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             </ChartCard>
                 </div>
             </section>
+
+            <MoodHeatmap orgId={orgId} timezone={analytics.timezone} moods={analytics.heatmap} days={analytics.heatmapDays} filterRange={{ start: analytics.detailedSeries[0]?.dateKey ?? analytics.asOfDate, end: analytics.detailedSeries.at(-1)?.dateKey ?? analytics.asOfDate }} year={analytics.year} asOfDate={analytics.heatmapAsOfDate} detailAsOfDate={analytics.asOfDate} latestYear={Number(analytics.asOfDate.slice(0, 4))} onYearChange={year => fetchAnalytics(orgId, true, { ...selectedRange, year })} />
+
+            <ChartCard title="Mood distribution" contentClassName="h-auto">
+                    {!analytics.totalLogs ? <p className="flex h-full items-center justify-center text-sm text-muted-foreground">No check-ins in this period.</p> : (
+                        <div className="grid min-w-0 grid-cols-1 items-center gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
+                            <div className="relative mx-auto aspect-[16/9] w-full max-w-[22rem]" role="img" aria-label={`Mood distribution across ${analytics.totalLogs} check-ins`}>
+                                <svg aria-hidden="true" className="h-full w-full" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet">
+                                    {distributionSegments.map(segment => (
+                                        <path key={segment.mood} d={segment.path} fill="none" stroke={segment.color} strokeWidth="24" strokeLinecap="round">
+                                            <title>{segment.name}: {segment.value} check-ins, {segment.share}%</title>
+                                        </path>
+                                    ))}
+                                </svg>
+                                <div className="pointer-events-none absolute inset-x-0 top-[64%] flex -translate-y-1/2 flex-col items-center justify-center gap-0.5">
+                                    <span className="text-2xl font-semibold leading-none tabular-nums">{analytics.totalLogs}</span>
+                                    <span className="text-xs text-muted-foreground">{analytics.totalLogs === 1 ? "check-in" : "check-ins"}</span>
+                                </div>
+                            </div>
+                            <ul aria-label="Mood distribution details" className="min-w-0 divide-y divide-border/70">
+                                {moodDistribution.map(item => (
+                                    <li key={item.mood} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5" aria-label={`${item.name}: ${item.value} check-ins, ${item.share}%`}>
+                                        <MoodIcon mood={item.mood as MoodName} className="size-6 shrink-0" variant="mobile" />
+                                        <span className="min-w-0 truncate text-sm font-medium">{item.name}</span>
+                                        <span className="flex items-center gap-2 text-xs tabular-nums"><span className="text-muted-foreground">{item.value} {item.value === 1 ? "check-in" : "check-ins"}</span><span className="w-9 text-right font-medium">{item.share}%</span></span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+            </ChartCard>
         </div>
     )
 }

@@ -255,7 +255,7 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
             <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         </div>
     }>
-        <p className="mb-4 text-xs text-muted-foreground">Highlighted period: {formatDateKey(filterRange.start, true)} – {formatDateKey(filterRange.end, true)}</p>
+        <p className="mb-4 text-xs text-muted-foreground"><span aria-hidden="true" className="mr-1.5 inline-block size-3 rounded-sm border-2 border-primary align-[-0.1em]" />Highlighted period: {formatDateKey(filterRange.start, true)} – {formatDateKey(filterRange.end, true)}</p>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div role="group" aria-label="Heatmap time scale" className="inline-flex rounded-xl bg-muted p-1">
                 {(["month", "year"] as const).map(option => <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)} className={"min-h-10 rounded-lg px-3 text-sm font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " + (view === option ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
