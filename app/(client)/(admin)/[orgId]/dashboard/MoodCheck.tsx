@@ -92,14 +92,11 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             <div className={compact ? "w-full min-w-0 lg:max-w-2xl lg:flex-1" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div role="status" className={`flex items-center gap-3 text-sm text-foreground ${compact ? "min-h-12" : "min-h-14 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3"}`}>
+                    <div role="status" className={`flex items-center gap-3 text-sm text-foreground ${compact ? "min-h-8" : "min-h-14 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3"}`}>
                         <span className={`flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mood-excited)_18%,var(--card))] text-[var(--mood-excited)] ${compact ? "size-8" : "size-9"}`}>
                             <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />
                         </span>
-                        {compact ? <div className="min-w-0">
-                            <p className="text-base font-semibold leading-5">You’re all set for today.</p>
-                            <p className="text-sm leading-5 text-muted-foreground">Check-in saved. See you tomorrow.</p>
-                        </div> : <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>}
+                        {compact ? <p className="font-medium">Checked in today</p> : <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>}
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">

@@ -145,7 +145,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     const activeWeeklyMoods = moodOptions.filter(item => trend.some(day => day[item.key] > 0))
     const members = summary?.activeMemberCount ?? ownerCount + memberCount
     const participantsThisWeek = summary?.participantsThisWeek ?? 0
-    const participation = summary && members > 0 ? Math.round(participantsThisWeek / members * 100) : null
+    const segments = temperatureTrendSegments(trend as MoodTrendDay[]).filter(segment => segment.length > 1)
     const happyThisWeek = weeklyDistribution.find(item => item.key === "happy")?.value ?? 0
     const excitedThisWeek = weeklyDistribution.find(item => item.key === "excited")?.value ?? 0
     const temperature = positiveShare(happyThisWeek, excitedThisWeek, checkInsThisWeek)
@@ -176,7 +176,7 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
 
                 {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
 
-                    <section className={`${panel} bg-primary/[0.025]`}>
+                    <section className={summary?.checkedInToday ? "px-1 py-1" : `${panel} bg-primary/[0.025]`}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>
                 <div className="grid min-w-0 grid-cols-2 items-stretch gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.8fr)]">
@@ -186,26 +186,24 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                         <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">Last 7 days</p>
                         <MoodMixBar items={weeklyDistribution.filter(item => item.value > 0)} total={checkInsThisWeek} emptyMessage="No check-ins across the last 7 days." />
                     </section>
-                    <section className="relative col-span-2 min-h-44 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.035] p-4 sm:col-span-1 sm:p-6" aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
-                        {checkInsThisWeek > 0 && <svg aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-24 w-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
-                            {temperatureTrendSegments(trend as MoodTrendDay[]).map((segment, index) => segment.length === 1
-                                ? <circle key={index} cx={segment[0].x} cy={segment[0].y} r="3" fill="currentColor" fillOpacity="0.3" />
-                                : <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" strokeLinecap="round" />)}
+                    <section className={`${segments.length ? "min-h-44" : ""} relative col-span-2 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.035] p-4 sm:col-span-1 sm:p-6`} aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
+                        {segments.length > 0 && <svg aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-24 w-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
+                            {segments.map((segment, index) => <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" strokeLinecap="round" />)}
                         </svg>}
                         <div className="relative z-10">
                             <h2 className="text-sm font-medium leading-5 text-muted-foreground sm:text-base">Team Temperature</h2>
                             <p className="mt-3 text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
-                            <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{temperature === null ? "No check-ins yet" : "Happy + Excited check-ins"}</p>
+                            <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{temperature === null ? "No check-ins yet" : `${happyThisWeek + excitedThisWeek} of ${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in was" : "check-ins were"} Happy or Excited`}</p>
                             <p className="mt-1 text-xs text-muted-foreground">Last 7 days</p>
-                            <p className="sr-only">Daily team temperature trend across the last seven days, based on Happy and Excited check-ins.</p>
+                            {segments.length > 0 && <p className="sr-only">Daily team temperature trend across the last seven days.</p>}
                         </div>
                     </section>
 
                     <div className="col-span-2 grid grid-cols-2 gap-3 sm:gap-4 xl:col-span-1 xl:grid-cols-1">
                     <section className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:px-5" aria-labelledby="dashboard-participation-heading">
                         <h2 id="dashboard-participation-heading" className="text-sm font-medium text-muted-foreground">Participation</h2>
-                        <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{participation === null ? "—" : `${participation}%`}</p>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{summary ? `${participantsThisWeek} of ${members} checked in · Last 7 days` : "Participation unavailable"}</p>
+                        <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{summary ? `${participantsThisWeek} of ${members}` : "—"}</p>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{summary ? "members checked in during the last 7 days" : "Participation unavailable"}</p>
                     </section>
                     <section className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:px-5" aria-labelledby="dashboard-active-members-heading">
                         <h2 id="dashboard-active-members-heading" className="text-sm font-medium text-muted-foreground sm:text-base">Active members</h2>
@@ -220,14 +218,14 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                     <div className="min-w-0">
                         <div className="mb-4 sm:mb-5">
                             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                                <h2 className="text-lg font-semibold leading-6 tracking-tight">Last 7 days</h2>
+                                <h2 className="text-lg font-semibold leading-6 tracking-tight">Daily check-ins by mood</h2>
                                 <Link href={`/${organization._id}/analytics`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
                                     Full analytics
                                     <ArrowUpRight className="size-4" aria-hidden="true" />
                                 </Link>
                             </div>
                             <div>
-                                <p className="mt-1.5 text-sm text-muted-foreground">Daily check-ins by mood</p>
+                                <p className="mt-1.5 text-sm text-muted-foreground">Last 7 days</p>
                             </div>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-64 sm:p-0 xl:h-72" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
