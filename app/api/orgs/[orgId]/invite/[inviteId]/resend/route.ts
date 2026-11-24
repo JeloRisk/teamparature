@@ -35,6 +35,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ orgId:
                 const invitation = await Invitation.collection.findOne({ _id: new Types.ObjectId(inviteId), organization: new Types.ObjectId(orgId) }, { session })
                 if (!invitation) throw new ResendError("Invitation not found", 404)
                 if (!["pending", "expired"].includes(invitation.status)) throw new ResendError("Only pending or expired invitations can be resent", 409)
+                if (invitation.role !== "member") throw new ResendError("Cancel this invitation and invite the person as a member", 409)
                 const lastSent = invitation.lastSentAt ?? invitation.createdAt
                 if (new Date(lastSent).getTime() > Date.now() - 60000) throw new ResendError("Please wait one minute before resending", 429)
                 const recipient = await User.findOne({ email: { $eq: invitation.email } }).select("_id").session(session)

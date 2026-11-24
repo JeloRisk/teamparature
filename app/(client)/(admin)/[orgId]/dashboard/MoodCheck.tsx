@@ -79,10 +79,11 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                         Today’s check-in
                     </p> */}
 
-                    <h2 className={compact ? "mt-1 text-xl font-semibold leading-6 tracking-tight sm:text-lg" : "mt-1 text-xl font-semibold leading-tight"}>
+                    {compact && !summary?.checkedInToday && <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Today’s check-in</p>}
+                    <h2 className={compact ? "text-xl font-semibold leading-6 tracking-tight sm:text-2xl" : "mt-1 text-xl font-semibold leading-tight"}>
                         {compact && summary?.checkedInToday ? "You’re all set for today." : "How are you feeling?"}
                     </h2>
-                    {compact && !summary?.checkedInToday && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground">Choose one feeling for today.</p>}
+                    {compact && !summary?.checkedInToday && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground sm:text-base">Choose one feeling for today.</p>}
                 </div>
 
                 {!compact && <MoodIcon mood="happy" className="size-11" />}
@@ -105,7 +106,7 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
                                 <button key={value} type="button" disabled={submitting}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className="group flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-0.5 py-2 transition-[filter,transform] hover:brightness-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:px-1.5"
+                                    className="group flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border bg-card/70 px-0.5 py-2 transition-[filter,transform,box-shadow] hover:brightness-95 hover:shadow-sm active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:px-1.5"
                                     style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
                                     <MoodIcon mood={value} variant="mobile" className="size-8 sm:size-10" />
                                     <span className="text-[11px] font-medium leading-5 text-foreground sm:text-sm">{label}</span>

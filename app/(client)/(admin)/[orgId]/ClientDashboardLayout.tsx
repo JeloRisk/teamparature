@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, ReactNode, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import {
     SidebarProvider,
@@ -16,7 +17,7 @@ import {
 } from "@/app/components/ui/breadcrumb"
 import { AppSidebar } from "@/app/components/AppSidebar"
 import ThemeToggle from "@/app/components/ThemeToggle"
-import { BarChart3, Building2, Check, ChevronDown, History, LayoutDashboard, Menu, UserRound, Users } from "lucide-react"
+import { BarChart3, Building2, CalendarDays, Check, ChevronDown, History, LayoutDashboard, Menu, UserRound, Users } from "lucide-react"
 import { usePathname } from "next/navigation"
 import AnalyticsRangePicker from "./analytics/AnalyticsRangePicker"
 import {
@@ -43,7 +44,7 @@ export function useWorkspace() {
     return workspace
 }
 
-function MobileWorkspaceSwitcher({ organization }: { organization: Workspace["organization"] }) {
+function MobileWorkspaceSwitcher({ organization, isHome }: { organization: Workspace["organization"]; isHome: boolean }) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const memberships = useMembershipStore(state => state.memberships)
@@ -65,11 +66,9 @@ function MobileWorkspaceSwitcher({ organization }: { organization: Workspace["or
                 title={`Current workspace: ${organization.name}`}
                 className="flex min-h-11 min-w-0 max-w-[54vw] items-center gap-2 rounded-xl px-1 py-1 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
             >
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-accent text-primary" aria-hidden="true">
-                    <Building2 className="size-4" />
-                </span>
+                {isHome ? <Image src="/logo.png" alt="" width={32} height={32} className="size-8 shrink-0 object-contain" /> : <Building2 aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />}
                 <span className="min-w-0 leading-tight">
-                    <span className="block text-[10px] text-muted-foreground">Workspace</span>
+                    {isHome && <span className="block text-[11px] font-semibold tracking-tight text-primary">Teamparature</span>}
                     <span className="block truncate text-sm font-semibold tracking-tight">{organization.name}</span>
                 </span>
                 <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -132,11 +131,15 @@ function DashboardContent({ children }: { children: ReactNode }) {
     } as Record<string, string>)[section] ?? "Dashboard"
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
-    const mobileOwnerNavigation = [
+    const mobileNavigation = role === "owner" ? [
         { label: "Home", href: `/${organization._id}`, icon: LayoutDashboard },
         { label: "Members", href: `/${organization._id}/members`, icon: Users },
         { label: "Analytics", href: `/${organization._id}/analytics`, icon: BarChart3 },
         { label: "Activity", href: `/${organization._id}/activity`, icon: History },
+        { label: "Profile", href: `/${organization._id}/profile`, icon: UserRound },
+    ] : [
+        { label: "Home", href: `/${organization._id}`, icon: LayoutDashboard },
+        { label: "Mood overview", href: `/${organization._id}/mood-overview`, icon: CalendarDays },
         { label: "Profile", href: `/${organization._id}/profile`, icon: UserRound },
     ]
 
@@ -148,7 +151,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
             <SidebarInset className="dashboard-reference-theme min-w-0">
-                <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b bg-card px-4 md:h-16 md:px-10">
+                <header className="sticky top-0 z-50 flex h-[calc(3rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] md:pt-0 shrink-0 items-center gap-2 border-b bg-card px-4 md:h-16 md:px-10">
                     <button
                         type="button"
                         onClick={toggleSidebar}
@@ -158,7 +161,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                         <Menu className="h-5 w-5" />
                     </button>
                     <div className="hidden h-4 w-px shrink-0 bg-border md:block" />
-                    <MobileWorkspaceSwitcher organization={organization} />
+                    <MobileWorkspaceSwitcher organization={organization} isHome={pathname === `/${organization._id}`} />
                     <div className="hidden md:block">
                         <Breadcrumb>
                             <BreadcrumbList>
@@ -176,13 +179,13 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     </div>
                 </header>
 
-                <main className={`flex min-w-0 flex-1 flex-col p-4 md:px-10 ${role === "owner" ? "pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-4" : ""}`}>
+                <main className="flex min-w-0 flex-1 flex-col p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:px-10 md:pb-4">
                     {children}
                 </main>
             </SidebarInset>
-            {role === "owner" && <nav aria-label="Owner navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1 md:hidden">
-                <div className="mx-auto grid w-full max-w-md grid-cols-5 items-center gap-1 text-card-foreground">
-                    {mobileOwnerNavigation.map(({ label, href, icon: Icon }) => {
+            <nav aria-label="Workspace navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1 md:hidden">
+                <div className="mx-auto grid w-full max-w-md auto-cols-fr grid-flow-col items-center gap-1 text-card-foreground">
+                    {mobileNavigation.map(({ label, href, icon: Icon }) => {
                         const isActive = pathname === href || (href !== `/${organization._id}` && pathname?.startsWith(`${href}/`))
                         return <Link
                             key={href}
@@ -190,16 +193,16 @@ function DashboardContent({ children }: { children: ReactNode }) {
                             aria-label={label}
                             title={label}
                             aria-current={isActive ? "page" : undefined}
-                            className={`group flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`group flex min-h-14 touch-manipulation select-none min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
-                            <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors motion-reduce:transition-none ${isActive ? "bg-primary/15" : "group-hover:bg-muted group-active:bg-muted"}`}>
+                            <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,transform] group-active:scale-95 motion-reduce:group-active:scale-100 motion-reduce:transition-none ${isActive ? "bg-primary/15" : "group-hover:bg-muted group-active:bg-muted"}`}>
                                 <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
                             </span>
                             <span className={`text-[11px] leading-4 ${isActive ? "font-semibold" : "font-medium"}`}>{label}</span>
                         </Link>
                     })}
                 </div>
-            </nav>}
+            </nav>
         </>
     )
 }

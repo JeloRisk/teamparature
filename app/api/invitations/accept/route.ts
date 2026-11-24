@@ -28,6 +28,7 @@ export async function POST(req: Request) {
             if (invitation.status === "cancelled") return { error: "Invitation cancelled", status: 410 }
             const expires = invitation.expiresAt ?? new Date(invitation.createdAt.getTime() + 86400000)
             if (invitation.status === "expired" || expires <= new Date()) return { error: "Invitation expired", status: 410 }
+            if (invitation.role !== "member") return { error: "Please request a new member invitation", status: 410 }
             const existing = await Membership.findOne({ user: auth.user.id, organization: invitation.organization }).session(session)
             if (!existing) {
                 await Membership.create([{

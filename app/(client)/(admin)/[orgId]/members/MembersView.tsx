@@ -47,7 +47,6 @@ export default function MembersPage() {
     const [search, setSearch] = useState("")
     const [roleFilter, setRoleFilter] = useState("all")
     const [inviteEmail, setInviteEmail] = useState("")
-    const [inviteRole, setInviteRole] = useState<"owner" | "member">("member")
     const [inviteOpen, setInviteOpen] = useState(false)
     const [inviteError, setInviteError] = useState("")
     const [sending, setSending] = useState(false)
@@ -179,7 +178,7 @@ export default function MembersPage() {
             const res = await fetch(`/api/orgs/${orgId}/invite`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+                body: JSON.stringify({ email: inviteEmail.trim() }),
             })
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || "Failed to send invite")
@@ -192,7 +191,6 @@ export default function MembersPage() {
             setRevision(value => value + 1)
             await fetchOrganizationDetails(orgId, true)
             setInviteEmail("")
-            setInviteRole("member")
         } catch (err: unknown) {
             setInviteError(getErrorMessage(err))
         } finally {
@@ -250,23 +248,6 @@ export default function MembersPage() {
                                             onChange={(e) => setInviteEmail(e.target.value)}
                                             required
                                         />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="invite-role">Workspace role</Label>
-                                        <Select value={inviteRole} onValueChange={(val) => setInviteRole(val as "owner" | "member")}>
-                                            <SelectTrigger id="invite-role" className="min-h-11 w-full">
-                                                <SelectValue placeholder="Select role" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="owner">Owner</SelectItem>
-                                                <SelectItem value="member">Member</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <p className="text-sm sm:text-xs text-muted-foreground">
-                                            {inviteRole === "owner"
-                                                ? "Owners can manage workspace access and invitations."
-                                                : "Members can participate in the workspace without managing access."}
-                                        </p>
                                     </div>
                                     {inviteError && <p id="invite-error" role="alert" className="text-base sm:text-sm text-destructive">{inviteError}</p>}
                                 </div>

@@ -136,7 +136,7 @@
   --chart-2: #c0c0c5;
   --chart-3: #f19b9f;
   --chart-4: #a783e7;
-  --chart-5: #5acfa8;
+  --chart-5: #3bb59d;
   --mood-happy: #f4d47a;
   --mood-happy-soft: #fff8df;
   --mood-neutral: #c0c0c5;
@@ -145,7 +145,7 @@
   --mood-sad-soft: #fff0f0;
   --mood-stressed: #a783e7;
   --mood-stressed-soft: #f4efff;
-  --mood-excited: #5acfa8;
+  --mood-excited: #3bb59d;
   --mood-excited-soft: #eafaf4;
 }
 
@@ -153,6 +153,20 @@
   font-family: var(--font-dashboard-heading), var(--font-geist-sans), sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.dashboard-home-surface {
+  background-color: var(--background);
+}
+
+@media (width < 640px) {
+  .dashboard-home-surface {
+    background-color: #eaf4ef;
+    background-image:
+      radial-gradient(ellipse at 12% 8%, rgb(255 255 255 / 64%) 0, transparent 43%),
+      radial-gradient(ellipse at 92% 38%, rgb(193 224 210 / 24%) 0, transparent 38%),
+      radial-gradient(ellipse at 18% 88%, rgb(205 230 216 / 28%) 0, transparent 42%);
+  }
 }
 
 .dark .dashboard-reference-theme {

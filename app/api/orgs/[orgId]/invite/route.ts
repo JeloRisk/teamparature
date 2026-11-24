@@ -28,6 +28,9 @@ export async function POST(req: Request) {
         if (!session?.user?.id)
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+        if (role !== undefined && role !== "member")
+            return NextResponse.json({ error: "Only member invitations are supported" }, { status: 400 });
+
         const inviter = await User.findById(session.user.id);
         if (!inviter)
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -88,7 +91,7 @@ export async function POST(req: Request) {
         const [invitation] = await Invitation.create([{
             organization: orgId,
             email,
-            role: role || "member",
+            role: "member",
             invitedBy: inviter._id,
             token,
             status: "pending",

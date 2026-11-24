@@ -154,58 +154,52 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     if (!summary && !error) return <DashboardSkeleton />
 
     return (
-        <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
-            <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
-                <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 sm:items-end sm:gap-4">
+        <div className="dashboard-reference-theme dashboard-home-surface mobile-page -m-4 min-w-0 flex-1 px-3 py-3 sm:bg-muted/30 sm:px-6 sm:py-8 md:-mx-10 md:px-10">
+            <div className="mobile-page-content mx-auto min-w-0 max-w-6xl space-y-3.5 sm:space-y-6">
+
+                <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-2 pb-1 sm:border-b sm:border-border/80 sm:pb-6">
                     <div className="min-w-0">
-                        <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-3xl">
-                            <span className="sm:hidden">Welcome back</span>
-                            <span className="hidden sm:inline">Team mood</span>
-                        </h1>
-                        <p className="mt-1.5 hidden break-words text-sm text-muted-foreground sm:block">Workspace <span aria-hidden="true">·</span> <span className="font-medium text-foreground">{organization.name}</span></p>
-                        {now && <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground sm:hidden">
-                            <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
-                            {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}
-                        </p>}
+                        <p className="mb-1 truncate text-xs font-medium text-muted-foreground">{organization.name}</p>
+                        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">Team mood</h1>
                     </div>
-                    {now && <div className="hidden min-h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-base font-medium tabular-nums text-foreground sm:flex">
-                        <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                        {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: timezone })}
-                    </div>}
+                    {now && <p className="flex min-h-8 items-center gap-1.5 rounded-full bg-muted/70 px-2.5 text-xs font-medium text-muted-foreground sm:min-h-10 sm:bg-accent sm:px-3 sm:text-sm">
+                        <CalendarDays className="size-3.5 sm:size-4" aria-hidden="true" />
+                        {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}
+                    </p>}
                 </header>
 
                 {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
 
-                    <section className={summary?.checkedInToday ? "px-1 py-1" : `${panel} bg-primary/[0.025]`}>
+                    <section className={summary?.checkedInToday ? "rounded-2xl border border-emerald-600/15 bg-emerald-600/[0.045] px-3 py-2" : "relative min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card p-4 shadow-sm shadow-primary/[0.04] sm:rounded-3xl sm:bg-gradient-to-br sm:from-accent/80 sm:via-card sm:to-card sm:p-7"}>
                         <MoodCheck orgId={organization._id} compact />
                     </section>
-                <div className="grid min-w-0 grid-cols-2 items-stretch gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.8fr)]">
-                    <section className={`${panel} col-span-2 sm:col-span-1`} aria-labelledby="total-checkins-heading">
+                <div className="grid min-w-0 grid-cols-2 items-stretch gap-2.5 sm:gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.8fr)]">
+                    <section className="col-span-2 min-w-0 rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-foreground/[0.025] sm:col-span-1 sm:p-6" aria-labelledby="total-checkins-heading">
                         <h2 id="total-checkins-heading" className="text-sm font-medium leading-5 text-muted-foreground sm:text-base">Total check-ins</h2>
-                        <p className="mt-3 text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{summary ? checkInsThisWeek : "—"}</p>
+                        <p className="mt-3 text-[2rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{summary ? checkInsThisWeek : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">Last 7 days</p>
                         <MoodMixBar items={weeklyDistribution.filter(item => item.value > 0)} total={checkInsThisWeek} emptyMessage="No check-ins across the last 7 days." />
                     </section>
-                    <section className={`${segments.length ? "min-h-44" : ""} relative col-span-2 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.035] p-4 sm:col-span-1 sm:p-6`} aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
+                    <section className={`${segments.length ? "min-h-44" : ""} relative col-span-2 min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-accent/80 via-accent/35 to-card p-4 sm:col-span-1 sm:p-6`} aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
                         {segments.length > 0 && <svg aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-24 w-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
-                            {segments.map((segment, index) => <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" strokeLinecap="round" />)}
+                            {segments.map((segment, index) => <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.68" strokeWidth="2.5" strokeLinecap="round" />)}
                         </svg>}
                         <div className="relative z-10">
                             <h2 className="text-sm font-medium leading-5 text-muted-foreground sm:text-base">Team Temperature</h2>
-                            <p className="mt-3 text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
+                            <p className="mt-3 text-[2rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
                             <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{temperature === null ? "No check-ins yet" : `${happyThisWeek + excitedThisWeek} of ${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in was" : "check-ins were"} Happy or Excited`}</p>
                             <p className="mt-1 text-xs text-muted-foreground">Last 7 days</p>
                             {segments.length > 0 && <p className="sr-only">Daily team temperature trend across the last seven days.</p>}
                         </div>
                     </section>
 
-                    <div className="col-span-2 grid grid-cols-2 gap-3 sm:gap-4 xl:col-span-1 xl:grid-cols-1">
-                    <section className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:px-5" aria-labelledby="dashboard-participation-heading">
+                    <div className="col-span-2 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm shadow-foreground/[0.025] xl:col-span-1 xl:grid-cols-1 xl:divide-x-0 xl:divide-y">
+                    <section className="min-w-0 p-4 sm:px-5" aria-labelledby="dashboard-participation-heading">
                         <h2 id="dashboard-participation-heading" className="text-sm font-medium text-muted-foreground">Participation</h2>
                         <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{summary ? `${participantsThisWeek} of ${members}` : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">{summary ? "members checked in during the last 7 days" : "Participation unavailable"}</p>
                     </section>
-                    <section className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:px-5" aria-labelledby="dashboard-active-members-heading">
+                    <section className="min-w-0 p-4 sm:px-5" aria-labelledby="dashboard-active-members-heading">
                         <h2 id="dashboard-active-members-heading" className="text-sm font-medium text-muted-foreground sm:text-base">Active members</h2>
                         <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{summary ? members.toLocaleString() : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">Workspace members, including owners</p>

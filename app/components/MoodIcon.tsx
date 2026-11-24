@@ -15,7 +15,7 @@ const mobileColors: Record<MoodName, string> = {
     neutral: "#c0c0c5",
     sad: "#f19b9f",
     stressed: "#a783e7",
-    excited: "#5acfa8",
+    excited: "#3bb59d",
 }
 
 export default function MoodIcon({ mood, className = "size-10", variant = "default" }: { mood: MoodName; className?: string; variant?: "default" | "mobile" }) {
