@@ -3,7 +3,7 @@ import { getWorkspaceTimezone } from "@/lib/workspace-time"
 import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarDays, ChevronLeft, ChevronRight, Minus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Minus } from "lucide-react"
 import { addDays, addMonths, format, isSameDay, isValid, startOfMonth, startOfWeek, startOfYear } from "date-fns"
 import { Mood } from "@/models/Mood"
 import { getWorkspaceMembership } from "../workspace-access"
@@ -55,38 +55,34 @@ export default async function MoodOverviewPage({ params, searchParams }: {
         : `${format(start, "MMM d")} – ${format(addDays(end, -1), "MMM d, yyyy")}`
     const href = (nextView: typeof view, nextDate: Date) =>
         `/${orgId}/mood-overview?view=${nextView.toLowerCase()}&date=${format(nextDate, "yyyy-MM-dd")}`
-    const arrow = "grid size-10 place-items-center rounded-xl text-slate-700 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+    const arrow = "grid size-11 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 
     return (
-        <div className="-m-4 flex-1 bg-background dark:bg-background px-4 py-6 sm:py-10 md:-mx-10 md:px-10">
-            <section className="max-w-6xl">
-                <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="workspace-page-surface min-w-0 flex-1 text-foreground">
+            <section className="mx-auto max-w-6xl">
+                <header className="mb-4 flex flex-wrap items-end justify-between gap-4 sm:mb-5">
                     <div>
-                        <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
-                            <span className="rounded-lg bg-orange-100 dark:bg-[#423c30] p-1.5 text-orange-700 dark:text-[#e1c590]"><CalendarDays className="size-4" aria-hidden="true" /></span>
-                            Personal check-ins
-                        </p>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground dark:text-foreground">Mood Overview</h1>
-                        <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">A look back at how you’ve been feeling.</p>
+                        <h1 className="text-2xl font-semibold leading-tight tracking-tight">Mood overview</h1>
+                        <p className="mt-1 text-sm text-muted-foreground">Your personal check-ins in Teamparature.</p>
                     </div>
                     <nav aria-label="Overview period" className="flex w-full gap-1 rounded-xl border border-border dark:border-border bg-card dark:bg-card p-1 sm:w-auto">
                         {views.map(item => (
                             <Link key={item} href={href(item, date)} aria-current={view === item ? "page" : undefined}
-                                className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring ${view === item ? "bg-primary text-primary-foreground" : "text-slate-700 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent"}`}>
+                                className={`flex min-h-10 flex-1 items-center justify-center rounded-lg px-4 py-2 text-center text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring ${view === item ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
                                 {item}
                             </Link>
                         ))}
                     </nav>
                 </header>
 
-                <div className="overflow-hidden rounded-2xl border border-border dark:border-border bg-card dark:bg-card shadow-sm">
+                <div className="overflow-hidden rounded-2xl border border-border bg-card">
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border dark:border-border px-3 py-2 sm:px-5">
-                        <nav aria-label="Date navigation" className="flex items-center gap-1">
+                        <nav aria-label="Date navigation" className="flex min-w-0 flex-1 items-center justify-between gap-1 sm:flex-none sm:justify-start">
                             <Link href={href(view, shift(-1))} aria-label="Previous period" className={arrow}><ChevronLeft className="size-4" /></Link>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-foreground">{range}</span>
+                            <span className="min-w-0 text-center text-sm font-semibold tabular-nums text-foreground">{range}</span>
                             <Link href={href(view, shift(1))} aria-label="Next period" className={arrow}><ChevronRight className="size-4" /></Link>
                         </nav>
-                        <Link href={href(view, today)} className="rounded-lg px-3 py-2 text-sm font-medium text-primary dark:text-primary hover:bg-accent dark:hover:bg-accent">Today</Link>
+                        <Link href={href(view, today)} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-primary hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Today</Link>
                     </div>
 
                     <div className={`grid grid-cols-2 gap-2 p-3 min-[400px]:grid-cols-3 sm:gap-3 sm:p-5 ${view === "Daily" ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
@@ -106,7 +102,7 @@ export default async function MoodOverviewPage({ params, searchParams }: {
                                 count: matches.filter(item => item.mood === mood).length,
                             })).filter(item => item.count > 0)
                             return (
-                                <div key={from.toISOString()} className={`flex min-h-36 flex-col items-center rounded-xl border px-2 py-4 text-center ${entry ? "border-border dark:border-border bg-accent dark:bg-accent" : "border-border dark:border-border bg-slate-50/60 dark:bg-muted/60"} ${isToday ? "ring-2 ring-inset ring-ring" : ""}`}>
+                                <div key={from.toISOString()} className={`flex min-h-32 flex-col items-center rounded-xl border border-border px-2 py-3 text-center sm:min-h-36 sm:py-4 ${entry ? "bg-muted/60" : "bg-background"} ${isToday ? "ring-1 ring-inset ring-primary" : ""}`}>
                                     <p className="text-sm font-semibold text-foreground dark:text-foreground">{format(from, view === "Daily" ? "EEE" : view === "Weekly" ? "'Week of' MMM d" : "MMMM")}</p>
                                     {view === "Daily" && <p className="text-xs text-muted-foreground dark:text-muted-foreground">{isToday ? "Today · " : ""}{format(from, "MMM d")}</p>}
                                     {entry && view === "Daily" ? (
@@ -120,7 +116,7 @@ export default async function MoodOverviewPage({ params, searchParams }: {
                                             <p className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground">{matches.length} check-in{matches.length === 1 ? "" : "s"}</p>
                                             <ul aria-label="Mood breakdown" className="mt-2 flex flex-wrap justify-center gap-1">
                                                 {breakdown.map(item => (
-                                                    <li key={item.mood} aria-label={`${item.label}: ${item.count}`} className="rounded-full bg-card dark:bg-card px-2 py-1 text-xs text-slate-700 dark:text-muted-foreground">
+                                                    <li key={item.mood} aria-label={`${item.label}: ${item.count}`} className="rounded-full bg-card px-2 py-1 text-xs text-muted-foreground">
                                                         <span aria-hidden="true" className="flex items-center gap-1"><MoodIcon mood={item.mood as MoodName} className="size-6" />{item.count}</span>
                                                     </li>
                                                 ))}

@@ -265,11 +265,8 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
             {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
 
 
-            {/* Page heading follows the dashboard title hierarchy. */}
-            <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
-                <div>
-                    <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-3xl"><span className="md:hidden">Analytics</span><span className="hidden md:inline">Team mood</span></h1>
-                </div>
+            <header className="mobile-page-header flex flex-wrap items-center justify-between gap-3 pb-1 sm:gap-4 sm:pb-2">
+                <h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-3xl">Analytics</h1>
                 <div className="md:hidden"><AnalyticsRangePicker orgId={orgId} /></div>
             </header>
 
@@ -287,7 +284,7 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
                             <p className="mt-1 text-2xl font-semibold leading-none tracking-tight text-foreground tabular-nums sm:text-3xl">
                                 {analytics.totalLogs ? `${gaugeValue ?? 0}%` : "—"}
                             </p>
-                            <p className="mt-2 text-xs leading-5 text-foreground sm:text-sm">{analytics.totalLogs ? "of check-ins were Happy or Excited" : "No check-ins in this period."}</p>
+                            <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{analytics.totalLogs ? "of check-ins were Happy or Excited" : "No check-ins in this period."}</p>
                         </div>
                     </div>
                     {temperatureWavePath && <span className="sr-only" role="img" aria-label={trend.granularity === "day"

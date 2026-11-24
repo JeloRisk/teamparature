@@ -17,6 +17,7 @@ import {
   SidebarRail,
 } from './ui/sidebar';
 import { NavUser } from "@/app/components/nav-user"
+import BrandLockup from "@/app/components/BrandLockup"
 
 import {
   LayoutDashboard,
@@ -35,7 +36,7 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
   role?: Role
 }) {
   const menuItems = orgId ? [
-    { title: "Dashboard", url: `/${orgId}`, icon: LayoutDashboard },
+    { title: "Home", url: `/${orgId}`, icon: LayoutDashboard },
     ...(role === "owner" ? [
       { title: "Members", url: `/${orgId}/members`, icon: Users },
       { title: "Analytics", url: `/${orgId}/analytics`, icon: BarChart3 },
@@ -60,20 +61,19 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
 
   return (
     <Sidebar {...props} collapsible="icon">
-      <SidebarHeader className="px-4 pb-6 pt-5 group-data-[collapsible=icon]:px-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <MembershipSwitcher />
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="gap-3 border-b border-sidebar-border px-3 pb-3 pt-4 group-data-[collapsible=icon]:px-2">
+        <Link href={orgId ? `/${orgId}` : "/"} aria-label="Teamparature home" className="flex min-h-10 items-center rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-ring group-data-[collapsible=icon]:px-0">
+          <BrandLockup labelClassName="group-data-[collapsible=icon]:hidden" />
+        </Link>
+        <MembershipSwitcher />
       </SidebarHeader>
 
-      <SidebarContent className="gap-8 px-4 py-3 group-data-[collapsible=icon]:px-2">
+      <SidebarContent className="gap-4 px-3 py-3 group-data-[collapsible=icon]:px-2">
         {navigationGroups.map(section => (
         <SidebarGroup key={section.title} className="p-0">
-          <SidebarGroupLabel className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{section.title}</SidebarGroupLabel>
+          <SidebarGroupLabel className="mb-1 px-3 text-xs font-medium text-muted-foreground">{section.title}</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
+            <SidebarMenu className="gap-1">
               {section.items.map((item) => {
                 const isActive = pathname === item.url;
                 const Icon = item.icon;
@@ -83,20 +83,22 @@ export function AppSidebar({ orgId, role, ...props }: React.ComponentProps<typeo
                     <SidebarMenuButton
                       asChild
                       tooltip={item.title}
+                      isActive={isActive}
                       className={[
-                        "group h-11 w-full rounded-xl transition-colors",
-                        "flex items-center gap-3 px-3.5 py-3 text-[13px]",
+                        "h-11 w-full rounded-xl transition-colors",
+                        "flex items-center gap-3 px-3 py-2 text-sm",
                         isActive
-                          ? "bg-accent dark:bg-sidebar-accent font-semibold text-accent-foreground dark:text-sidebar-accent-foreground hover:bg-accent dark:hover:bg-accent hover:text-accent-foreground dark:hover:text-accent-foreground"
-                          : "text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-muted "
+                          ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       ].join(" ")}
                     >
-                      <Link href={item.url} prefetch={true}>
+                      <Link href={item.url} prefetch={true} aria-current={isActive ? "page" : undefined}>
                         <Icon
                           className={[
                             "h-5 w-5",
-                            isActive ? "text-accent-foreground dark:text-sidebar-accent-foreground" : "text-primary dark:text-primary"
+                            isActive ? "text-sidebar-accent-foreground" : "text-muted-foreground"
                           ].join(" ")}
+                          aria-hidden="true"
                         />
                         <span className="truncate">{item.title}</span>
                       </Link>

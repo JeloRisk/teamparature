@@ -335,7 +335,7 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
         </div>
     </ChartCard2>
         <Dialog open={Boolean(selectedRange)} onOpenChange={open => { if (!open) setSelectedRange(null); }}>
-            {selectedRange && <DialogContent className="flex h-[90dvh] max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-3xl" closeButtonClassName="top-3 right-3 size-10 rounded-xl border border-border bg-background text-foreground opacity-100 hover:bg-muted" aria-describedby="heatmap-detail-description">
+            {selectedRange && <DialogContent className="workspace-page-surface flex h-[90dvh] max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-3xl" closeButtonClassName="top-3 right-3 size-10 rounded-xl border border-border bg-background text-foreground opacity-100 hover:bg-muted" aria-describedby="heatmap-detail-description">
                 <DialogHeader className="shrink-0 gap-1 border-b border-border/70 bg-background px-5 pt-5 pb-4 pr-16 text-left sm:px-6 sm:pt-6 sm:pb-4">
                     <DialogTitle className="text-xl leading-6">Mood details</DialogTitle>
                     <DialogDescription id="heatmap-detail-description" className="sr-only">Mood check-ins by day and mood.</DialogDescription>
@@ -351,10 +351,7 @@ export default function MoodHeatmap({ orgId, timezone, moods, days, year, asOfDa
                     <button type="button" onClick={closeMobileDetail} aria-label="Back to emotion heatmap" className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                         <ArrowLeft aria-hidden="true" className="size-5" />
                     </button>
-                    <div className="min-w-0">
-                        <p className="text-xs font-medium text-muted-foreground">Emotion heatmap</p>
-                        <h1 className="mt-1 truncate text-xl font-semibold leading-6">Mood details</h1>
-                    </div>
+                    <h1 className="min-w-0 truncate text-xl font-semibold leading-6 tracking-tight">Mood details</h1>
                 </header>} onRangeChange={range => {
                     const params = new URLSearchParams(window.location.search);
                     params.set("heatmapStart", range.start);

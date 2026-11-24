@@ -22,12 +22,14 @@ export function ChartSkeleton() {
 }
 
 export function CheckInSkeleton() {
-    return <div role="status" aria-label="Loading your check-in" className="space-y-6">
-        <div className="flex items-center gap-2"><Thermometer className="size-4 text-primary/60" aria-hidden="true" /><Skeleton className="h-4 w-32" /></div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {Array.from({ length: 5 }, (_, i) => <div key={i} className="flex flex-col items-center gap-3 rounded-xl border border-border p-3">
-                <Skeleton className="size-10 rounded-full" /><Skeleton className="h-2 w-10" />
-            </div>)}
+    return <div role="status" aria-label="Loading your check-in" className="space-y-5 sm:space-y-6">
+        <div className="space-y-3">
+            <Skeleton className="h-5 w-44" />
+            <div className="grid grid-cols-5 gap-1 min-[360px]:gap-1.5 sm:gap-2">
+                {Array.from({ length: 5 }, (_, i) => <div key={i} className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-border sm:min-h-24">
+                    <Skeleton className="size-8 rounded-xl sm:size-10" /><Skeleton className="h-2 w-6" />
+                </div>)}
+            </div>
         </div>
         <div className="space-y-3"><Skeleton className="h-3 w-44" /><div className="grid grid-cols-5 gap-2">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-11 rounded-xl" />)}</div></div>
         <div className="space-y-3"><Skeleton className="h-3 w-28" /><Skeleton className="h-24 w-full rounded-xl" /></div>

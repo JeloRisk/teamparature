@@ -65,7 +65,7 @@ export default function LoginPage() {
                     </fieldset>
                     <div className="text-right"><Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link></div>
                     {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-                    <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl bg-[#5474ff] font-medium text-white shadow-sm hover:bg-[#4565ec]">
+                    <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl font-medium">
                         {loading ? <><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Signing in…</> : <>Sign in<ArrowRight className="size-4" aria-hidden="true" /></>}
                     </Button>
                 </form>

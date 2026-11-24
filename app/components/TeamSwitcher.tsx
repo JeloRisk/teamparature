@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
-import { ChevronsUpDown, Plus, Building2, Shield, User } from "lucide-react"
+import { Check, ChevronDown, Plus, Building2 } from "lucide-react"
 import Image from "next/image"
 
 import {
@@ -12,7 +12,6 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu"
 import {
@@ -31,15 +30,9 @@ export function MembershipSwitcher() {
     const {
         memberships,
         activeMembership,
-        // fetchMemberships,
         setActiveMembership,
         loading,
     } = useMembershipStore()
-
-    // Fetch memberships on mount
-    // React.useEffect(() => {
-    //     fetchMemberships()
-    // }, [fetchMemberships])
 
     React.useEffect(() => {
         if (!loading && memberships.length > 0 && params.orgId) {
@@ -58,18 +51,6 @@ export function MembershipSwitcher() {
         return <div className="px-4 py-2 text-sm text-muted-foreground">No memberships</div>
     }
 
-    const getRoleIcon = (role: string) => {
-        switch (role) {
-            case "owner":
-            case "creator":
-                return <Shield className="size-3.5 text-orange-500" />
-            case "admin":
-                return <Shield className="size-3.5 text-blue-500" />
-            default:
-                return <User className="size-3.5 text-gray-500 dark:text-muted-foreground" />
-        }
-    }
-
     const handleSwitch = (membership: typeof activeMembership) => {
         setActiveMembership(membership)
         router.push(`/${membership.organization._id}`)
@@ -82,33 +63,33 @@ export function MembershipSwitcher() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="data-[state=open]:bg-orange-500/10 data-[state=open]:text-orange-600 dark:text-[#e1c590]"
+                            aria-label={`Switch workspace. Current workspace: ${activeMembership.organization.name}`}
+                            className="border border-sidebar-border data-[state=open]:bg-sidebar-accent"
                         >
-                            <div className="bg-orange-500 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
+                            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                 {activeMembership.organization.logoUrl ? (
                                     <Image
-                                        src={activeMembership.organization.logoUrl || "/logo.png"} // fallback if no logo
-                                        alt={activeMembership.organization.name}
+                                        src={activeMembership.organization.logoUrl}
+                                        alt=""
                                         width={16}
                                         height={16}
                                         className="size-4 rounded"
                                     />
                                 ) : (
-                                    <Building2 className="size-4" />
+                                    <Building2 className="size-4" aria-hidden="true" />
                                 )}
                             </div>
 
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium text-orange-600 dark:text-[#e1c590]">
+                            <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">
                                     {activeMembership.organization.name}
                                 </span>
-                                <span className="truncate text-xs text-blue-500 flex items-center gap-1">
-                                    {getRoleIcon(activeMembership.role)}
+                                <span className="truncate text-xs capitalize text-muted-foreground">
                                     {activeMembership.role}
                                 </span>
                             </div>
 
-                            <ChevronsUpDown className="ml-auto text-orange-600 dark:text-[#e1c590]" />
+                            <ChevronDown className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
 
@@ -118,57 +99,49 @@ export function MembershipSwitcher() {
                         side={isMobile ? "bottom" : "right"}
                         sideOffset={4}
                     >
-                        <DropdownMenuLabel className="text-xs text-blue-500">
-                            Your Organizations
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">
+                            Your workspaces
                         </DropdownMenuLabel>
 
-                        {memberships.map((m, index) => (
+                        {memberships.map((m) => (
                             <DropdownMenuItem
                                 key={m._id}
                                 onClick={() => handleSwitch(m)}
-                                className={`gap-2 p-2 ${activeMembership._id === m._id
-                                    ? "bg-orange-50 dark:bg-[#423c30] text-orange-600 dark:text-[#e1c590]"
-                                    : ""
-                                    }`}
+                                className={`min-h-11 gap-2 p-2 ${activeMembership._id === m._id ? "bg-accent text-accent-foreground" : ""}`}
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border bg-card dark:bg-card">
                                     {m.organization.logoUrl ? (
 
                                         <Image
                                             src={m.organization.logoUrl}
-                                            alt={m.organization.name}
-                                            width={14} // 3.5 * 4 = 14px
+                                            alt=""
+                                            width={14}
                                             height={14}
                                             className="rounded"
                                         />
 
                                     ) : (
-                                        <Building2 className="size-3.5 shrink-0 text-orange-500" />
+                                        <Building2 className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                                     )}
                                 </div>
 
-                                <div className="flex flex-col text-sm">
-                                    <span className="font-medium">{m.organization.name}</span>
-                                    <span className="text-xs flex items-center gap-1 text-blue-500">
-                                        {getRoleIcon(m.role)} {m.role}
+                                <div className="flex min-w-0 flex-1 flex-col text-sm">
+                                    <span className="truncate font-medium">{m.organization.name}</span>
+                                    <span className="text-xs capitalize text-muted-foreground">
+                                        {m.role}
                                     </span>
                                 </div>
 
-                                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                                {activeMembership._id === m._id && <Check className="size-4 shrink-0 text-primary" aria-label="Current workspace" />}
                             </DropdownMenuItem>
                         ))}
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuItem className="gap-2 p-2">
-                            <div className="flex size-6 items-center justify-center rounded-md border bg-transparent text-orange-600 dark:text-[#e1c590]">
-                                <Plus className="size-4" />
-                            </div>
-                            <Link
-                                href="/new/onboarding"
-                                className="font-medium text-blue-500"
-                            >
-                                Add organization
+                        <DropdownMenuItem asChild className="min-h-11 gap-2 p-2">
+                            <Link href="/new/onboarding" className="font-medium">
+                                <Plus className="size-4 text-primary" aria-hidden="true" />
+                                Add workspace
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuContent>

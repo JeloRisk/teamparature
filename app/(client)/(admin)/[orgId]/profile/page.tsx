@@ -23,26 +23,26 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="dashboard-reference-theme mobile-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+        <div className="workspace-page-surface mobile-page min-w-0 flex-1 text-foreground">
             <div className="mobile-page-content mx-auto min-w-0 max-w-3xl space-y-4 sm:space-y-5">
-                <header className="mobile-page-header pb-2">
-                    <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Profile</h1>
-                    <p className="mt-1.5 text-sm text-muted-foreground">Your account and workspaces</p>
+                <header className="mobile-page-header">
+                    <h1 className="text-2xl font-semibold leading-tight tracking-tight">Profile</h1>
                 </header>
 
                 <Link href={`/${organization._id}/profile/account`} aria-label={`Account settings for ${fullName}`} className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5">
-                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-base font-semibold text-accent-foreground" aria-hidden="true">{initials}</span>
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-foreground" aria-hidden="true">{initials}</span>
                     <div className="min-w-0 flex-1">
                         <h2 className="truncate text-base font-semibold">{fullName}</h2>
-                        <p className="truncate text-sm text-muted-foreground">{user?.email ?? "Account details"}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{user?.email ?? "Account details"}</p>
+                        <p className="mt-1 text-xs font-medium text-primary">Account settings</p>
                     </div>
                     <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 </Link>
 
                 <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="workspaces-heading">
                     <div className="mb-2">
-                        <h2 id="workspaces-heading" className="text-base font-semibold">Workspaces</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">Choose a workspace to switch to.</p>
+                        <h2 id="workspaces-heading" className="text-sm font-semibold">Workspaces</h2>
+                        <p className="mt-1 text-xs text-muted-foreground">Choose a workspace to switch to.</p>
                     </div>
                     <div className="divide-y divide-border/70">
                         {memberships.map(membership => {
@@ -60,7 +60,7 @@ export default function ProfilePage() {
                                 </span>
                                 <span className="min-w-0 flex-1">
                                     <span className="block truncate text-sm font-medium">{membership.organization.name}</span>
-                                    <span className="block text-xs capitalize text-muted-foreground">{membership.role}</span>
+                                    <span className="mt-0.5 block text-xs capitalize text-muted-foreground">{membership.role}</span>
                                 </span>
                                 {isCurrent ? <Check className="size-4 shrink-0 text-primary" aria-label="Current workspace" /> : <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                             </button>
@@ -76,8 +76,8 @@ export default function ProfilePage() {
 
                 {role === "owner" && <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="workspace-tools-heading">
                     <div className="mb-2">
-                        <h2 id="workspace-tools-heading" className="text-base font-semibold">Workspace</h2>
-                        <p className="mt-1 truncate text-sm text-muted-foreground">Settings for {organization.name}</p>
+                        <h2 id="workspace-tools-heading" className="text-sm font-semibold">Workspace</h2>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">Settings for {organization.name}</p>
                     </div>
                     <div className="divide-y divide-border/70">
                         <Link href={`/${organization._id}/settings`} className="flex min-h-16 items-center gap-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">

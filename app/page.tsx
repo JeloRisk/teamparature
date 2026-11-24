@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/app/components/ui/button";
-import Image from 'next/image';
+import BrandLockup from "@/app/components/BrandLockup";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Thermometer } from "lucide-react";
@@ -22,11 +22,11 @@ const CloseIcon = () => (
 );
 
 const demoMoods: { value: MoodName; label: string; color: string }[] = [
-  { value: "happy", label: "Happy", color: "bg-amber-50" },
-  { value: "neutral", label: "Neutral", color: "bg-slate-100" },
-  { value: "sad", label: "Sad", color: "bg-blue-50" },
-  { value: "stressed", label: "Stressed", color: "bg-indigo-50" },
-  { value: "excited", label: "Excited", color: "bg-orange-50" },
+  { value: "happy", label: "Happy", color: "bg-[var(--mood-happy-soft)]" },
+  { value: "excited", label: "Excited", color: "bg-[var(--mood-excited-soft)]" },
+  { value: "neutral", label: "Neutral", color: "bg-[var(--mood-neutral-soft)]" },
+  { value: "sad", label: "Sad", color: "bg-[var(--mood-sad-soft)]" },
+  { value: "stressed", label: "Stressed", color: "bg-[var(--mood-stressed-soft)]" },
 ];
 
 
@@ -80,19 +80,13 @@ export default function LandingPage() {
       document.documentElement.classList.remove("landing-motion-ready");
     };
   }, []);
-  const bgBlobs = [
-    { color: "rgba(59, 130, 246, 0.25)", size: 300, top: "10%", left: "5%" },
-    { color: "rgba(251, 146, 60, 0.25)", size: 400, top: "50%", left: "70%" },
-    { color: "rgba(59, 130, 246, 0.25)", size: 250, top: "70%", left: "20%" },
-  ];
 
   return (
-    <main className="landing-page bg-blue-50 text-gray-900 [color-scheme:light] min-h-screen flex flex-col font-sans relative overflow-hidden">
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-blue-100/80 bg-white/90 px-5 py-3 shadow-sm backdrop-blur-xl sm:px-8 lg:px-16">
+    <main className="landing-page brand-light-surface dashboard-reference-theme relative flex min-h-screen flex-col overflow-hidden bg-background font-sans text-foreground">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-card px-5 py-3 sm:px-8 lg:px-16">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <Link href="/" aria-label="Teamparature home" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-blue-700">
-              <Image src="/logo.png" alt="" width={34} height={34} />
-              Teamparature
+            <Link href="/" aria-label="Teamparature home" className="shrink-0 rounded-lg text-primary focus-visible:outline-2 focus-visible:outline-ring">
+              <BrandLockup />
             </Link>
             <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
               <a href="#features" className="transition-colors hover:text-blue-600">Features</a>
@@ -101,7 +95,7 @@ export default function LandingPage() {
             </nav>
             <div className="hidden shrink-0 items-center gap-2 md:flex">
               <button onClick={() => router.push("/login")} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">Log in</button>
-              <Button onClick={() => router.push("/register")} className="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700">Create a workspace</Button>
+              <Button onClick={() => router.push("/register")} className="rounded-xl px-5 py-2.5 font-semibold">Create a workspace</Button>
             </div>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="rounded-xl p-2 text-slate-700 transition hover:bg-blue-50 md:hidden" aria-label={isMenuOpen ? "Close menu" : "Open menu"} aria-expanded={isMenuOpen} aria-controls="landing-mobile-navigation">
               {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -114,72 +108,33 @@ export default function LandingPage() {
           <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-lg font-semibold text-slate-700">How it works</a>
           <a href="#data-visibility" onClick={() => setIsMenuOpen(false)} className="text-lg font-semibold text-slate-700">Data & privacy</a>
           <button onClick={() => { router.push("/login"); setIsMenuOpen(false) }} className="w-full max-w-xs rounded-xl border border-blue-200 py-3 font-semibold text-blue-700">Log in</button>
-          <Button onClick={() => { router.push("/register"); setIsMenuOpen(false) }} className="w-full max-w-xs rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700">Create a workspace</Button>
+          <Button onClick={() => { router.push("/register"); setIsMenuOpen(false) }} className="w-full max-w-xs rounded-xl py-3 font-semibold">Create a workspace</Button>
         </nav>
 
-      {/* Hero Section - min-h-screen ensures it fills the viewport */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 py-24 md:py-36 min-h-screen overflow-hidden">
-        {/* Background Blobs */}
-        {bgBlobs.map((b, idx) => (
-          <div
-            key={idx}
-            className="absolute rounded-full pointer-events-none filter blur-3xl"
-            style={{
-              width: b.size,
-              height: b.size,
-              top: b.top,
-              left: b.left,
-              backgroundColor: b.color,
-            }}
-          />
-        ))}
-
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 select-none text-2xl opacity-60 sm:text-3xl">
-          <span className="absolute left-[8%] top-[19%]">❄️</span>
-          <span className="absolute right-[9%] top-[28%] text-3xl sm:text-4xl">🔥</span>
-          <span className="absolute left-[13%] top-[62%] text-xl sm:text-2xl">🔥</span>
-          <span className="absolute right-[14%] top-[72%]">❄️</span>
-          <span className="absolute left-[28%] top-[84%] text-xl sm:text-2xl">❄️</span>
-          <span className="absolute right-[29%] top-[15%] text-xl sm:text-2xl">🔥</span>
-        </div>
-
-        <h1 className="relative z-10 max-w-3xl px-4 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl md:text-6xl">
-          Understand how your team is feeling, one check-in at a time.
-        </h1>
-        <p className="relative z-10 mt-6 max-w-2xl px-4 text-base leading-7 text-slate-700 sm:text-lg">
-          Teamparature gives people a quick daily mood check-in and helps owners notice shared patterns over time.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center relative z-10">
-          <Button onClick={() => router.push("/register")} className="bg-blue-500 text-white hover:bg-blue-600 font-semibold px-7 py-3 rounded-xl shadow-lg shadow-blue-500/20">
-            Create a workspace
-          </Button>
-          <Button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} variant="outline" className="border-blue-200 bg-white/70 text-gray-800 hover:bg-white font-semibold px-7 py-3 rounded-xl">
-            See how it works
-          </Button>
-        </div>
-      </section>
-
-      <section id="features" className="scroll-mt-24 relative overflow-hidden bg-[#f4f6ff] px-6 py-24 md:px-12 md:py-32">
-        <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-24 size-96 rounded-full bg-blue-200/40 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-24 bottom-0 size-80 rounded-full bg-orange-200/35 blur-3xl" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-          <div data-reveal className="landing-reveal">
-            {/* <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">A daily moment, made easy</p> */}
-            <h2 className="mt-5 max-w-xl text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl">Notice the feeling. Make room for the conversation.</h2>
-            <p className="mt-6 max-w-lg text-lg leading-8 text-slate-600">A quick check-in helps people pause and reflect. Over time, the team can see patterns without reducing anyone to a number.</p>
-            <a href="#how-it-works" className="mt-8 inline-flex items-center gap-2 font-semibold text-blue-700 transition hover:gap-3">How it works <ArrowRight className="size-4" /></a>
+      <section className="mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-12 pt-24 sm:px-8 sm:pb-20 sm:pt-32 lg:grid-cols-2 lg:gap-14 lg:px-12">
+        <div className="min-w-0">
+          <h1 className="max-w-xl text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
+            Understand how your team is feeling.
+          </h1>
+          <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
+            A quick daily mood check-in helps teams notice patterns and start better conversations.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Button onClick={() => router.push("/register")} className="min-h-11 rounded-xl px-5 font-semibold">
+              Create a workspace <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
+            <a href="#how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring">See how it works</a>
           </div>
-
-          <div data-reveal className="landing-reveal relative mx-auto w-full max-w-2xl">
-            <div aria-hidden="true" className="absolute -inset-4 rotate-[-3deg] rounded-[2rem] bg-gradient-to-br from-blue-200/70 via-white to-orange-200/70" />
-            <div className="relative rounded-[1.75rem] border border-white/80 bg-white p-5 shadow-[0_30px_90px_-45px_rgba(46,67,140,0.42)] sm:p-8">
+        </div>
+          <div id="features" className="min-w-0 scroll-mt-24">
+            <div className="rounded-2xl border border-border bg-card p-3.5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
-                <div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">A check-in can be simple</p><h3 className="mt-2 text-xl font-bold text-slate-950">How are you feeling today?</h3></div>
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">Example</span>
+                <h2 className="text-lg leading-tight sm:text-xl">Try a mood check-in</h2>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">Demo</span>
               </div>
-              <div role="group" aria-label="Choose a mood" className="mt-6 grid grid-cols-5 gap-2 sm:gap-3">
+              <div role="group" aria-label="Choose a mood" className="mt-4 grid grid-cols-5 gap-1 sm:gap-2">
                 {demoMoods.map(({ value, label, color }) => (
-                  <button key={value} type="button" onClick={() => setDemoMood(value)} aria-pressed={demoMood === value} className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border px-1 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:min-h-24 ${color} ${demoMood === value ? "border-blue-600 ring-2 ring-blue-600/20 shadow-sm" : "border-slate-200/80 hover:border-blue-300"}`}><MoodIcon mood={value} className="size-9 sm:size-10" /><span className="text-[10px] font-semibold text-slate-700 sm:text-xs">{label}</span></button>
+                  <button key={value} type="button" onClick={() => setDemoMood(value)} aria-pressed={demoMood === value} className={`flex min-h-20 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:min-h-24 ${color} ${demoMood === value ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"}`}><MoodIcon mood={value} variant="mobile" className="size-8 sm:size-10" /><span className="max-w-full break-words text-[10px] font-semibold text-foreground sm:text-xs">{label}</span></button>
                 ))}
               </div>
               <div className="mt-7 border-t border-slate-100 pt-5">
@@ -189,7 +144,6 @@ export default function LandingPage() {
               <div aria-live="polite" className="mt-5 flex items-center gap-3 rounded-2xl bg-[#f6f7fb] p-4"><p className="text-sm leading-6 text-slate-600">You selected <span className="font-semibold text-slate-800">{demoMoodLabel}</span> at intensity <span className="font-semibold text-slate-800">{demoIntensity} of 5</span>.</p></div>
             </div>
           </div>
-        </div>
       </section>
 
       <section id="how-it-works" className="scroll-mt-24 bg-white px-6 py-24 md:px-12 md:py-32">
@@ -242,7 +196,7 @@ export default function LandingPage() {
       <footer className="border-t border-blue-100 bg-white px-6 py-8 md:px-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 sm:flex-row">
           <Link href="/" className="flex items-center gap-2 font-semibold text-blue-700">
-            <Image src="/logo.png" alt="" width={28} height={28} />Teamparature
+            <BrandLockup />
           </Link>
           <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
             <a href="#features" className="hover:text-blue-600">Features</a>

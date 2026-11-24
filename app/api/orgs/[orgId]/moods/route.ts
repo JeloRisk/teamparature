@@ -30,13 +30,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
     const days = workspaceDayBoundaries(timezone, 6)
     const today = days[6]
 
-    const checkIn = Mood.exists({ organization, user, date: { $gte: today, $lt: days[7] } })
+    const checkInQuery = Mood.findOne({ organization, user, date: { $gte: today, $lt: days[7] } })
+        .sort({ date: -1 })
+        .select("mood date -_id")
+        .lean()
+
     if (membership.role !== "owner") {
-        return NextResponse.json({ checkedInToday: Boolean(await checkIn), timezone })
+        const ownCheckIn = await checkInQuery
+        return NextResponse.json({ checkedInToday: Boolean(ownCheckIn), ownCheckIn, timezone })
     }
 
-    const [checkedIn, counts, participantsToday, activeMemberIds, weeklyParticipantIds] = await Promise.all([
-        checkIn,
+    const [ownCheckIn, counts, participantsToday, activeMemberIds, weeklyParticipantIds] = await Promise.all([
+        checkInQuery,
         Mood.aggregate([
             { $match: { organization, date: { $gte: days[0], $lt: days[7] } } },
             { $bucket: {
@@ -72,7 +77,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
     })
 
     return NextResponse.json({
-        checkedInToday: Boolean(checkedIn),
+        checkedInToday: Boolean(ownCheckIn),
+        ownCheckIn,
         trend,
         participantsToday: participantsToday.length,
         participantsThisWeek,

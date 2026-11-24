@@ -3,7 +3,7 @@
 import { TableSkeletonRows } from "@/app/components/loading/WorkspaceSkeletons"
 import { useEffect, useState } from "react"
 import { Input } from "@/app/components/ui/input"
-import { History, RefreshCw, Search, ArrowUp, ArrowDown, ArrowUpDown, X, SlidersHorizontal } from "lucide-react"
+import { History, RefreshCw, Search, ArrowUp, ArrowDown, ArrowUpDown, X, SlidersHorizontal, Mail, Settings2, Users } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet"
 import { activityActions, type ActivityAction } from "@/lib/activity-actions"
 import { Button } from "@/app/components/ui/button"
@@ -23,25 +23,26 @@ interface Entry {
     createdAt: string
 }
 
-const actionAccents: Record<ActivityAction, string> = {
-    member_removed: "var(--mood-sad)",
-    member_restored: "var(--mood-excited)",
-    role_changed: "var(--mood-stressed)",
-    invitation_sent: "var(--mood-excited)",
-    invitation_resent: "var(--mood-happy)",
-    invitation_cancelled: "var(--mood-sad)",
-    workspace_updated: "var(--mood-stressed)",
+const actionIcons: Record<ActivityAction, typeof History> = {
+    member_removed: Users,
+    member_restored: Users,
+    role_changed: Users,
+    invitation_sent: Mail,
+    invitation_resent: Mail,
+    invitation_cancelled: Mail,
+    workspace_updated: Settings2,
 }
 
 const outcomeStyles: Record<Entry["outcome"], { label: string; className: string }> = {
-    succeeded: { label: "Completed", className: "bg-[var(--mood-excited-soft)]" },
-    pending: { label: "Pending", className: "bg-[var(--mood-happy-soft)]" },
-    failed: { label: "Failed", className: "bg-[var(--mood-sad-soft)]" },
+    succeeded: { label: "Completed", className: "bg-muted text-muted-foreground" },
+    pending: { label: "Pending", className: "bg-[var(--mood-happy-soft)] text-foreground" },
+    failed: { label: "Failed", className: "bg-destructive/10 text-destructive" },
 }
 
 function ActionLabel({ action }: { action: ActivityAction }) {
+    const Icon = actionIcons[action]
     return <span className="inline-flex items-start gap-2">
-        <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full" style={{ backgroundColor: actionAccents[action] }} />
+        <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <span>{activityActions[action]}</span>
     </span>
 }
@@ -49,7 +50,7 @@ function ActionLabel({ action }: { action: ActivityAction }) {
 function OutcomeBadge({ outcome, detailed = false }: { outcome: Entry["outcome"]; detailed?: boolean }) {
     const appearance = outcomeStyles[outcome]
     const label = detailed && outcome === "failed" ? "Email delivery failed" : detailed && outcome === "pending" ? "Delivery pending" : appearance.label
-    return <Badge variant="outline" className={`shrink-0 border-transparent text-foreground ${appearance.className}`}>{label}</Badge>
+    return <Badge variant="outline" className={`max-w-full shrink-0 rounded-full border-transparent px-2 whitespace-normal ${appearance.className}`}>{label}</Badge>
 }
 
 export default function ActivityView({ orgId, timezone }: { orgId: string; timezone: string }) {
@@ -138,42 +139,42 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         const nextOrder = active ? (order === "asc" ? "descending" : "ascending") : column.key === "createdAt" ? "descending" : "ascending"
         return <TableHead key={column.key} className={columnWidths[column.key]} aria-sort={active ? order === "asc" ? "ascending" : "descending" : "none"}>
             <button type="button" onClick={() => changeSort(column.key)}
-                className={`group -ml-2 flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                className={`group -ml-2 flex min-h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                 aria-label={`Sort by ${column.label}, ${nextOrder}`}>
                 {column.label}<Icon className={`size-3.5 ${active ? "opacity-100" : "opacity-40 group-hover:opacity-100"}`} aria-hidden="true" />
             </button>
         </TableHead>
     }
 
-    return <div className="dashboard-reference-theme mobile-page activity-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
-    <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-4 sm:space-y-5">
-        <header className="mobile-page-header flex flex-wrap items-start justify-between gap-3 pb-1 sm:items-end sm:gap-4 sm:pb-2">
-            <div>
-                <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
+    return <div className="dashboard-reference-theme workspace-page-surface mobile-page activity-page -m-4 min-w-0 flex-1 px-4 py-4 sm:py-7 md:-mx-10 md:px-10">
+    <div className="mobile-page-content mx-auto min-w-0 max-w-6xl space-y-4 sm:space-y-5">
+        <header className="mobile-page-header flex items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+                <h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
                 <p className="mt-1.5 hidden max-w-2xl text-sm text-muted-foreground sm:block">A record of invitations, membership changes, and workspace updates.</p>
             </div>
-            <Button variant="outline" className="min-h-10 rounded-xl border-border bg-card" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Refresh</Button>
+            <Button variant="outline" aria-label="Refresh activity" className="h-11 shrink-0 rounded-xl border-border bg-card px-3" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw aria-hidden="true" className={`size-4 ${loading ? "motion-safe:animate-spin" : ""}`} />Refresh</Button>
         </header>
-        <section aria-label="Activity filters" className="rounded-2xl border-border bg-card sm:border sm:p-5">
-            <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1.5fr)_minmax(12rem,1fr)_minmax(9rem,0.8fr)_minmax(9rem,0.8fr)]">
-                <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-1">
+        <section aria-label="Activity filters" className="@container sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-4">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,0.85fr)]">
+                <div className="min-w-0 space-y-2">
                     <label htmlFor="activity-search" className="sr-only sm:not-sr-only sm:block sm:text-xs sm:font-medium sm:text-muted-foreground">Search activity</label>
                     <div className="flex items-center gap-2"><div className="relative min-w-0 flex-1">
-                        <Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" />
-                        <Input id="activity-search" className="h-11 rounded-xl border-border bg-background pl-9 pr-9" placeholder="Person, email, or activity…" value={search} maxLength={254} onChange={event => { setSearch(event.target.value); setPage(1) }} />
-                        {search && <button type="button" aria-label="Clear search" className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground hover:bg-accent" onClick={() => { setSearch(""); setPage(1) }}><X className="size-4" /></button>}
-                    </div><Button variant="outline" className="h-11 shrink-0 rounded-xl px-3 text-sm sm:hidden" onClick={() => { setDraftAction(action); setDraftStart(start); setDraftEnd(end); setFiltersOpen(true) }}><SlidersHorizontal className="size-4" aria-hidden="true" />Filters{filterCount > 0 && <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{filterCount}</span>}</Button></div>
+                        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                        <Input id="activity-search" className="h-11 rounded-xl border-border bg-card pl-9 pr-11" placeholder="Search activity…" value={search} maxLength={254} onChange={event => { setSearch(event.target.value); setPage(1) }} />
+                        {search && <button type="button" aria-label="Clear search" className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-xl text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring" onClick={() => { setSearch(""); setPage(1) }}><X aria-hidden="true" className="size-4" /></button>}
+                    </div><Button variant="outline" className={`h-11 shrink-0 rounded-xl px-3 text-sm sm:hidden ${filterCount ? "border-primary/35 bg-accent text-accent-foreground" : "bg-card"}`} onClick={() => { setDraftAction(action); setDraftStart(start); setDraftEnd(end); setFiltersOpen(true) }}><SlidersHorizontal className="size-4" aria-hidden="true" />Filters{filterCount > 0 && <span className="min-w-5 rounded-full bg-primary px-1.5 text-xs tabular-nums text-primary-foreground">{filterCount}</span>}</Button></div>
                 </div>
-                <div className="hidden min-w-0 space-y-2 sm:block md:col-span-2 xl:col-span-1">
+                <div className="hidden min-w-0 space-y-2 sm:block">
                     <label htmlFor="activity-filter" className="block text-xs font-medium text-muted-foreground">Activity type</label>
-                    <select id="activity-filter" value={action} onChange={event => { setAction(event.target.value); setPage(1) }} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
+                    <select id="activity-filter" value={action} onChange={event => { setAction(event.target.value); setPage(1) }} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
                         <option value="all">All activity</option>
                         {Object.entries(activityActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                     </select>
                 </div>
-                <div className="hidden min-w-0 grid-cols-2 gap-3 sm:grid md:col-span-2 xl:col-span-2">
-                    <div className="min-w-0 space-y-2"><label htmlFor="activity-start" className="block text-xs font-medium text-muted-foreground">From</label><Input id="activity-start" className="h-11 w-full min-w-0 rounded-xl border-border bg-background px-2.5 sm:px-3" type="date" value={start} max={end || undefined} onChange={event => { setStart(event.target.value); setPage(1) }} /></div>
-                    <div className="min-w-0 space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-11 w-full min-w-0 rounded-xl border-border bg-background px-2.5 sm:px-3" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
+                <div className="hidden min-w-0 grid-cols-2 gap-3 sm:col-span-2 sm:grid">
+                    <div className="min-w-0 space-y-2"><label htmlFor="activity-start" className="block text-xs font-medium text-muted-foreground">From</label><Input id="activity-start" className="h-11 w-full min-w-0 rounded-xl border-border bg-card px-3" type="date" value={start} max={end || undefined} onChange={event => { setStart(event.target.value); setPage(1) }} /></div>
+                    <div className="min-w-0 space-y-2"><label htmlFor="activity-end" className="block text-xs font-medium text-muted-foreground">Through</label><Input id="activity-end" className="h-11 w-full min-w-0 rounded-xl border-border bg-card px-3" type="date" value={end} min={start || undefined} onChange={event => { setEnd(event.target.value); setPage(1) }} /></div>
                 </div>
             </div>
         </section>
@@ -213,7 +214,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                         <TableCell className="max-w-64 whitespace-normal break-words leading-snug">{entry.targetLabel}</TableCell>
                         <TableCell className="whitespace-normal">
                             {entry.action === "role_changed" || entry.action === "member_restored"
-                                ? <span className="inline-flex rounded-lg bg-[var(--mood-stressed-soft)] px-2 py-1 text-xs font-medium text-foreground">{entry.previousRole} → {entry.newRole}</span>
+                                ? <span className="inline-flex rounded-lg bg-muted px-2 py-1 text-xs font-medium text-foreground">{entry.previousRole} → {entry.newRole}</span>
                                 : <OutcomeBadge outcome={entry.outcome} detailed />}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -231,7 +232,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                 {loading ? <p role="status" className="px-4 py-8 text-center text-sm text-muted-foreground">Loading activity history…</p>
                 : error ? <div className="px-4 py-8 text-center"><p role="alert" className="text-sm">{error}</p><Button variant="outline" className="mt-3 rounded-xl" onClick={() => setRevision(value => value + 1)}>Retry</Button></div>
                 : activityGroups.length ? activityGroups.map(group => <section key={group.key} aria-label={group.label} className="border-b border-border last:border-b-0">
-                    <h3 className="bg-secondary/50 px-4 py-2.5 text-sm font-semibold text-secondary-foreground">{group.label}</h3>
+                    <h3 className="border-b border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-muted-foreground sm:px-4">{group.label}</h3>
                     <div className="divide-y divide-border">
                         {group.entries.map(entry => <article key={entry._id} className="space-y-2 px-3 py-3 sm:px-4 sm:py-4">
                             <div className="flex min-w-0 items-start justify-between gap-3">
@@ -241,7 +242,7 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                                 </div>
                                 <OutcomeBadge outcome={entry.outcome} />
                             </div>
-                            {(entry.action === "role_changed" || entry.action === "member_restored") && <p className="inline-flex rounded-lg bg-[var(--mood-stressed-soft)] px-2 py-1 text-xs font-medium text-foreground">{entry.previousRole} → {entry.newRole}</p>}
+                            {(entry.action === "role_changed" || entry.action === "member_restored") && <p className="inline-flex rounded-lg bg-muted px-2 py-1 text-xs font-medium text-foreground">{entry.previousRole} → {entry.newRole}</p>}
                             <p className="text-xs text-muted-foreground">By {entry.actorName} <span aria-hidden="true">·</span> {new Date(entry.createdAt).toLocaleTimeString(undefined, { timeZone: timezone, hour: "numeric", minute: "2-digit" })}</p>
                         </article>)}
                     </div>

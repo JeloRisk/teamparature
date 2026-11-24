@@ -1,9 +1,8 @@
 "use client"
 
-import React, { createContext, useContext, ReactNode, useState } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
     SidebarProvider,
     SidebarInset,
@@ -16,9 +15,10 @@ import {
     BreadcrumbPage,
 } from "@/app/components/ui/breadcrumb"
 import { AppSidebar } from "@/app/components/AppSidebar"
+import { BrandMark } from "@/app/components/BrandLockup"
 import ThemeToggle from "@/app/components/ThemeToggle"
+import { useMembershipStore } from "@/app/stores/useMembershipStore"
 import { BarChart3, Building2, CalendarDays, Check, ChevronDown, History, LayoutDashboard, Menu, UserRound, Users } from "lucide-react"
-import { usePathname } from "next/navigation"
 import AnalyticsRangePicker from "./analytics/AnalyticsRangePicker"
 import {
     Sheet,
@@ -44,7 +44,7 @@ export function useWorkspace() {
     return workspace
 }
 
-function MobileWorkspaceSwitcher({ organization, isHome }: { organization: Workspace["organization"]; isHome: boolean }) {
+function MobileWorkspaceSwitcher({ organization }: { organization: Workspace["organization"] }) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const memberships = useMembershipStore(state => state.memberships)
@@ -64,12 +64,12 @@ function MobileWorkspaceSwitcher({ organization, isHome }: { organization: Works
                 type="button"
                 aria-label={`Current workspace: ${organization.name}. Switch workspace.`}
                 title={`Current workspace: ${organization.name}`}
-                className="flex min-h-11 min-w-0 max-w-[54vw] items-center gap-2 rounded-xl px-1 py-1 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+                className="flex min-h-11 min-w-0 max-w-[72vw] touch-manipulation items-center gap-2 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-muted active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
             >
-                {isHome ? <Image src="/logo.png" alt="" width={32} height={32} className="size-8 shrink-0 object-contain" /> : <Building2 aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />}
+                <BrandMark />
                 <span className="min-w-0 leading-tight">
-                    {isHome && <span className="block text-[11px] font-semibold tracking-tight text-primary">Teamparature</span>}
-                    <span className="block truncate text-sm font-semibold tracking-tight">{organization.name}</span>
+                    <span className="brand-wordmark block text-sm leading-4">Teamparature</span>
+                    <span className="block truncate text-xs text-muted-foreground">{organization.name}</span>
                 </span>
                 <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             </button>
@@ -113,8 +113,6 @@ function MobileWorkspaceSwitcher({ organization, isHome }: { organization: Works
     </Sheet>
 }
 
-import { useEffect } from "react"
-import { useMembershipStore } from "@/app/stores/useMembershipStore"
 function DashboardContent({ children }: { children: ReactNode }) {
     const { organization, role } = useWorkspace()
     const pathname = usePathname()
@@ -128,7 +126,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         account: "Account settings",
         "mood-overview": "Mood overview",
         settings: "Settings",
-    } as Record<string, string>)[section] ?? "Dashboard"
+    } as Record<string, string>)[section] ?? "Home"
     const { toggleSidebar } = useSidebar()
     const fetchMemberships = useMembershipStore((s) => s.fetchMemberships)
     const mobileNavigation = role === "owner" ? [
@@ -151,17 +149,17 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <>
             <AppSidebar variant="sidebar" orgId={organization._id} role={role} />
             <SidebarInset className="dashboard-reference-theme min-w-0">
-                <header className="sticky top-0 z-50 flex h-[calc(3rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] md:pt-0 shrink-0 items-center gap-2 border-b bg-card px-4 md:h-16 md:px-10">
+                <header className="sticky top-0 z-50 flex h-[calc(3.25rem+env(safe-area-inset-top))] shrink-0 items-center gap-2 border-b bg-card px-3 pt-[env(safe-area-inset-top)] md:h-16 md:px-10 md:pt-0">
                     <button
                         type="button"
                         onClick={toggleSidebar}
                         aria-label="Toggle navigation menu"
-                        className="hidden size-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted dark:hover:bg-muted md:inline-flex"
+                        className="hidden size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
                     <div className="hidden h-4 w-px shrink-0 bg-border md:block" />
-                    <MobileWorkspaceSwitcher organization={organization} isHome={pathname === `/${organization._id}`} />
+                    <MobileWorkspaceSwitcher organization={organization} />
                     <div className="hidden md:block">
                         <Breadcrumb>
                             <BreadcrumbList>
@@ -195,7 +193,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                             aria-current={isActive ? "page" : undefined}
                             className={`group flex min-h-14 touch-manipulation select-none min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
-                            <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,transform] group-active:scale-95 motion-reduce:group-active:scale-100 motion-reduce:transition-none ${isActive ? "bg-primary/15" : "group-hover:bg-muted group-active:bg-muted"}`}>
+                            <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${isActive ? "bg-accent text-accent-foreground" : "group-hover:bg-muted group-active:bg-muted"}`}>
                                 <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
                             </span>
                             <span className={`text-[11px] leading-4 ${isActive ? "font-semibold" : "font-medium"}`}>{label}</span>

@@ -1,36 +1,23 @@
 import type { ReactNode } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import AuthBrandPanel from "./AuthBrandPanel"
+import BrandLockup from "./BrandLockup"
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
     return (
-        <main className="flex min-h-screen items-center justify-center bg-[#eff6ff] px-3 py-4 text-[#262d50] sm:px-7 sm:py-7">
-            <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-24 top-0 size-[420px] rounded-full bg-blue-200/45 blur-3xl" />
-                <div className="absolute -bottom-32 -right-20 size-[420px] rounded-full bg-orange-200/30 blur-3xl" />
-                <span className="auth-ambient absolute left-[6%] top-[5%] text-3xl opacity-60">❄️</span>
-                <span className="auth-ambient absolute right-[12%] top-[3%] text-3xl opacity-60 [animation-delay:-3s]">🔥</span>
-                <span className="auth-ambient absolute left-[1%] top-[48%] text-2xl opacity-50 [animation-delay:-5s]">🔥</span>
-                <span className="auth-ambient absolute right-[1%] top-[38%] text-3xl opacity-50 [animation-delay:-2s]">❄️</span>
-                <span className="auth-ambient absolute bottom-[3%] left-[14%] text-3xl opacity-60 [animation-delay:-4s]">🔥</span>
-                <span className="auth-ambient absolute bottom-[4%] right-[8%] text-3xl opacity-60 [animation-delay:-6s]">❄️</span>
-            </div>
-            <div className="relative w-full max-w-7xl rounded-[28px] border border-white/90 bg-white/50 p-2 shadow-[0_20px_80px_-40px_rgba(40,52,100,0.25)]">
-                <div className="grid overflow-hidden rounded-[22px] bg-white lg:grid-cols-2">
-                    <section className="flex flex-col lg:order-2">
-                        <header className="flex items-center px-6 pt-7 sm:px-10 lg:hidden">
-                            <Link href="/" className="flex items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-ring">
-                                <Image src="/logo.png" alt="" width={32} height={32} />
-                                <span className="text-lg font-semibold tracking-tight text-[#5474ff]">Teamparature</span>
-                            </Link>
-                        </header>
-                        <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-12 sm:py-12">
-                            <div className="w-full max-w-sm">{children}</div>
-                        </div>
-                    </section>
-                    <div className="hidden p-4 pr-0 lg:order-1 lg:flex"><AuthBrandPanel /></div>
-                </div>
+        <main className="brand-light-surface dashboard-reference-theme flex min-h-svh items-center justify-center bg-background px-3 py-4 text-foreground sm:px-7 sm:py-7">
+            <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-2">
+                <section className="flex min-w-0 flex-col lg:order-2">
+                    <header className="flex items-center px-6 pt-7 sm:px-10 lg:hidden">
+                        <Link href="/" aria-label="Teamparature home" className="rounded-lg text-primary focus-visible:outline-2 focus-visible:outline-ring">
+                            <BrandLockup />
+                        </Link>
+                    </header>
+                    <div className="flex flex-1 items-center justify-center px-6 py-8 sm:px-12 sm:py-12">
+                        <div className="w-full max-w-sm">{children}</div>
+                    </div>
+                </section>
+                <div className="hidden border-r border-border lg:order-1 lg:flex"><AuthBrandPanel /></div>
             </div>
         </main>
     )

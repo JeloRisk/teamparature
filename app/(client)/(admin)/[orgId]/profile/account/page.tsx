@@ -23,11 +23,11 @@ export default async function WorkspaceAccountPage({ params }: AccountPageProps)
     }>()
     if (!user) redirect("/login")
 
-    return <div className="dashboard-reference-theme -m-4 min-w-0 flex-1 bg-background px-4 py-5 sm:py-8 md:-mx-10 md:px-10">
+    return <div className="workspace-page-surface min-w-0 flex-1 text-foreground">
         <main className="mx-auto w-full max-w-xl">
             <header>
-                <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Account settings</h1>
-                <p className="mt-1.5 text-sm text-muted-foreground">Keep your profile details up to date.</p>
+                <h1 className="text-2xl font-semibold leading-tight tracking-tight">Account settings</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Keep your Teamparature profile up to date.</p>
             </header>
             <AccountSettingsForm returnHref={`/${orgId}/profile`} initial={{
                 firstName: user.firstName,

@@ -4,6 +4,7 @@ import MoodIcon from "@/app/components/MoodIcon"
 import { Check } from "lucide-react"
 import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
+import CheckInConfirmation from "./CheckInConfirmation"
 
 import {
     Dialog,
@@ -15,10 +16,19 @@ import {
 
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 
+const quickMoods: { value: AllowedMood; label: string }[] = [
+    { value: "happy", label: "Happy" },
+    { value: "excited", label: "Excited" },
+    { value: "neutral", label: "Neutral" },
+    { value: "sad", label: "Sad" },
+    { value: "stressed", label: "Stressed" },
+]
+
 export default function MoodCheck({ orgId, compact = false }: { orgId: string; compact?: boolean }) {
     const summary = useMoodStore(state => state.orgId === orgId ? state.summary : null)
     const addMood = useMoodStore(state => state.addMood)
     const [submitting, setSubmitting] = useState(false)
+    const [pendingMood, setPendingMood] = useState<AllowedMood | null>(null)
     const [error, setError] = useState("")
 
     const [open, setOpen] = useState(false)
@@ -26,24 +36,16 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
     const [rank, setRank] = useState(3)
     const [note, setNote] = useState("")
 
-    const quickMoods: { value: AllowedMood; label: string; color: string; surface: string }[] = [
-        { value: "happy", label: "Happy", color: "var(--mood-happy)", surface: "var(--mood-happy-soft)" },
-        { value: "excited", label: "Excited", color: "var(--mood-excited)", surface: "var(--mood-excited-soft)" },
-        { value: "neutral", label: "Neutral", color: "var(--mood-neutral)", surface: "var(--mood-neutral-soft)" },
-        { value: "sad", label: "Sad", color: "var(--mood-sad)", surface: "var(--mood-sad-soft)" },
-        { value: "stressed", label: "Stressed", color: "var(--mood-stressed)", surface: "var(--mood-stressed-soft)" },
-    ]
-
     const handleQuickSubmit = async (selectedMood: AllowedMood) => {
-        if (submitting) return
-        setSubmitting(true)
+        if (pendingMood || summary?.checkedInToday) return
+        setPendingMood(selectedMood)
         setError("")
         try {
             await addMood({ orgId, mood: selectedMood, rank: 3, note: "" })
         } catch {
             setError("Could not save your check-in. Please try again.")
         } finally {
-            setSubmitting(false)
+            setPendingMood(null)
         }
     }
 
@@ -75,15 +77,10 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             {/* HEADER */}
             {!(compact && summary?.checkedInToday) && <div className="relative flex items-start justify-between gap-4">
                 <div>
-                    {/* <p className="text-xs font-medium text-primary">
-                        Today’s check-in
-                    </p> */}
-
-                    {compact && !summary?.checkedInToday && <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Today’s check-in</p>}
                     <h2 className={compact ? "text-xl font-semibold leading-6 tracking-tight sm:text-2xl" : "mt-1 text-xl font-semibold leading-tight"}>
-                        {compact && summary?.checkedInToday ? "You’re all set for today." : "How are you feeling?"}
+                        {compact ? "How are you feeling today?" : "How are you feeling?"}
                     </h2>
-                    {compact && !summary?.checkedInToday && <p className="mt-1.5 max-w-64 text-sm leading-5 text-muted-foreground sm:text-base">Choose one feeling for today.</p>}
+                    {compact && <p className="mt-1.5 text-sm leading-5 text-muted-foreground">Choose a mood to check in.</p>}
                 </div>
 
                 {!compact && <MoodIcon mood="happy" className="size-11" />}
@@ -93,27 +90,29 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
             <div className={compact ? "w-full min-w-0 lg:max-w-2xl lg:flex-1" : "mt-4"}>
 
                 {summary?.checkedInToday ? (
-                    <div role="status" className={`flex items-center gap-3 text-sm text-foreground ${compact ? "min-h-8" : "min-h-14 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3"}`}>
-                        <span className={`flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mood-excited)_18%,var(--card))] text-[var(--mood-excited)] ${compact ? "size-8" : "size-9"}`}>
+                    compact ? (
+                        <CheckInConfirmation checkIn={summary.ownCheckIn} timezone={summary.timezone} />
+                    ) : <div role="status" className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3 text-sm text-foreground">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mood-excited)_18%,var(--card))] text-[var(--mood-excited)]">
                             <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />
                         </span>
-                        {compact ? <p className="font-medium">Checked in today</p> : <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>}
+                        <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>
                     </div>
                 ) : compact ? (
                     <div className="space-y-3">
-                        <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Choose your mood">
-                            {quickMoods.map(({ value, label, color, surface }) => (
-                                <button key={value} type="button" disabled={submitting}
+                        <div className="grid grid-cols-5 gap-1 min-[360px]:gap-1.5 sm:gap-2" role="group" aria-label="Choose your mood">
+                            {quickMoods.map(({ value, label }) => (
+                                <button key={value} type="button" disabled={pendingMood !== null}
                                     onClick={() => handleQuickSubmit(value)}
                                     aria-label={`Check in as ${label}`}
-                                    className="group flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border bg-card/70 px-0.5 py-2 transition-[filter,transform,box-shadow] hover:brightness-95 hover:shadow-sm active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60 sm:px-1.5"
-                                    style={{ backgroundColor: surface, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}>
-                                    <MoodIcon mood={value} variant="mobile" className="size-8 sm:size-10" />
-                                    <span className="text-[11px] font-medium leading-5 text-foreground sm:text-sm">{label}</span>
+                                    data-saving={pendingMood === value}
+                                    className={`group flex min-h-20 min-w-0 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-2 transition-colors enabled:hover:border-primary/40 enabled:hover:bg-muted enabled:active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[saving=true]:border-primary data-[saving=true]:bg-accent min-[360px]:px-0.5 sm:min-h-24 sm:px-1.5 ${pendingMood && pendingMood !== value ? "opacity-60" : ""}`}>
+                                    <MoodIcon mood={value} variant="mobile" className="size-10 shrink-0 motion-safe:transition-transform motion-safe:group-active:scale-90 sm:size-12" />
+                                    <span className="max-w-full break-words text-center text-[10px] font-medium leading-4 text-foreground min-[360px]:text-[11px] sm:text-sm">{label}</span>
                                 </button>
                             ))}
                         </div>
-                        {submitting && <p className="text-center text-sm text-muted-foreground" role="status">Saving your check-in…</p>}
+                        {pendingMood && <p className="text-center text-sm text-muted-foreground" role="status">Saving your check-in…</p>}
                         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                     </div>
                 ) : (

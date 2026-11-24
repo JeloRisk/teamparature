@@ -145,7 +145,7 @@ export default function MembersPage() {
         const emailName = Boolean(user.email) && nameParts.every(part => part.toLowerCase() === user.email?.toLowerCase())
         return name && name.toLowerCase() !== user.email?.toLowerCase() && !emailName ? name : "Unnamed member"
     }
-    const roleBadge = (memberRole: string) => `border-0 px-2 py-1 text-xs capitalize ${memberRole === "owner" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" : "bg-muted text-muted-foreground"}`
+    const roleBadge = (memberRole: string) => `border-0 px-2 py-1 text-xs capitalize ${memberRole === "owner" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`
 
     const filteredMembers = memberships.filter((m) => {
         const userName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim()
@@ -203,7 +203,7 @@ export default function MembersPage() {
     if (!organization) return <p>No organization found</p>
 
     return (
-        <div className="dashboard-reference-theme mobile-page members-page -m-4 min-w-0 flex-1 bg-background px-4 py-5 md:-mx-10 md:px-10 sm:py-8">
+        <div className="dashboard-reference-theme workspace-page-surface mobile-page members-page -m-4 min-w-0 flex-1 px-4 py-5 md:-mx-10 md:px-10 sm:py-8">
         <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-5 sm:space-y-7">
             {/* header */}
             <header className="mobile-page-header flex flex-wrap items-center justify-between gap-3 pb-1 sm:border-b sm:border-border sm:pb-5">
@@ -264,7 +264,7 @@ export default function MembersPage() {
             </header>
 
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div role="tablist" aria-label="Workspace people" className="grid w-full grid-cols-2 shrink-0 gap-1 rounded-2xl border border-border bg-card p-1 sm:flex sm:w-fit">
+            <div role="tablist" aria-label="Workspace people" className="grid w-full grid-cols-2 shrink-0 gap-1 rounded-xl bg-muted p-1 sm:flex sm:w-fit">
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         tabIndex={tab === item ? 0 : -1}
@@ -281,7 +281,7 @@ export default function MembersPage() {
                             changeTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
                             nextTab.focus()
                         }}
-                        className={`min-h-11 min-w-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium capitalize focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-accent dark:bg-[#35313f] text-accent-foreground dark:text-accent-foreground" : "text-muted-foreground dark:text-muted-foreground"}`}>
+                        className={`min-h-11 min-w-0 touch-manipulation whitespace-nowrap rounded-lg px-3 py-2 text-sm capitalize transition-colors focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-card font-semibold text-foreground shadow-sm" : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground active:bg-accent"}`}>
                         <span>{item}</span>
                         {item === "invitations" && pendingCount > 0 && <span aria-label={`${pendingCount} pending`} className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium tabular-nums text-primary">{pendingCount}</span>}
                     </button>
@@ -314,7 +314,7 @@ export default function MembersPage() {
                 </DropdownMenu>}
                 </div>
                 {tab === "members" && <div role="group" aria-label="Filter members by role" className="col-span-2 flex flex-wrap gap-2 sm:hidden">
-                    {[{ value: "all", label: "All", count: memberships.length }, { value: "owner", label: "Owners", count: memberships.filter(member => member.role === "owner").length }, { value: "member", label: "Members", count: memberships.filter(member => member.role === "member").length }].map(option => <button key={option.value} type="button" aria-pressed={roleFilter === option.value} onClick={() => { setRoleFilter(option.value); setPage(1); }} className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${roleFilter === option.value ? "border-primary/15 bg-primary/10 text-primary" : "border-border bg-card text-foreground"}`}>{option.label} ({option.count})</button>)}
+                    {[{ value: "all", label: "All", count: memberships.length }, { value: "owner", label: "Owners", count: memberships.filter(member => member.role === "owner").length }, { value: "member", label: "Members", count: memberships.filter(member => member.role === "member").length }].map(option => <button key={option.value} type="button" aria-pressed={roleFilter === option.value} onClick={() => { setRoleFilter(option.value); setPage(1); }} className={`min-h-11 touch-manipulation rounded-full border px-3 py-2 text-sm tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${roleFilter === option.value ? "border-primary/35 bg-accent font-semibold text-accent-foreground" : "border-border bg-card font-medium text-foreground hover:bg-muted active:bg-accent"}`}>{option.label} ({option.count})</button>)}
                 </div>}
                 <div className="hidden sm:contents">
                 <Select value={roleFilter} onValueChange={value => { setPage(1); setRoleFilter(value) }}>
@@ -343,7 +343,7 @@ export default function MembersPage() {
             </div>
 
             {notice && <p role="status" className="rounded-xl bg-accent p-3 text-base sm:text-sm text-accent-foreground">{notice}</p>}
-            {resendError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-base sm:text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{resendError}</p>}
+            {resendError && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{resendError}</p>}
             {cancelInvitation && <WorkspaceAction key={cancelInvitation._id} orgId={orgId} action="cancel_invitation" id={cancelInvitation._id} initialOpen onClosed={() => { setCancelInvitation(null); setRevision(value => value + 1); }} label="Cancel invitation" description={`Cancel the invitation to ${cancelInvitation.email}? Its link will stop working.`} />}
 
             {tab === "invitations" ? (
@@ -376,8 +376,8 @@ export default function MembersPage() {
                             return <article key={invite._id} aria-label={`Invitation to ${invite.email}`} className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-3 last:border-b-0 sm:gap-3 sm:px-4">
                                 <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-base sm:text-sm font-semibold text-primary">{initials}</span>
                                 <div className="min-w-0 flex-1">
-                                    <h3 title={invite.email} className="break-words text-base sm:text-sm font-semibold leading-6 [overflow-wrap:anywhere]">{invite.email}</h3>
-                                    <p className="mt-0.5 text-sm sm:text-xs leading-5 text-muted-foreground"><time dateTime={sentAt.toISOString()} title={sentAt.toLocaleString()}>{invite.lastSentAt ? "Resent" : "Invited"} {relativeTime}</time></p>
+                                    <h3 title={invite.email} className="break-words text-sm font-semibold leading-5 [overflow-wrap:anywhere]">{invite.email}</h3>
+                                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground"><time dateTime={sentAt.toISOString()} title={sentAt.toLocaleString()}>{invite.lastSentAt ? "Resent" : "Invited"} {relativeTime}</time></p>
                                 </div>
                                 <Badge variant="outline" className={`shrink-0 gap-1 rounded-full border-0 px-2 py-1 text-xs ${statusClass}`}>{status === "Pending" && <Clock aria-hidden="true" className="size-3" />}{status}</Badge>
                                 <DropdownMenu>
@@ -402,7 +402,7 @@ export default function MembersPage() {
                     <div className="hidden lg:block">
                     <Table>
                         <TableCaption>Invitation history for {organization.name}. Invitations expire after 24 hours.</TableCaption>
-                        <TableHeader><TableRow className="bg-slate-50/80 dark:bg-muted/80">
+                        <TableHeader><TableRow className="bg-muted/50">
                             <TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Sent</TableHead><TableHead>Expires</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead>
                         </TableRow></TableHeader>
                         <TableBody>
@@ -450,7 +450,7 @@ export default function MembersPage() {
                     {filteredMembers.map((m) => (
                         <div key={m._id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-3 py-2.5 sm:px-4">
                             <div className="flex min-w-0 items-center gap-3">
-                                <div aria-hidden="true" className={`grid size-10 sm:size-11 shrink-0 place-items-center rounded-full text-sm font-semibold ${m.role === "owner" ? "bg-primary/10 text-primary" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"}`}>
+                                <div aria-hidden="true" className={`grid size-10 sm:size-11 shrink-0 place-items-center rounded-full text-sm font-semibold ${m.role === "owner" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
                                     {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -476,7 +476,7 @@ export default function MembersPage() {
                 <Table>
                     <TableCaption className="sr-only">Members in {organization.name}</TableCaption>
                     <TableHeader>
-                        <TableRow className="bg-slate-50/80 dark:bg-muted/80">
+                        <TableRow className="bg-muted/50">
                             <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Member</TableHead>
                             <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Role</TableHead>
                             <TableHead className="text-sm sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Status</TableHead><TableHead className="pr-4 text-right">Actions</TableHead>
@@ -485,10 +485,10 @@ export default function MembersPage() {
                     <TableBody>
                         {filteredMembers.map((m) => (
 
-                                <TableRow key={m._id} className="hover:bg-accent/50 dark:hover:bg-[#303740]/50 transition">
+                                <TableRow key={m._id} className="hover:bg-muted/40 transition-colors">
                                     <TableCell className="max-w-sm py-3 pl-4">
                                         <div className="flex min-w-0 items-center gap-3">
-                                            <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-base sm:text-sm font-semibold text-primary">
+                                    <div aria-hidden="true" className={`grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold ${m.role === "owner" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
                                                 {getInitials(m.user?.firstName, m.user?.lastName, m.user?.email)}
                                             </div>
                                             <div className="min-w-0"><p className="break-words font-medium [overflow-wrap:anywhere]">{getMemberName(m.user)}{m.user?._id === session?.user?.id && <span className="ml-2 text-sm sm:text-xs font-normal text-muted-foreground">You</span>}</p><p className="mt-1 break-words text-base sm:text-sm text-muted-foreground [overflow-wrap:anywhere]">{m.user?.email ?? "Email unavailable"}</p></div>

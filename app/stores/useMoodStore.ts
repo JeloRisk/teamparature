@@ -3,9 +3,11 @@ import { create } from "zustand"
 
 type Mood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 type Trend = Record<Mood, number> & { day: string }
+export type OwnCheckIn = { mood: Mood; date: string }
 
 interface Summary {
     checkedInToday: boolean
+    ownCheckIn?: OwnCheckIn | null
     timezone?: string
     trend?: Trend[]
     participantsToday?: number
@@ -53,9 +55,10 @@ export const useMoodStore = create<MoodState>((set, get) => ({
             return
         }
         if (!res.ok) throw new Error("Could not save your check-in. Please try again.")
+        const { mood, date }: OwnCheckIn = await res.json()
         useMoodAnalyticsStore.setState({ fetchedAt: 0 })
         set((state) => state.orgId === orgId && state.summary
-            ? { summary: { ...state.summary, checkedInToday: true } }
+            ? { summary: { ...state.summary, checkedInToday: true, ownCheckIn: { mood, date } } }
             : state)
         if (get().orgId === orgId) await get().fetchSummary(orgId)
     },

@@ -56,7 +56,7 @@ export default function RegisterPage() {
                 <div className="space-y-2"><label htmlFor="register-birthday" className="text-xs font-semibold text-[#4b5578]">Birthday <span className="font-normal text-slate-400">(optional)</span></label><Input id="register-birthday" name="birthday" type="date" autoComplete="bday" value={form.birthday} onChange={event => setForm({ ...form, birthday: event.target.value })} className={inputClass} /></div>
             </fieldset>
             {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-            <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl bg-[#5474ff] font-medium text-white shadow-sm hover:bg-[#4565ec]">
+            <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl font-medium">
                 {loading ? <><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Creating your account…</> : <>Create account<ArrowRight className="size-4" aria-hidden="true" /></>}
             </Button>
         </form>}

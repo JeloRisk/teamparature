@@ -17,7 +17,7 @@ export default function MemberActions({ orgId, id, role, email, isActive = true 
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-12 rounded-lg sm:size-11 text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent hover:text-primary dark:hover:text-primary">
+                <Button variant="ghost" size="icon" aria-label={`Manage ${email}`} className="size-11 touch-manipulation rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-accent data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
                     <MoreVertical className="size-5 lg:hidden" aria-hidden="true" /><MoreHorizontal className="hidden size-5 lg:block" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>

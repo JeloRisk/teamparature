@@ -332,7 +332,7 @@ export function HeatmapDetailContent({ orgId, timezone, start, end, latestDate, 
         </div>
 
         <Dialog open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-            <DialogContent showCloseButton={false} onCloseAutoFocus={event => { event.preventDefault(); periodButton.current?.focus(); }} onEscapeKeyDown={event => { if (yearPickerOpen) { event.preventDefault(); setYearPickerOpen(false); monthYearButton.current?.focus(); } }} aria-describedby="heatmap-date-picker-description" overlayClassName="z-[110]" className="z-[111] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-[28px] p-0">
+            <DialogContent showCloseButton={false} onCloseAutoFocus={event => { event.preventDefault(); periodButton.current?.focus(); }} onEscapeKeyDown={event => { if (yearPickerOpen) { event.preventDefault(); setYearPickerOpen(false); monthYearButton.current?.focus(); } }} aria-describedby="heatmap-date-picker-description" overlayClassName="z-[110]" className="workspace-page-surface z-[111] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-[28px] p-0">
                 <DialogTitle className="sr-only">{periodView === "day" ? "Choose a date" : "Choose a week"}</DialogTitle>
                 <DialogDescription id="heatmap-date-picker-description" className="sr-only">{periodView === "day" ? "Choose one date to view its mood check-ins." : "Choose one date to select its full Sunday–Saturday week."} Use arrow keys to move between dates, Home and End to move within a week, and Enter to select. The month and year heading opens year selection.</DialogDescription>
                 <div className="space-y-3 px-3 py-4 sm:px-5">
@@ -467,7 +467,7 @@ export function HeatmapDetailContent({ orgId, timezone, start, end, latestDate, 
         : error ? <div role="alert" className="rounded-2xl border border-border p-5"><p className="font-semibold">We couldn’t load this date range.</p><p className="mt-2 text-sm text-muted-foreground">{error}</p><button type="button" onClick={() => { setRangeData(null); setRangeRetry(value => value + 1); }} className="mt-4 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Try again</button></div>
         : total === 0 ? <section className="rounded-2xl border border-border bg-card p-6"><h3 className="text-base font-semibold">No check-ins for this {periodView}</h3><p className="mt-2 text-sm text-muted-foreground">{formatHeatmapRange({ start, end })}</p><button type="button" onClick={() => onRangeChange?.(periodView === "day" ? { start: latestDate, end: latestDate } : weekRangeForDate(latestDate, earliestAvailableDate, latestDate))} className="mt-5 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">{periodView === "day" ? "Go to today" : "Go to this week"}</button></section>
         : <>
-        <article className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <article className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6">
             <h3 className="text-sm font-medium text-muted-foreground">Total check-ins</h3>
             <p className="mt-3 text-4xl font-semibold leading-none tracking-tight tabular-nums text-foreground">{total.toLocaleString()}</p>
             <p className="mt-2 text-xs text-muted-foreground">Across {daily.length} {daily.length === 1 ? "day" : "days"}</p>
@@ -484,7 +484,7 @@ export function HeatmapDetailContent({ orgId, timezone, start, end, latestDate, 
             {daily.length === 1 && <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">{activeMoods.map(mood => <li key={mood} className="capitalize text-foreground">{mood} <span className="ml-1 tabular-nums text-muted-foreground">{totals[mood]} · {Math.round(totals[mood] / moodTotal * 100)}%</span></li>)}</ul>}
         </article>
 
-        {daily.length > 1 && total > 0 && <section aria-labelledby="heatmap-daily-activity" className="rounded-2xl border border-border bg-card p-5">
+        {daily.length > 1 && total > 0 && <section aria-labelledby="heatmap-daily-activity" className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div>
                 <h3 id="heatmap-daily-activity" className="text-sm font-semibold text-foreground">Daily check-ins</h3>
                 <p className="mt-1 text-xs text-muted-foreground">Select a day to filter the breakdown.</p>
@@ -501,7 +501,7 @@ export function HeatmapDetailContent({ orgId, timezone, start, end, latestDate, 
             </div>
         </section>}
 
-        {daily.length > 1 && activeMoods.length > 0 && <section aria-labelledby="heatmap-mood-breakdown" className="rounded-2xl border border-border bg-card p-5">
+        {daily.length > 1 && activeMoods.length > 0 && <section aria-labelledby="heatmap-mood-breakdown" className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h3 id="heatmap-mood-breakdown" className="text-sm font-semibold text-foreground">{selectedDay ? `${formatDateKey(selectedDay.date)} moods` : "Whole week’s moods"}</h3>
@@ -520,14 +520,14 @@ export function HeatmapDetailContent({ orgId, timezone, start, end, latestDate, 
                                 <span className="font-medium capitalize text-foreground">{mood}</span>
                                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{count} {count === 1 ? "check-in" : "check-ins"} · {share}%</span>
                             </div>
-                            <div aria-hidden="true" className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-primary/30" style={{ width: `${share}%` }} /></div>
+                            <div aria-hidden="true" className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full" style={{ width: `${share}%`, backgroundColor: moodColors[mood] }} /></div>
                         </div>
                     </li>;
                 })}
             </ul> : <p className="mt-4 rounded-xl bg-muted/60 px-3 py-3 text-sm text-muted-foreground">No check-ins were recorded on {selectedDay ? formatDateKey(selectedDay.date, true) : "this date"}.</p>}
         </section>}
 
-        {selectedDay && selectedDay.total > 0 && <section aria-labelledby="heatmap-check-in-activity" className="rounded-2xl border border-border bg-card p-5">
+        {selectedDay && selectedDay.total > 0 && <section aria-labelledby="heatmap-check-in-activity" className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
                 <h3 id="heatmap-check-in-activity" className="text-sm font-semibold text-foreground">Check-in activity</h3>
                 <span className="text-xs tabular-nums text-muted-foreground">{selectedDay.total} {selectedDay.total === 1 ? "check-in" : "check-ins"}</span>

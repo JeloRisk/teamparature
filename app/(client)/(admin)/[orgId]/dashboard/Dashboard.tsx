@@ -4,7 +4,7 @@ import { DashboardSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
 import { positiveShare } from "@/lib/mood-reporting"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, CalendarDays } from "lucide-react"
+import { ArrowRight, CalendarDays } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { BarProps } from "recharts"
 import type { BarRectangleItem } from "recharts/types/cartesian/Bar"
@@ -29,7 +29,8 @@ const moodOptions = [
     { key: "stressed", label: "Stressed", color: "var(--mood-stressed)" },
 ] as const
 
-const panel = "min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6"
+const panel = "min-w-0 rounded-2xl border border-border p-4 sm:p-5"
+const sectionLink = "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:text-sm"
 const tooltip = { backgroundColor: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)", borderRadius: 14 }
 type MoodMixItem = (typeof moodOptions)[number] & { value: number }
 type MoodTrendDay = Record<(typeof moodOptions)[number]["key"], number> & { day: string }
@@ -48,7 +49,7 @@ function temperatureTrendSegments(days: MoodTrendDay[]) {
 
         const share = (day.happy + day.excited) / total
         current.push({
-            x: 156 + index * (154 / Math.max(days.length - 1, 1)),
+            x: 10 + index * (154 / Math.max(days.length - 1, 1)),
             y: 145 - share * 112,
         })
     })
@@ -154,73 +155,72 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
     if (!summary && !error) return <DashboardSkeleton />
 
     return (
-        <div className="dashboard-reference-theme dashboard-home-surface mobile-page -m-4 min-w-0 flex-1 px-3 py-3 sm:bg-muted/30 sm:px-6 sm:py-8 md:-mx-10 md:px-10">
-            <div className="mobile-page-content mx-auto min-w-0 max-w-6xl space-y-3.5 sm:space-y-6">
-
-                <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-2 pb-1 sm:border-b sm:border-border/80 sm:pb-6">
-                    <div className="min-w-0">
-                        <p className="mb-1 truncate text-xs font-medium text-muted-foreground">{organization.name}</p>
-                        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">Team mood</h1>
-                    </div>
-                    {now && <p className="flex min-h-8 items-center gap-1.5 rounded-full bg-muted/70 px-2.5 text-xs font-medium text-muted-foreground sm:min-h-10 sm:bg-accent sm:px-3 sm:text-sm">
-                        <CalendarDays className="size-3.5 sm:size-4" aria-hidden="true" />
-                        {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}
-                    </p>}
-                </header>
-
-                {error && <div role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">{error}. <button className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button></div>}
-
-                    <section className={summary?.checkedInToday ? "rounded-2xl border border-emerald-600/15 bg-emerald-600/[0.045] px-3 py-2" : "relative min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card p-4 shadow-sm shadow-primary/[0.04] sm:rounded-3xl sm:bg-gradient-to-br sm:from-accent/80 sm:via-card sm:to-card sm:p-7"}>
+        <div className="dashboard-reference-theme workspace-page-surface mobile-page -m-4 min-w-0 flex-1 px-3 py-3 sm:px-6 sm:py-7 md:-mx-10 md:px-10">
+            <div className="mx-auto min-w-0 max-w-6xl space-y-3 sm:space-y-5">
+                <section className={`${panel} bg-card`} aria-labelledby="team-mood-heading">
+                    <header className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+                        <div className="min-w-0">
+                            <h1 id="team-mood-heading" className="text-2xl leading-tight tracking-tight sm:text-4xl">Team mood</h1>
+                            <p className="mt-1 hidden text-sm break-words text-muted-foreground md:block">{organization.name}</p>
+                        </div>
+                        {now && <p className="flex min-h-8 shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:min-h-9 sm:text-sm">
+                            <CalendarDays className="size-3.5 sm:size-4" aria-hidden="true" />
+                            {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: timezone })}
+                        </p>}
+                    </header>
+                    <div className="mt-3.5 border-t border-border pt-3.5 sm:mt-5 sm:pt-5">
+                        {error && <div role="alert" className="mb-3 rounded-xl border border-border bg-card p-3 text-sm">
+                            {error}. <button type="button" className="text-primary underline" onClick={() => fetchSummary(organization._id)}>Retry</button>
+                        </div>}
                         <MoodCheck orgId={organization._id} compact />
-                    </section>
-                <div className="grid min-w-0 grid-cols-2 items-stretch gap-2.5 sm:gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.8fr)]">
-                    <section className="col-span-2 min-w-0 rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-foreground/[0.025] sm:col-span-1 sm:p-6" aria-labelledby="total-checkins-heading">
-                        <h2 id="total-checkins-heading" className="text-sm font-medium leading-5 text-muted-foreground sm:text-base">Total check-ins</h2>
+                    </div>
+                </section>
+
+                <div className="grid min-w-0 grid-cols-2 items-stretch gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.8fr)]">
+                    <section className={`${panel} col-span-2 bg-card sm:col-span-1`} aria-labelledby="total-checkins-heading">
+                        <h2 id="total-checkins-heading" className="text-base leading-5">Total check-ins</h2>
                         <p className="mt-3 text-[2rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{summary ? checkInsThisWeek : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">Last 7 days</p>
                         <MoodMixBar items={weeklyDistribution.filter(item => item.value > 0)} total={checkInsThisWeek} emptyMessage="No check-ins across the last 7 days." />
                     </section>
-                    <section className={`${segments.length ? "min-h-44" : ""} relative col-span-2 min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-accent/80 via-accent/35 to-card p-4 sm:col-span-1 sm:p-6`} aria-label={`Team Temperature: ${temperature === null ? "no check-ins in the last 7 days" : `${temperature}% over the last 7 days`}`}>
-                        {segments.length > 0 && <svg aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-24 w-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
-                            {segments.map((segment, index) => <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeOpacity="0.68" strokeWidth="2.5" strokeLinecap="round" />)}
-                        </svg>}
-                        <div className="relative z-10">
-                            <h2 className="text-sm font-medium leading-5 text-muted-foreground sm:text-base">Team Temperature</h2>
-                            <p className="mt-3 text-[2rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
-                            <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{temperature === null ? "No check-ins yet" : `${happyThisWeek + excitedThisWeek} of ${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in was" : "check-ins were"} Happy or Excited`}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">Last 7 days</p>
-                            {segments.length > 0 && <p className="sr-only">Daily team temperature trend across the last seven days.</p>}
+                    <section className={`${panel} col-span-2 bg-card sm:col-span-1`} aria-labelledby="team-temperature-heading">
+                        <h2 id="team-temperature-heading" className="text-base leading-5">Team Temperature</h2>
+                        <div className="mt-3 flex min-w-0 items-center justify-between gap-3">
+                            <p className="text-[2rem] font-semibold leading-none tracking-tight tabular-nums sm:text-4xl">{temperature === null ? "—" : `${temperature}%`}</p>
+                            {segments.length > 0 && <svg role="img" aria-label="Daily team temperature trend over the last seven days" className="h-9 w-24 shrink-0 text-primary" viewBox="0 18 174 140" preserveAspectRatio="none">
+                                {segments.map((segment, index) => <path key={index} d={smoothTemperaturePath(segment)} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />)}
+                            </svg>}
                         </div>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{temperature === null ? "No check-ins yet" : `${happyThisWeek + excitedThisWeek} of ${checkInsThisWeek} ${checkInsThisWeek === 1 ? "check-in was" : "check-ins were"} Happy or Excited`}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Last 7 days</p>
                     </section>
 
-                    <div className="col-span-2 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm shadow-foreground/[0.025] xl:col-span-1 xl:grid-cols-1 xl:divide-x-0 xl:divide-y">
+                    <div className="col-span-2 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-2xl border border-border bg-card xl:col-span-1 xl:grid-cols-1 xl:divide-x-0 xl:divide-y">
                     <section className="min-w-0 p-4 sm:px-5" aria-labelledby="dashboard-participation-heading">
-                        <h2 id="dashboard-participation-heading" className="text-sm font-medium text-muted-foreground">Participation</h2>
-                        <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{summary ? `${participantsThisWeek} of ${members}` : "—"}</p>
+                        <h2 id="dashboard-participation-heading" className="text-base leading-5">Participation</h2>
+                        <p className="mt-2 text-2xl font-semibold leading-none tabular-nums">{summary ? `${participantsThisWeek} of ${members}` : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">{summary ? "members checked in during the last 7 days" : "Participation unavailable"}</p>
                     </section>
                     <section className="min-w-0 p-4 sm:px-5" aria-labelledby="dashboard-active-members-heading">
-                        <h2 id="dashboard-active-members-heading" className="text-sm font-medium text-muted-foreground sm:text-base">Active members</h2>
-                        <p className="mt-2 text-3xl font-semibold leading-none tabular-nums text-foreground">{summary ? members.toLocaleString() : "—"}</p>
+                        <h2 id="dashboard-active-members-heading" className="text-base leading-5">Active members</h2>
+                        <p className="mt-2 text-2xl font-semibold leading-none tabular-nums">{summary ? members.toLocaleString() : "—"}</p>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">Workspace members, including owners</p>
                     </section>
                     </div>
                 </div>
 
                 <div className="grid min-w-0 items-start gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,1fr)]">
-                <section className={`${panel} min-w-0`}>
+                <section className={`${panel} bg-card`}>
                     <div className="min-w-0">
-                        <div className="mb-4 sm:mb-5">
-                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                                <h2 className="text-lg font-semibold leading-6 tracking-tight">Daily check-ins by mood</h2>
-                                <Link href={`/${organization._id}/analytics`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
-                                    Full analytics
-                                    <ArrowUpRight className="size-4" aria-hidden="true" />
-                                </Link>
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 sm:mb-4">
+                            <div className="min-w-0">
+                                <h2 className="text-lg leading-6">Daily check-ins by mood</h2>
+                                <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">Last 7 days</p>
                             </div>
-                            <div>
-                                <p className="mt-1.5 text-sm text-muted-foreground">Last 7 days</p>
-                            </div>
+                            <Link href={`/${organization._id}/analytics`} className={sectionLink}>
+                                Full analytics
+                                <ArrowRight className="size-4" aria-hidden="true" />
+                            </Link>
                         </div>
                         {trend.some(day => moodOptions.some(item => day[item.key] > 0)) ? <div className="h-48 min-w-0 px-0 pt-2 sm:h-64 sm:p-0 xl:h-72" role="img" aria-label={`Daily check-in counts by mood over seven days; ${checkInsThisWeek} total check-ins`}>
                             <ResponsiveContainer width="100%" height="100%"><BarChart data={trend} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
@@ -251,17 +251,17 @@ export default function Dashboard({ organization, ownerCount, memberCount }: Das
                                 />)}
                             </BarChart></ResponsiveContainer>
                         </div> : <div className="flex h-60 items-center justify-center text-center text-sm text-muted-foreground">Check-ins will appear here as your team logs a mood.</div>}
-                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 border-t border-border pt-3 sm:mt-4 sm:gap-x-5 sm:pt-4">{activeWeeklyMoods.map(item => <span key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}</div>
+                        {activeWeeklyMoods.length > 0 && <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 border-t border-border pt-3 sm:mt-4 sm:gap-x-5 sm:pt-4">{activeWeeklyMoods.map(item => <span key={item.key} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}</div>}
                     </div>
 
                 </section>
 
-                <section className={panel} aria-labelledby="recent-activity-heading">
+                <section className={`${panel} bg-card`} aria-labelledby="recent-activity-heading">
                     <div className="flex items-center justify-between gap-3">
                         <h2 id="recent-activity-heading" className="text-lg font-semibold leading-6 tracking-tight">Recent activity</h2>
-                        <Link href={`/${organization._id}/activity`} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
+                        <Link href={`/${organization._id}/activity`} className={sectionLink}>
                             See more
-                            <ArrowUpRight className="size-4" aria-hidden="true" />
+                            <ArrowRight className="size-4" aria-hidden="true" />
                         </Link>
                     </div>
                         <div className="mt-3 border-t border-border" aria-live="polite">
