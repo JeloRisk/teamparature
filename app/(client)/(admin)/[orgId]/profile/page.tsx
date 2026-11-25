@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Building2, Check, ChevronRight, Settings } from "lucide-react"
+import { Building2, Check, ChevronRight, LogOut, Settings } from "lucide-react"
+import { signOut } from "next-auth/react"
 import { useWorkspace } from "../ClientDashboardLayout"
 import { useMembershipStore } from "@/app/stores/useMembershipStore"
 import { useUserStore } from "@/app/stores/useUserStore"
@@ -92,6 +93,14 @@ export default function ProfilePage() {
                 </section>}
 
                 <InstallAppCard />
+                <button
+                    type="button"
+                    onClick={() => void signOut({ callbackUrl: "/login" })}
+                    className="flex min-h-11 w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+                >
+                    <LogOut className="size-4 shrink-0" aria-hidden="true" />
+                    Log out
+                </button>
             </div>
         </div>
     )

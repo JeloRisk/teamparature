@@ -44,34 +44,35 @@ export default function LoginPage() {
 
     return (
         <AuthLayout>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">Welcome back.</h1>
+            <h1 className="public-display text-3xl leading-tight sm:text-4xl">Welcome back.</h1>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Sign in to your Teamparature workspace.</p>
 
             {status !== "unauthenticated" ? (
-                <div role="status" aria-label={status === "loading" ? "Checking your session" : "Opening your dashboard"} className="mt-8 space-y-5">
-                    <Skeleton className="h-11 w-full rounded-xl" /><Skeleton className="h-11 w-full rounded-xl" /><Skeleton className="h-11 w-full rounded-xl" />
+                <div role="status" aria-label={status === "loading" ? "Checking your session" : "Opening your dashboard"} className="mt-6 space-y-5">
+                    <Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-12 w-full rounded-xl" />
                 </div>
             ) : (
-                <form onSubmit={handleLogin} className="mt-8 space-y-5">
-                    <fieldset disabled={loading} className="space-y-5">
-                        <div className="space-y-2">
-                            <label htmlFor="login-email" className="text-xs font-semibold text-[#4b5578]">Email address</label>
+                <form onSubmit={handleLogin} aria-busy={loading} className="mt-6 space-y-2">
+                    <fieldset disabled={loading} className="min-w-0 space-y-5">
+                        <div className="grid gap-1.5">
+                            <label htmlFor="login-email" className="text-sm font-medium">Email address</label>
                             <Input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)}
-                                placeholder="you@example.com" className="h-11 rounded-xl border-[#e0e5f1] bg-[#fcfcfe] text-sm shadow-none focus-visible:border-primary focus-visible:ring-primary/15" />
+                                placeholder="you@example.com" className="h-12 rounded-xl bg-card text-base shadow-none focus-visible:border-primary focus-visible:ring-primary/20 sm:text-sm" />
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="login-password" className="text-xs font-semibold text-[#4b5578]">Password</label>
+                        <div className="grid gap-1.5">
+                            <label htmlFor="login-password" className="text-sm font-medium">Password</label>
                             <AuthPasswordInput id="login-password" value={password} onChange={event => setPassword(event.target.value)} disabled={loading} autoComplete="current-password" />
                         </div>
                     </fieldset>
-                    <div className="text-right"><Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link></div>
+                    <div className="flex justify-end"><Link href="/forgot-password" className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Forgot password?</Link></div>
                     {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-                    <Button type="submit" disabled={loading} className="h-11 w-full rounded-xl font-medium">
-                        {loading ? <><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Signing in…</> : <>Sign in<ArrowRight className="size-4" aria-hidden="true" /></>}
+                    <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl font-semibold shadow-none">
+                        {loading ? <><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Signing in…</> : <>Sign in <ArrowRight className="size-4" aria-hidden="true" /></>}
                     </Button>
                 </form>
             )}
-            <div className="mt-7 border-t border-[#edf0f7] pt-6 text-center">
-                <p className="text-xs text-slate-500">New to Teamparature? <Link href="/register" className="ml-1 font-semibold text-primary hover:underline">Create an account</Link></p>
+            <div className="mt-5 border-t border-border pt-2 text-center">
+                <p className="text-sm text-muted-foreground">New to Teamparature? <Link href="/register" className="inline-flex min-h-11 items-center rounded-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Create an account</Link></p>
             </div>
         </AuthLayout>
     )

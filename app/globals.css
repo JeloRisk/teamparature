@@ -149,6 +149,31 @@
   color-scheme: light;
 }
 
+.public-brand {
+  --background: #fff;
+  --foreground: #202638;
+  --card: #fff;
+  --card-foreground: var(--foreground);
+  --border: #e3e8f0;
+  --input: #8993a4;
+  --muted: #f5f7fb;
+  --muted-foreground: #576275;
+  --accent: #eef0fc;
+  --primary: #3d4ad6;
+  --primary-foreground: #fff;
+  --ring: #3d4ad6;
+}
+
+.public-brand ::selection {
+  background-color: #dce4ff;
+  color: #202638;
+}
+
+.public-brand h1.public-display {
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -157,25 +182,6 @@
     @apply bg-background text-foreground;
   }
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  html.landing-motion-ready {
-    scroll-behavior: smooth;
-    scroll-padding-top: 5.5rem;
-  }
-
-  .landing-motion-ready .landing-page .landing-reveal {
-    opacity: 0;
-    transform: translateY(22px);
-    transition: opacity 850ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 850ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-
-  .landing-motion-ready .landing-page .landing-reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 
 .analytics-page [data-slot="card"] {
   box-shadow: none;
