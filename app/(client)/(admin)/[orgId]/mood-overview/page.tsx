@@ -1,141 +1,38 @@
-import { fromZonedTime, toZonedTime } from "date-fns-tz"
-import { getWorkspaceTimezone } from "@/lib/workspace-time"
-import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronLeft, ChevronRight, Minus } from "lucide-react"
-import { addDays, addMonths, format, isSameDay, isValid, startOfMonth, startOfWeek, startOfYear } from "date-fns"
+import { fromZonedTime, formatInTimeZone } from "date-fns-tz"
 import { Mood } from "@/models/Mood"
+import { getWorkspaceTimezone } from "@/lib/workspace-time"
+import MemberEmotionHeatmap from "./MemberEmotionHeatmap"
 import { getWorkspaceMembership } from "../workspace-access"
 
-const views = ["Daily", "Weekly", "Monthly"] as const
-const moods = {
-    happy: ["😊", "Happy"],
-    excited: ["🤩", "Excited"],
-    neutral: ["😐", "Neutral"],
-    sad: ["😔", "Sad"],
-    stressed: ["😰", "Stressed"],
-} as const
-
-type Entry = { date: Date; mood: keyof typeof moods; rank: number }
+type SearchParams = { year?: string }
+type MoodEntry = { date: Date; mood: "happy" | "excited" | "neutral" | "sad" | "stressed"; rank: number }
 
 export default async function MoodOverviewPage({ params, searchParams }: {
     params: Promise<{ orgId: string }>
-    searchParams: Promise<{ view?: string; date?: string }>
+    searchParams: Promise<SearchParams>
 }) {
     const { orgId } = await params
     const membership = await getWorkspaceMembership(orgId)
     if (membership?.role !== "member") notFound()
 
-    const query = await searchParams
-    const view = views.find(item => item.toLowerCase() === query.view) ?? "Daily"
     const timezone = await getWorkspaceTimezone(orgId)
-    const today = toZonedTime(new Date(), timezone)
-    const requested = typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date)
-        ? new Date(`${query.date}T00:00:00`)
-        : today
-    const date = isValid(requested) ? requested : today
-    const weekStart = (value: Date) => startOfWeek(value, { weekStartsOn: 1 })
-    const start = view === "Monthly" ? startOfYear(date)
-        : view === "Weekly" ? weekStart(startOfMonth(date)) : weekStart(date)
-    const anchor = view === "Weekly" ? startOfMonth(date) : start
-    const shift = (step: number) => view === "Daily" ? addDays(anchor, step * 7)
-        : addMonths(anchor, step * (view === "Monthly" ? 12 : 1))
-    const monthEnd = addMonths(anchor, 1)
-    const weekCount = Array.from({ length: 6 }, (_, i) => addDays(start, i * 7))
-        .filter(day => day < monthEnd).length
-    const size = view === "Daily" ? 7 : view === "Weekly" ? weekCount : 12
-    const boundary = (i: number) => view === "Monthly" ? addMonths(start, i)
-        : addDays(start, i * (view === "Weekly" ? 7 : 1))
-    const end = boundary(size)
-    const entries = await Mood.find({ organization: orgId, user: membership.user, date: { $gte: fromZonedTime(start, timezone), $lt: fromZonedTime(end, timezone) } })
-        .select("date mood rank").sort({ date: -1 }).lean<Entry[]>()
-    const range = view === "Monthly" ? format(start, "yyyy")
-        : view === "Weekly" ? format(anchor, "MMMM yyyy")
-        : `${format(start, "MMM d")} – ${format(addDays(end, -1), "MMM d, yyyy")}`
-    const href = (nextView: typeof view, nextDate: Date) =>
-        `/${orgId}/mood-overview?view=${nextView.toLowerCase()}&date=${format(nextDate, "yyyy-MM-dd")}`
-    const arrow = "grid size-11 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    const today = formatInTimeZone(new Date(), timezone, "yyyy-MM-dd")
+    const currentYear = Number(today.slice(0, 4))
+    const query = await searchParams
+    const requestedYear = Number(query.year)
+    const year = Number.isInteger(requestedYear) && requestedYear >= 2000 && requestedYear <= currentYear
+        ? requestedYear
+        : currentYear
+    const start = fromZonedTime(`${year}-01-01T00:00:00`, timezone)
+    const end = fromZonedTime(`${year + 1}-01-01T00:00:00`, timezone)
+    const records = await Mood.find({ organization: orgId, user: membership.user, date: { $gte: start, $lt: end } })
+        .select("date mood rank").sort({ date: 1 }).lean<MoodEntry[]>()
+    const entries = records.map(entry => ({
+        date: formatInTimeZone(entry.date, timezone, "yyyy-MM-dd"),
+        mood: entry.mood,
+        rank: entry.rank,
+    }))
 
-    return (
-        <div className="workspace-page-surface min-w-0 flex-1 text-foreground">
-            <section className="mx-auto max-w-6xl">
-                <header className="mb-4 flex flex-wrap items-end justify-between gap-4 sm:mb-5">
-                    <div>
-                        <h1 className="text-2xl font-semibold leading-tight tracking-tight">Mood overview</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Your personal check-ins in Teamparature.</p>
-                    </div>
-                    <nav aria-label="Overview period" className="flex w-full gap-1 rounded-xl border border-border dark:border-border bg-card dark:bg-card p-1 sm:w-auto">
-                        {views.map(item => (
-                            <Link key={item} href={href(item, date)} aria-current={view === item ? "page" : undefined}
-                                className={`flex min-h-10 flex-1 items-center justify-center rounded-lg px-4 py-2 text-center text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring ${view === item ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
-                                {item}
-                            </Link>
-                        ))}
-                    </nav>
-                </header>
-
-                <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border dark:border-border px-3 py-2 sm:px-5">
-                        <nav aria-label="Date navigation" className="flex min-w-0 flex-1 items-center justify-between gap-1 sm:flex-none sm:justify-start">
-                            <Link href={href(view, shift(-1))} aria-label="Previous period" className={arrow}><ChevronLeft className="size-4" /></Link>
-                            <span className="min-w-0 text-center text-sm font-semibold tabular-nums text-foreground">{range}</span>
-                            <Link href={href(view, shift(1))} aria-label="Next period" className={arrow}><ChevronRight className="size-4" /></Link>
-                        </nav>
-                        <Link href={href(view, today)} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-primary hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Today</Link>
-                    </div>
-
-                    <div className={`grid grid-cols-2 gap-2 p-3 min-[400px]:grid-cols-3 sm:gap-3 sm:p-5 ${view === "Daily" ? "xl:grid-cols-7" : "xl:grid-cols-6"}`}>
-                        {Array.from({ length: size }, (_, i) => {
-                            const from = boundary(i)
-                            const to = boundary(i + 1)
-                            const matches = entries.filter(entry => {
-                                const localDate = toZonedTime(entry.date, timezone)
-                                return localDate >= from && localDate < to
-                            })
-                            const entry = matches[0]
-                            const isToday = view === "Daily" && isSameDay(from, today)
-                            const breakdown = Object.entries(moods).map(([mood, [emoji, label]]) => ({
-                                mood,
-                                emoji,
-                                label,
-                                count: matches.filter(item => item.mood === mood).length,
-                            })).filter(item => item.count > 0)
-                            return (
-                                <div key={from.toISOString()} className={`flex min-h-32 flex-col items-center rounded-xl border border-border px-2 py-3 text-center sm:min-h-36 sm:py-4 ${entry ? "bg-muted/60" : "bg-background"} ${isToday ? "ring-1 ring-inset ring-primary" : ""}`}>
-                                    <p className="text-sm font-semibold text-foreground dark:text-foreground">{format(from, view === "Daily" ? "EEE" : view === "Weekly" ? "'Week of' MMM d" : "MMMM")}</p>
-                                    {view === "Daily" && <p className="text-xs text-muted-foreground dark:text-muted-foreground">{isToday ? "Today · " : ""}{format(from, "MMM d")}</p>}
-                                    {entry && view === "Daily" ? (
-                                        <>
-                                            <MoodIcon mood={entry.mood} className="mt-2 size-11" />
-                                            <p className="text-sm font-semibold text-foreground dark:text-foreground">{moods[entry.mood][1]}</p>
-                                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{entry.rank}/5</p>
-                                        </>
-                                    ) : entry ? (
-                                        <>
-                                            <p className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground">{matches.length} check-in{matches.length === 1 ? "" : "s"}</p>
-                                            <ul aria-label="Mood breakdown" className="mt-2 flex flex-wrap justify-center gap-1">
-                                                {breakdown.map(item => (
-                                                    <li key={item.mood} aria-label={`${item.label}: ${item.count}`} className="rounded-full bg-card px-2 py-1 text-xs text-muted-foreground">
-                                                        <span aria-hidden="true" className="flex items-center gap-1"><MoodIcon mood={item.mood as MoodName} className="size-6" />{item.count}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="mb-1 mt-3 rounded-full bg-muted dark:bg-muted p-1.5 text-muted-foreground dark:text-muted-foreground">
-                                                <Minus className="size-3.5" aria-hidden="true" />
-                                            </span>
-                                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{view === "Daily" ? "No entry" : "No check-ins"}</p>
-                                        </>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </section>
-        </div>
-    )
+    return <MemberEmotionHeatmap year={year} currentYear={currentYear} today={today} entries={entries} />
 }

@@ -2,6 +2,7 @@
 
 
 import { AnalyticsSkeleton } from "@/app/components/loading/WorkspaceSkeletons"
+import TeamTemperatureCard from "../TeamTemperatureCard"
 import MoodHeatmap from "./MoodHeatmap"
 import AnalyticsRangePicker from "./AnalyticsRangePicker"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
@@ -128,57 +129,6 @@ function aggregateTrend(series: Array<{ dateKey: string; day: string; total: num
     return { granularity, data: [...buckets.values()] }
 }
 
-function createWavePath(points: Array<{ x: number; y: number | null }>) {
-    const paths: string[] = []
-    let segment: Array<{ x: number; y: number }> = []
-    const flush = () => {
-        if (segment.length > 1) {
-            let path = `M ${segment[0].x} ${segment[0].y}`
-            for (let index = 1; index < segment.length; index++) {
-                const previous = segment[index - 1]
-                const point = segment[index]
-                const control = (previous.x + point.x) / 2
-                path += ` C ${control} ${previous.y} ${control} ${point.y} ${point.x} ${point.y}`
-            }
-            paths.push(path)
-        }
-        segment = []
-    }
-
-    for (const point of points) {
-        if (point.y === null) flush()
-        else segment.push({ x: point.x, y: point.y })
-    }
-    flush()
-    return paths.join(" ")
-}
-
-function createWaveAreaPath(points: Array<{ x: number; y: number | null }>) {
-    const paths: string[] = []
-    let segment: Array<{ x: number; y: number }> = []
-    const flush = () => {
-        if (segment.length > 1) {
-            let path = `M ${segment[0].x} 160 L ${segment[0].x} ${segment[0].y}`
-            for (let index = 1; index < segment.length; index++) {
-                const previous = segment[index - 1]
-                const point = segment[index]
-                const control = (previous.x + point.x) / 2
-                path += ` C ${control} ${previous.y} ${control} ${point.y} ${point.x} ${point.y}`
-            }
-            path += ` L ${segment[segment.length - 1].x} 160 Z`
-            paths.push(path)
-        }
-        segment = []
-    }
-
-    for (const point of points) {
-        if (point.y === null) flush()
-        else segment.push({ x: point.x, y: point.y })
-    }
-    flush()
-    return paths.join(" ")
-}
-
 // --- Component ---
 //
 export default function MoodAnalytics({ orgId }: { orgId: string }) {
@@ -207,7 +157,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     const leadingMoodCount = Math.max(...moodDistribution.map(item => item.value))
     const leadingMoods = moodDistribution.filter(item => item.value === leadingMoodCount && item.value > 0)
 
-    const gaugeValue = analytics.orgTemperature
     const participationRate = analytics.activeMembers > 0
         ? Math.round(analytics.participants * 100 / analytics.activeMembers)
         : null
@@ -215,43 +164,6 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
 
     const trend = aggregateTrend(analytics.detailedSeries, analytics.periodDays)
     const trendUnit = trend.granularity === "day" ? "daily" : trend.granularity === "week" ? "weekly" : "monthly"
-    const dailyMoodByDate = new Map(analytics.detailedSeries.map(item => [item.dateKey, item]))
-    const temperaturePlotStartX = 54
-    const temperaturePlotWidth = 320 - temperaturePlotStartX
-    const temperaturePoints = trend.granularity === "day"
-        ? Array.from({ length: analytics.periodDays }, (_, index) => {
-            const date = new Date(`${analytics.periodStart.slice(0, 10)}T00:00:00Z`)
-            date.setUTCDate(date.getUTCDate() + index)
-            const dateKey = date.toISOString().slice(0, 10)
-            const x = analytics.periodDays <= 1
-                ? temperaturePlotStartX
-                : temperaturePlotStartX + index * temperaturePlotWidth / (analytics.periodDays - 1)
-            let total = 0
-            let positive = 0
-            for (let daysAgo = 0; daysAgo < Math.min(index + 1, 7); daysAgo++) {
-                const windowDate = new Date(date)
-                windowDate.setUTCDate(windowDate.getUTCDate() - daysAgo)
-                const item = dailyMoodByDate.get(windowDate.toISOString().slice(0, 10))
-                if (!item) continue
-                total += item.total
-                positive += item.happy + item.excited
-            }
-            return {
-                x,
-                y: total > 0 ? 160 - positive / total * 160 : null,
-                reliable: total >= 8,
-            }
-        })
-        : trend.data.map((bucket, index) => ({
-            x: trend.data.length <= 1
-                ? temperaturePlotStartX
-                : temperaturePlotStartX + index * temperaturePlotWidth / (trend.data.length - 1),
-            y: bucket.total > 0 ? 160 - ((bucket.happy + bucket.excited) / bucket.total) * 160 : null,
-            reliable: bucket.total >= (trend.granularity === "week" ? 4 : 8),
-        }))
-    const temperatureAreaPath = createWaveAreaPath(temperaturePoints)
-    const temperatureWavePath = createWavePath(temperaturePoints)
-    const reliableWavePath = createWavePath(temperaturePoints.map(point => ({ ...point, y: point.reliable ? point.y : null })))
     const dateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: analytics.timezone })
     const weekdayRange = `${dateFormat.format(new Date(analytics.weekdayPeriodStart))} – ${dateFormat.format(new Date(new Date(analytics.weekdayPeriodEnd).getTime() - 1))}`
 
@@ -260,37 +172,18 @@ export default function MoodAnalytics({ orgId }: { orgId: string }) {
     // --- Render ---
     //
     return (
-        <div className="analytics-page mobile-page-content min-w-0 space-y-4" aria-busy={loading}>
+        <div className="analytics-page mobile-page-content workspace-home-brand mx-auto w-full min-w-0 max-w-6xl space-y-4 sm:space-y-5" aria-busy={loading}>
             {loading && <p role="status" className="text-xs text-muted-foreground">Updating analytics…</p>}
             {error && <p role="alert" className="text-sm text-muted-foreground">{error}. Showing the last loaded report. <button className="text-primary underline" onClick={() => fetchAnalytics(orgId, true)}>Retry</button></p>}
 
 
-            <header className="mobile-page-header flex flex-wrap items-center justify-between gap-3 pb-1 sm:gap-4 sm:pb-2">
-                <h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-3xl">Analytics</h1>
+            <header className="workspace-section-header flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 sm:pb-4">
+                <div className="min-w-0"><h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-3xl">Analytics</h1><p className="mt-1 text-sm text-muted-foreground">Team mood and participation</p></div>
                 <div className="md:hidden"><AnalyticsRangePicker orgId={orgId} /></div>
             </header>
 
-            <section aria-label="Team overview" className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]">
-                <article aria-label={analytics.totalLogs ? `Team Temperature: ${gaugeValue ?? 0}% of check-ins were Happy or Excited.` : "Team Temperature: no check-ins in this period"} className="relative col-span-2 min-h-28 min-w-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/[0.045] p-3 sm:min-h-36 sm:p-5 lg:col-span-1">
-                    {temperatureWavePath && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full text-primary" viewBox="0 0 320 160" preserveAspectRatio="none">
-                        <path d={`M ${temperaturePlotStartX} 160 H 320`} fill="none" stroke="currentColor" strokeOpacity="0.08" strokeWidth="1" />
-                        {temperatureAreaPath && <path d={temperatureAreaPath} fill="currentColor" fillOpacity="0.03" />}
-                        <path d={temperatureWavePath} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" strokeLinecap="round" />
-                        <path d={reliableWavePath} fill="none" stroke="currentColor" strokeOpacity="0.42" strokeWidth="2.5" strokeLinecap="round" />
-                    </svg>}
-                    <div className="relative z-10">
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium leading-5 text-foreground">Team Temperature</p>
-                            <p className="mt-1 text-2xl font-semibold leading-none tracking-tight text-foreground tabular-nums sm:text-3xl">
-                                {analytics.totalLogs ? `${gaugeValue ?? 0}%` : "—"}
-                            </p>
-                            <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">{analytics.totalLogs ? "of check-ins were Happy or Excited" : "No check-ins in this period."}</p>
-                        </div>
-                    </div>
-                    {temperatureWavePath && <span className="sr-only" role="img" aria-label={trend.granularity === "day"
-                        ? "Team temperature uses a rolling window of up to seven days, plotted daily. Low-volume windows are muted; windows without check-ins are omitted."
-                        : `${trendUnit} team temperature trend. Periods with fewer than ${trend.granularity === "week" ? 4 : 8} check-ins are omitted.`} />}
-                </article>
+            <section aria-label="Team overview" className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                <TeamTemperatureCard items={moodDistribution.map(item => ({ key: item.mood, label: item.name, color: item.color, value: item.value }))} total={analytics.totalLogs} />
 
                 <article className="min-w-0 rounded-2xl border border-border bg-card p-3 sm:p-5">
                     <p className="text-sm font-medium leading-5 text-foreground">Participation</p>

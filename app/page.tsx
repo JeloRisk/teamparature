@@ -6,7 +6,7 @@ import { ArrowRight, CalendarDays, Info, MessagesSquare, ShieldCheck, Smile, Use
 import BrandLockup from "@/app/components/BrandLockup"
 import MoodIcon, { type MoodName } from "@/app/components/MoodIcon"
 import PublicHeader from "@/app/components/PublicHeader"
-import PublicMoodOrbit from "@/app/components/PublicMoodOrbit"
+import MoodOrbit from "@/app/components/MoodOrbit"
 import { Button } from "@/app/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -124,7 +124,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                         <div id="features" className="min-w-0">
-                            <PublicMoodOrbit mood={mood} className="h-[clamp(10.5rem,34vw,21rem)] rounded-none bg-transparent" />
+                            <MoodOrbit mood={mood} className="h-[clamp(10.5rem,34vw,21rem)] rounded-none bg-transparent" />
                             <MoodChoices mood={mood} onMoodChange={setMood} name="orbit-mood" compact />
                         </div>
                     </div>
@@ -172,7 +172,7 @@ export default function LandingPage() {
                     </section>
 
                     <section aria-labelledby="get-started-heading" className="mb-9 grid min-w-0 items-center gap-3 rounded-2xl border border-primary/15 bg-accent px-5 pt-4 pb-8 text-center sm:px-8 md:mb-14 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] md:gap-6 md:px-10 md:py-9 md:text-left lg:px-14 lg:py-10">
-                        <PublicMoodOrbit mood={mood} className="mx-auto h-28 w-full max-w-64 rounded-none bg-transparent md:order-last md:h-52 md:max-w-80 lg:h-56" />
+                        <MoodOrbit mood={mood} className="mx-auto h-28 w-full max-w-64 rounded-none bg-transparent md:order-last md:h-52 md:max-w-80 lg:h-56" />
                         <div className="min-w-0">
                             <h2 id="get-started-heading" className="mx-auto max-w-[19ch] text-balance text-3xl leading-tight md:mx-0 md:text-4xl lg:text-[2.75rem]">A better team conversation starts with <span className="text-primary">a check-in.</span></h2>
                             <p className="mx-auto mt-3 max-w-[43ch] text-pretty text-sm leading-6 text-muted-foreground md:mx-0 md:text-base">Create a workspace, invite your teammates, and give everyone a moment to share how they feel.</p>

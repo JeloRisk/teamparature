@@ -146,14 +146,14 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
         </TableHead>
     }
 
-    return <div className="dashboard-reference-theme workspace-page-surface mobile-page activity-page -m-4 min-w-0 flex-1 px-4 py-4 sm:py-7 md:-mx-10 md:px-10">
+    return <div className="dashboard-reference-theme workspace-page-surface workspace-home-brand mobile-page activity-page -m-4 min-w-0 flex-1 px-4 py-4 sm:py-7 md:-mx-10 md:px-10">
     <div className="mobile-page-content mx-auto min-w-0 max-w-6xl space-y-4 sm:space-y-5">
-        <header className="mobile-page-header flex items-center justify-between gap-3 sm:gap-4">
+        <header className="workspace-section-header flex items-center justify-between gap-3 border-b border-border pb-3 sm:pb-4">
             <div className="min-w-0">
                 <h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-3xl">Activity history</h1>
-                <p className="mt-1.5 hidden max-w-2xl text-sm text-muted-foreground sm:block">A record of invitations, membership changes, and workspace updates.</p>
+                <p className="mt-1.5 hidden max-w-2xl text-sm text-muted-foreground sm:block">Invitations, member changes, and workspace updates.</p>
             </div>
-            <Button variant="outline" aria-label="Refresh activity" className="h-11 shrink-0 rounded-xl border-border bg-card px-3" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw aria-hidden="true" className={`size-4 ${loading ? "motion-safe:animate-spin" : ""}`} />Refresh</Button>
+            <Button variant="outline" aria-label="Refresh activity" className="size-11 shrink-0 rounded-xl border-border bg-card p-0 sm:w-auto sm:px-3" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw aria-hidden="true" className={`size-4 ${loading ? "motion-safe:animate-spin" : ""}`} /><span className="hidden sm:inline">Refresh</span></Button>
         </header>
         <section aria-label="Activity filters" className="@container sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-4">
             <div className="grid min-w-0 gap-3 sm:grid-cols-2 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,0.85fr)]">
@@ -232,9 +232,9 @@ export default function ActivityView({ orgId, timezone }: { orgId: string; timez
                 {loading ? <p role="status" className="px-4 py-8 text-center text-sm text-muted-foreground">Loading activity history…</p>
                 : error ? <div className="px-4 py-8 text-center"><p role="alert" className="text-sm">{error}</p><Button variant="outline" className="mt-3 rounded-xl" onClick={() => setRevision(value => value + 1)}>Retry</Button></div>
                 : activityGroups.length ? activityGroups.map(group => <section key={group.key} aria-label={group.label} className="border-b border-border last:border-b-0">
-                    <h3 className="border-b border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-muted-foreground sm:px-4">{group.label}</h3>
+                    <h3 className="border-b border-border bg-muted/50 px-4 py-2 text-xs font-semibold tracking-wide text-foreground sm:px-5">{group.label}</h3>
                     <div className="divide-y divide-border">
-                        {group.entries.map(entry => <article key={entry._id} className="space-y-2 px-3 py-3 sm:px-4 sm:py-4">
+                        {group.entries.map(entry => <article key={entry._id} className="space-y-1.5 px-4 py-3 sm:px-5 sm:py-3.5">
                             <div className="flex min-w-0 items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="break-words text-sm font-semibold leading-5 text-foreground"><ActionLabel action={entry.action} /></p>

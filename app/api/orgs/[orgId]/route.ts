@@ -42,9 +42,12 @@ export async function GET(
         }
 
         // ✅ Fetch all members of the org
-        const memberships = membership.role === "owner" ? await Membership.find({ organization: orgId })
-            .populate("user", "firstName lastName name email image") // include more fields
-            .lean() : []
+        const memberships = await Membership.find({
+            organization: orgId,
+            ...(membership.role === "owner" ? {} : { isActive: true }),
+        })
+            .populate("user", "firstName lastName name email image")
+            .lean()
 
         return NextResponse.json({
             invitations: [],

@@ -4,7 +4,7 @@ import MoodIcon from "@/app/components/MoodIcon"
 import { Check } from "lucide-react"
 import { useState } from "react"
 import { useMoodStore } from "@/app/stores/useMoodStore"
-import CheckInConfirmation from "./CheckInConfirmation"
+import DailyCheckInPanel, { checkInMoods, MoodTile } from "./DailyCheckInPanel"
 
 import {
     Dialog,
@@ -15,14 +15,6 @@ import {
 } from "@/app/components/ui/dialog"
 
 type AllowedMood = "happy" | "neutral" | "sad" | "stressed" | "excited"
-
-const quickMoods: { value: AllowedMood; label: string }[] = [
-    { value: "happy", label: "Happy" },
-    { value: "excited", label: "Excited" },
-    { value: "neutral", label: "Neutral" },
-    { value: "sad", label: "Sad" },
-    { value: "stressed", label: "Stressed" },
-]
 
 export default function MoodCheck({ orgId, compact = false }: { orgId: string; compact?: boolean }) {
     const summary = useMoodStore(state => state.orgId === orgId ? state.summary : null)
@@ -67,53 +59,53 @@ export default function MoodCheck({ orgId, compact = false }: { orgId: string; c
         }
     }
 
+    if (compact) {
+        return (
+            <DailyCheckInPanel summary={summary} previewMood={pendingMood ?? undefined} instruction={summary ? "Choose a mood to check in." : undefined}>
+                {summary && !summary.checkedInToday && <div className="space-y-2">
+                    <div className="grid grid-cols-5 gap-1 @xs/checkin:gap-1.5 @md/checkin:gap-2" role="group" aria-label="Choose your mood">
+                        {checkInMoods.map(option => (
+                            <button
+                                key={option.value}
+                                type="button"
+                                disabled={pendingMood !== null}
+                                onClick={() => handleQuickSubmit(option.value)}
+                                aria-label={`Check in as ${option.label}`}
+                                className="group min-w-0 touch-manipulation rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait"
+                            >
+                                <MoodTile option={option} selected={pendingMood === option.value} />
+                            </button>
+                        ))}
+                    </div>
+                    {pendingMood && <p className="text-sm text-muted-foreground" role="status">Saving your check-in…</p>}
+                    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+                </div>}
+            </DailyCheckInPanel>
+        )
+    }
+
     return (
-        <div className={compact ? "flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8" : "relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground"}>
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 text-foreground">
 
             {/* glow effects */}
-            <div className={`${compact ? "hidden" : ""} absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl`} />
-            {!compact && <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />}
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 dark:bg-card/10 blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-2xl" />
 
             {/* HEADER */}
-            {!(compact && summary?.checkedInToday) && <div className="relative flex items-start justify-between gap-4">
-                <div>
-                    <h2 className={compact ? "text-xl font-semibold leading-6 tracking-tight sm:text-2xl" : "mt-1 text-xl font-semibold leading-tight"}>
-                        {compact ? "How are you feeling today?" : "How are you feeling?"}
-                    </h2>
-                    {compact && <p className="mt-1.5 text-sm leading-5 text-muted-foreground">Choose a mood to check in.</p>}
-                </div>
-
-                {!compact && <MoodIcon mood="happy" className="size-11" />}
-            </div>}
+            <div className="relative flex items-start justify-between gap-4">
+                <h2 className="mt-1 text-xl font-semibold leading-tight">How are you feeling?</h2>
+                <MoodIcon mood="happy" className="size-11" />
+            </div>
 
             {/* CONTENT */}
-            <div className={compact ? "w-full min-w-0 lg:max-w-2xl lg:flex-1" : "mt-4"}>
+            <div className="mt-4">
 
                 {summary?.checkedInToday ? (
-                    compact ? (
-                        <CheckInConfirmation checkIn={summary.ownCheckIn} timezone={summary.timezone} />
-                    ) : <div role="status" className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3 text-sm text-foreground">
+                    <div role="status" className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--mood-excited-soft)] px-3.5 py-3 text-sm text-foreground">
                         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mood-excited)_18%,var(--card))] text-[var(--mood-excited)]">
                             <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />
                         </span>
                         <p className="font-medium leading-5">Your check-in is saved. See you tomorrow.</p>
-                    </div>
-                ) : compact ? (
-                    <div className="space-y-3">
-                        <div className="grid grid-cols-5 gap-1 min-[360px]:gap-1.5 sm:gap-2" role="group" aria-label="Choose your mood">
-                            {quickMoods.map(({ value, label }) => (
-                                <button key={value} type="button" disabled={pendingMood !== null}
-                                    onClick={() => handleQuickSubmit(value)}
-                                    aria-label={`Check in as ${label}`}
-                                    data-saving={pendingMood === value}
-                                    className={`group flex min-h-20 min-w-0 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-2 transition-colors enabled:hover:border-primary/40 enabled:hover:bg-muted enabled:active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[saving=true]:border-primary data-[saving=true]:bg-accent min-[360px]:px-0.5 sm:min-h-24 sm:px-1.5 ${pendingMood && pendingMood !== value ? "opacity-60" : ""}`}>
-                                    <MoodIcon mood={value} variant="mobile" className="size-10 shrink-0 motion-safe:transition-transform motion-safe:group-active:scale-90 sm:size-12" />
-                                    <span className="max-w-full break-words text-center text-[10px] font-medium leading-4 text-foreground min-[360px]:text-[11px] sm:text-sm">{label}</span>
-                                </button>
-                            ))}
-                        </div>
-                        {pendingMood && <p className="text-center text-sm text-muted-foreground" role="status">Saving your check-in…</p>}
-                        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                     </div>
                 ) : (
 <Dialog open={open} onOpenChange={setOpen}>

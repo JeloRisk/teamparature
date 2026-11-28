@@ -4,10 +4,12 @@ import { create } from "zustand"
 type Mood = "happy" | "neutral" | "sad" | "stressed" | "excited"
 type Trend = Record<Mood, number> & { day: string }
 export type OwnCheckIn = { mood: Mood; date: string }
+export type OwnRecentCheckIn = OwnCheckIn & { rank: number }
 
-interface Summary {
+export interface MoodSummary {
     checkedInToday: boolean
     ownCheckIn?: OwnCheckIn | null
+    ownRecentCheckIns?: OwnRecentCheckIn[]
     timezone?: string
     trend?: Trend[]
     participantsToday?: number
@@ -16,7 +18,7 @@ interface Summary {
 }
 
 interface MoodState {
-    summary: Summary | null
+    summary: MoodSummary | null
     orgId: string | null
     error: string | null
     fetchSummary: (orgId: string) => Promise<void>
@@ -37,7 +39,7 @@ export const useMoodStore = create<MoodState>((set, get) => ({
         try {
             const res = await fetch(`/api/orgs/${orgId}/moods`)
             if (!res.ok) throw new Error("Could not load mood summary")
-            const summary: Summary = await res.json()
+            const summary: MoodSummary = await res.json()
             if (get().orgId === orgId) set({ summary })
         } catch {
             if (get().orgId === orgId) set({ error: "Could not load mood summary" })

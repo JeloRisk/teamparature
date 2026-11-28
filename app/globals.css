@@ -149,6 +149,30 @@
   color-scheme: light;
 }
 
+.public-brand,
+.workspace-home-brand {
+  --primary: #3d4ad6;
+  --accent: #eef0fc;
+  --ring: var(--primary);
+}
+
+.workspace-home-brand {
+  --accent-foreground: var(--primary);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--primary);
+  --sidebar-ring: var(--ring);
+}
+
+.dark .workspace-home-brand {
+  --primary: #b6bdff;
+  --primary-foreground: #171d47;
+  --accent: #2c3151;
+}
+
+.workspace-home-brand .brand-wordmark {
+  color: var(--primary);
+}
+
 .public-brand {
   --background: #fff;
   --foreground: #202638;
@@ -158,10 +182,7 @@
   --input: #8993a4;
   --muted: #f5f7fb;
   --muted-foreground: #576275;
-  --accent: #eef0fc;
-  --primary: #3d4ad6;
   --primary-foreground: #fff;
-  --ring: #3d4ad6;
 }
 
 .public-brand ::selection {

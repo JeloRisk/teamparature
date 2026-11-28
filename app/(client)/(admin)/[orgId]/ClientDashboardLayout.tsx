@@ -206,9 +206,10 @@ function DashboardContent({ children }: { children: ReactNode }) {
 }
 
 export default function ClientDashboardLayout({ children, workspace, sidebarDefaultOpen }: { children: ReactNode; workspace: Workspace; sidebarDefaultOpen: boolean }) {
+    const isHome = usePathname() === `/${workspace.organization._id}`
     return (
         <WorkspaceContext.Provider value={workspace}>
-            <SidebarProvider defaultOpen={sidebarDefaultOpen}>
+            <SidebarProvider defaultOpen={sidebarDefaultOpen} className={isHome ? "workspace-home-brand" : undefined}>
                 <DashboardContent>{children}</DashboardContent>
             </SidebarProvider>
         </WorkspaceContext.Provider>

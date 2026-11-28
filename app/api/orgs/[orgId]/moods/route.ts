@@ -36,8 +36,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
         .lean()
 
     if (membership.role !== "owner") {
-        const ownCheckIn = await checkInQuery
-        return NextResponse.json({ checkedInToday: Boolean(ownCheckIn), ownCheckIn, timezone })
+        const [ownCheckIn, ownRecentCheckIns] = await Promise.all([
+            checkInQuery,
+            Mood.find({ organization, user, date: { $gte: days[0], $lt: days[7] } })
+                .sort({ date: 1 })
+                .select("mood date rank -_id")
+                .lean(),
+        ])
+        return NextResponse.json({ checkedInToday: Boolean(ownCheckIn), ownCheckIn, ownRecentCheckIns, timezone })
     }
 
     const [ownCheckIn, counts, participantsToday, activeMemberIds, weeklyParticipantIds] = await Promise.all([

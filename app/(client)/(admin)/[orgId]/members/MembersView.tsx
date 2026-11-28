@@ -82,6 +82,10 @@ export default function MembersPage() {
     }, [])
 
     useEffect(() => {
+        if (role !== "owner") {
+            setListLoading(false)
+            return
+        }
         const controller = new AbortController()
         const timer = setTimeout(async () => {
             setListLoading(true)
@@ -104,7 +108,7 @@ export default function MembersPage() {
             }
         }, 250)
         return () => { clearTimeout(timer); controller.abort() }
-    }, [orgId, page, statusFilter, roleFilter, search, revision, now])
+    }, [orgId, role, page, statusFilter, roleFilter, search, revision, now])
 
     async function resend(invite: OrgInvitation) {
         if (resending) return
@@ -203,16 +207,16 @@ export default function MembersPage() {
     if (!organization) return <p>No organization found</p>
 
     return (
-        <div className="dashboard-reference-theme workspace-page-surface mobile-page members-page -m-4 min-w-0 flex-1 px-4 py-5 md:-mx-10 md:px-10 sm:py-8">
-        <div className="mobile-page-content mx-auto min-w-0 max-w-7xl space-y-5 sm:space-y-7">
+        <div className="dashboard-reference-theme workspace-page-surface workspace-home-brand mobile-page members-page -m-4 min-w-0 flex-1 px-4 py-5 md:-mx-10 md:px-10 sm:py-8">
+        <div className="mobile-page-content mx-auto min-w-0 max-w-6xl space-y-4 sm:space-y-5">
             {/* header */}
-            <header className="mobile-page-header flex flex-wrap items-center justify-between gap-3 pb-1 sm:border-b sm:border-border sm:pb-5">
+            <header className="workspace-section-header flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 sm:pb-4">
                 <div className="hidden sm:block">
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Members</h1>
                     <p className="mt-1.5 text-base sm:text-sm text-muted-foreground">{organization.name}</p>
                 </div>
                 <div className="min-w-0 flex-1 sm:hidden">
-                    <h1 className="break-words text-xl font-semibold leading-6">{organization.name}</h1>
+                    <h1 className="break-words text-xl font-semibold leading-6">Members</h1>
                 </div>
 
                 {/* invite dialog only for owners */}
@@ -263,8 +267,8 @@ export default function MembersPage() {
                 )}
             </header>
 
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div role="tablist" aria-label="Workspace people" className="grid w-full grid-cols-2 shrink-0 gap-1 rounded-xl bg-muted p-1 sm:flex sm:w-fit">
+            {role === "owner" && <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div role="tablist" aria-label="Workspace people" className="grid w-full grid-cols-2 shrink-0 border-b border-border sm:flex sm:w-fit">
                 {(["members", "invitations"] as const).map(item => (
                     <button key={item} role="tab" id={item + "-tab"} aria-selected={tab === item}
                         tabIndex={tab === item ? 0 : -1}
@@ -281,7 +285,7 @@ export default function MembersPage() {
                             changeTab(nextTab.id.replace("-tab", "") as "members" | "invitations")
                             nextTab.focus()
                         }}
-                        className={`min-h-11 min-w-0 touch-manipulation whitespace-nowrap rounded-lg px-3 py-2 text-sm capitalize transition-colors focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "bg-card font-semibold text-foreground shadow-sm" : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground active:bg-accent"}`}>
+                        className={`min-h-11 min-w-0 touch-manipulation whitespace-nowrap border-b-2 px-4 py-2 text-sm capitalize transition-colors focus-visible:ring-2 focus-visible:ring-ring ${tab === item ? "border-primary font-semibold text-primary" : "border-transparent font-medium text-muted-foreground hover:bg-muted hover:text-foreground active:bg-accent"}`}>
                         <span>{item}</span>
                         {item === "invitations" && pendingCount > 0 && <span aria-label={`${pendingCount} pending`} className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium tabular-nums text-primary">{pendingCount}</span>}
                     </button>
@@ -340,7 +344,7 @@ export default function MembersPage() {
                 </div>
 
             </div>
-            </div>
+            </div>}
 
             {notice && <p role="status" className="rounded-xl bg-accent p-3 text-base sm:text-sm text-accent-foreground">{notice}</p>}
             {resendError && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{resendError}</p>}
@@ -459,9 +463,9 @@ export default function MembersPage() {
                             </div>
                             <div className="flex shrink-0 items-center gap-0.5">
                                 <Badge variant="outline" className={roleBadge(m.role)}>{m.role}</Badge>
-                                {m.user && m.isActive !== false && <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive />}
+                                {role === "owner" && m.user && m.isActive !== false && <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive />}
                             </div>
-                            {m.isActive === false && <div className="col-span-2 flex items-center justify-between gap-2 border-t border-border pt-2"><span className="text-sm sm:text-xs text-muted-foreground">Removed</span>{m.user && <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={false} />}</div>}
+                            {role === "owner" && m.isActive === false && <div className="col-span-2 flex items-center justify-between gap-2 border-t border-border pt-2"><span className="text-sm sm:text-xs text-muted-foreground">Removed</span>{m.user && <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={false} />}</div>}
                         </div>
                     ))}
                     {filteredMembers.length === 0 && (
@@ -503,7 +507,7 @@ export default function MembersPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell><Badge variant="outline" className={m.isActive === false ? "border-border bg-muted text-muted-foreground" : "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"}>{m.isActive === false ? "Removed" : "Active"}</Badge></TableCell>
-                                    <TableCell className="pr-4 text-right">{m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : <span className="text-sm sm:text-xs text-muted-foreground">Account unavailable</span>}</TableCell>
+                                    <TableCell className="pr-4 text-right">{role === "owner" && m.user ? <MemberActions orgId={orgId} id={m._id} role={m.role} email={m.user.email} isActive={m.isActive !== false} /> : m.user ? null : <span className="text-sm sm:text-xs text-muted-foreground">Account unavailable</span>}</TableCell>
                                 </TableRow>
                             ))}
                         {filteredMembers.length === 0 && (

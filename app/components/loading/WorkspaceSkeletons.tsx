@@ -1,4 +1,3 @@
-import { Thermometer } from "lucide-react"
 import { Skeleton } from "@/app/components/ui/skeleton"
 import { TableCell, TableRow } from "@/app/components/ui/table"
 
@@ -38,19 +37,33 @@ export function CheckInSkeleton() {
 }
 
 export function DashboardSkeleton() {
-    return <div role="status" aria-label="Loading workspace dashboard" className="max-w-7xl space-y-5 py-3">
-        <Heading />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[0.85fr_1.35fr_1fr]">
-            <div className={`${card} flex flex-col justify-between gap-6 md:col-span-2 xl:col-span-1`}><div className="space-y-3"><Skeleton className="h-3 w-28" /><Skeleton className="h-5 w-40" /><Skeleton className="h-3 w-full" /></div><Skeleton className="h-11 w-full rounded-xl" /></div>
-            <div className={`${card} space-y-4 bg-gradient-to-br from-card to-accent/50`}>
-                <div className="flex items-center gap-2"><Thermometer className="size-5 text-primary/60" aria-hidden="true" /><Skeleton className="h-4 w-36" /></div>
-                <Skeleton className="h-12 w-32" /><Skeleton className="h-3 w-3/4" />
+    const panel = "min-w-0 rounded-2xl border border-border bg-card p-4 @md/home:p-5"
+    return <div role="status" aria-label="Loading workspace dashboard" className="@container/home mx-auto w-full min-w-0 max-w-6xl space-y-5 py-1 sm:space-y-6 sm:py-3">
+        <div className="rounded-2xl border border-primary/15 bg-accent/60 p-4 @md/home:p-5 @2xl/home:px-8 @2xl/home:py-6">
+            <div className="max-w-xl space-y-3">
+                <Skeleton className="h-3 w-28 bg-primary/10" />
+                <Skeleton className="h-8 w-2/3 bg-primary/10" />
+                <Skeleton className="h-4 w-40 bg-primary/10" />
+                <div className="grid grid-cols-5 gap-1.5 pt-1">
+                    {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl bg-card" />)}
+                </div>
             </div>
-            <div className={`${card} space-y-5`}><Skeleton className="h-4 w-32" /><Skeleton className="h-10 w-44" /><Skeleton className="h-2 w-full" /><Skeleton className="h-3 w-24" /></div>
         </div>
-        <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-            <div className={card}><ChartSkeleton /></div>
-            <div className={`${card} space-y-5`}><Skeleton className="h-4 w-36" />{Array.from({ length: 5 }, (_, i) => <div key={i} className="flex items-center gap-3"><Skeleton className="size-9 shrink-0 rounded-full" /><Skeleton className="h-5 flex-1 rounded-full" /></div>)}</div>
+        <div className="space-y-3">
+            <Skeleton className="h-6 w-36" />
+            <div className="grid grid-cols-2 gap-3 @md/home:gap-4 @3xl/home:grid-cols-[1.25fr_1fr_1fr_1fr]">
+                <div className={`${panel} col-span-2 space-y-3`}>
+                    <Skeleton className="h-4 w-24 max-w-full" /><Skeleton className="h-8 w-16" /><Skeleton className="h-6 w-full" />
+                </div>
+                {[2, 3].map(i => <div key={i} className={`${panel} space-y-3`}><Skeleton className="h-4 w-24 max-w-full" /><Skeleton className="h-8 w-16" /><Skeleton className="h-3 w-full" /></div>)}
+            </div>
+        </div>
+        <div className="grid gap-3 @3xl/home:grid-cols-[1.35fr_1fr]">
+            <div className={panel}><ChartSkeleton /></div>
+            <div className={`${panel} space-y-4`}>
+                <Skeleton className="h-5 w-32" />
+                {[0, 1, 2].map(i => <div key={i} className="space-y-2 border-t pt-3"><Skeleton className="h-3 w-2/3" /><Skeleton className="h-3 w-1/2" /></div>)}
+            </div>
         </div>
     </div>
 }

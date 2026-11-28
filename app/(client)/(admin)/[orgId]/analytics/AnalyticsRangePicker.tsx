@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarDays, Check, ChevronDown } from "lucide-react"
+import { CalendarDays, Check, ChevronDown, X } from "lucide-react"
 import { useMoodAnalyticsStore } from "@/app/stores/useMoodAnalyticsStore"
 
 function dateInZone(value: string, timezone: string) {
@@ -32,6 +32,7 @@ function formatDateRange(startValue: string, endValue: string, timezone: string)
 
 export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
     const { analytics, selectedRange, fetchAnalytics } = useMoodAnalyticsStore()
+    const [menuOpen, setMenuOpen] = useState(false)
     const [customOpen, setCustomOpen] = useState(false)
     const [from, setFrom] = useState(selectedRange.from ?? "")
     const [to, setTo] = useState(selectedRange.to ?? "")
@@ -61,58 +62,54 @@ export default function AnalyticsRangePicker({ orgId }: { orgId: string }) {
         setCustomOpen(true)
     }
 
-    return <div className="relative flex flex-wrap items-center gap-2">
-        <div className="relative">
-        <label className="sr-only" htmlFor="analytics-period">Analytics period</label>
-        <select id="analytics-period" aria-label="Analytics period" value={preset} onChange={event => {
-            const value = event.target.value
-            if (value === "custom") {
-                openCustomRange()
-                return
-            }
-            setCustomOpen(false)
-            fetchAnalytics(orgId, true, { ...selectedRange, days: Number(value), from: undefined, to: undefined })
-        }} className="h-10 max-w-36 appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-w-44">
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="custom">Custom dates</option>
-        </select>
-        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        </div>
-        {preset === "custom" && <button type="button" onClick={openCustomRange} aria-label={currentRange ? `Edit custom date range, ${currentRange}` : "Edit custom date range"} title={currentRange ? `Edit custom date range: ${currentRange}` : "Edit custom date range"} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-            <CalendarDays aria-hidden="true" className="size-4" />
-            {currentRange && <span className="hidden max-w-[15rem] truncate xl:inline">{currentRange}</span>}
-        </button>}
+    const periodLabel = preset === "custom" ? currentRange || "Custom range" : `Last ${preset} days`
 
-        {customOpen && <div className="absolute right-0 top-full z-[60] mt-2 w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xl">
-            <div className="mb-3">
-                <p className="text-sm font-semibold">Custom date range</p>
-                <p className="mt-1 text-xs text-muted-foreground">Up to five years · {analytics.timezone}</p>
+    return <div className="relative flex flex-wrap items-center gap-2">
+        <button type="button" aria-label={`Analytics date range: ${periodLabel}`} aria-expanded={menuOpen || customOpen} onClick={() => { setCustomOpen(false); setMenuOpen(value => !value) }} className="inline-flex h-11 min-w-36 items-center justify-between gap-3 rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:min-w-44">
+            <span className="flex min-w-0 items-center gap-2"><CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" /><span className="truncate">{periodLabel}</span></span>
+            <ChevronDown aria-hidden="true" className={`size-4 shrink-0 text-muted-foreground transition-transform ${menuOpen || customOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {menuOpen && <div className="absolute right-0 top-full z-[60] mt-2 w-56 rounded-2xl border border-border bg-card p-2 text-card-foreground shadow-xl" role="group" aria-label="Analytics date range">
+            <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reporting period</p>
+            {[7, 14, 30, 90].map(days => <button key={days} type="button" onClick={() => { fetchAnalytics(orgId, true, { ...selectedRange, days, from: undefined, to: undefined }); setMenuOpen(false) }} className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring ${preset === String(days) ? "bg-accent font-semibold text-accent-foreground" : "text-foreground"}`}>
+                Last {days} days{preset === String(days) && <Check className="size-4 text-primary" aria-hidden="true" />}
+            </button>)}
+            <div className="my-2 border-t border-border" />
+            <button type="button" onClick={() => { setMenuOpen(false); openCustomRange() }} className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"><CalendarDays className="size-4 text-primary" aria-hidden="true" />Choose dates</button>
+        </div>}
+
+        {customOpen && <>
+        <button type="button" aria-label="Close date range picker" onClick={() => setCustomOpen(false)} className="fixed inset-0 z-[59] bg-foreground/35 backdrop-blur-[1px] sm:bg-transparent sm:backdrop-blur-none" />
+        <section aria-label="Choose analytics date range" className="fixed inset-x-0 bottom-0 z-[60] mx-auto w-full max-w-md rounded-t-[1.75rem] border border-border bg-card pb-[calc(1rem+env(safe-area-inset-bottom))] text-card-foreground shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:rounded-2xl sm:border sm:pb-4 sm:w-[min(26rem,calc(100vw-1.5rem))]">
+            <div className="flex justify-center pt-2 sm:hidden"><span aria-hidden="true" className="h-1 w-11 rounded-full bg-muted-foreground/30" /></div>
+            <div className="mb-4 flex items-start justify-between gap-3 border-b border-border px-5 pb-4 pt-4 sm:px-4 sm:pt-4">
+                <div><p className="text-base font-semibold">Choose dates</p><p className="mt-1 text-sm text-muted-foreground">{rangeIsOrdered ? `${rangeDays.toLocaleString()} days · ${formatDateRange(`${from}T00:00:00Z`, `${new Date(Date.parse(`${to}T00:00:00Z`) + 86400000).toISOString().slice(0, 10)}T00:00:00Z`, analytics.timezone)}` : "Set a start and end date"}</p></div>
+                <button type="button" aria-label="Close" onClick={() => setCustomOpen(false)} className="-mr-2 -mt-2 grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><X className="size-5" /></button>
             </div>
-            <div className="grid gap-3">
+            <div className="grid gap-4 px-5 sm:grid-cols-2 sm:px-4">
                 <label className="grid gap-1.5 text-xs font-medium text-muted-foreground">Start date
                     <span className="relative"><CalendarDays aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary" />
-                        <input type="date" value={from} min={minDate} max={endDate} onChange={event => setFrom(event.target.value)} className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm font-medium text-foreground" />
+                        <input type="date" value={from} min={minDate} max={endDate} onChange={event => setFrom(event.target.value)} className="h-12 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm font-medium text-foreground shadow-sm focus-visible:outline-2 focus-visible:outline-primary" />
                     </span>
                 </label>
                 <label className="grid gap-1.5 text-xs font-medium text-muted-foreground">End date
                     <span className="relative"><CalendarDays aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary" />
-                        <input type="date" value={to} min={minDate} max={endDate} onChange={event => setTo(event.target.value)} className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm font-medium text-foreground" />
+                        <input type="date" value={to} min={minDate} max={endDate} onChange={event => setTo(event.target.value)} className="h-12 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm font-medium text-foreground shadow-sm focus-visible:outline-2 focus-visible:outline-primary" />
                     </span>
                 </label>
             </div>
-            <p className={`mt-3 text-xs ${from && to && from > to ? "text-destructive" : "text-muted-foreground"}`}>{rangeHint}</p>
-            <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setCustomOpen(false)} className="min-h-11 rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">Cancel</button>
+            <p className={`px-5 pt-3 text-xs ${from && to && from > to ? "text-destructive" : "text-muted-foreground"}`}>{rangeHint} · Up to five years</p>
+            <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border px-5 pt-4 sm:px-4">
+                <button type="button" onClick={() => { setFrom(""); setTo(""); fetchAnalytics(orgId, true, { ...selectedRange, days: 14, from: undefined, to: undefined }); setCustomOpen(false) }} className="min-h-12 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">Reset</button>
                 <button type="button" disabled={!from || !to || from > to || to > endDate || rangeDays > 1826}
                     onClick={() => {
                         fetchAnalytics(orgId, true, { from, to, year: selectedRange.year })
                         setCustomOpen(false)
                     }}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Apply</button>
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Apply filters</button>
             </div>
-        </div>}
+        </section>
+        </>}
     </div>
 }
